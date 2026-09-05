@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
+import { Top5Leaderboard } from './Top5Leaderboard';
 
 interface ConductQuizTrainerControlProps {
   quizCode: string;
@@ -94,6 +95,17 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
 
   const totalAns = liveStats.answeredCount || 0;
   const correctPct = totalAns > 0 ? Math.round((liveStats.correctCount / totalAns) * 100) : 0;
+
+  if (stage === 'SHOWING_RESULT') {
+    return (
+      <Top5Leaderboard
+        rankings={sessionData?.rankings || []}
+        currentQuestionIndex={sessionData?.currentQuestionIndex || 0}
+        totalQuestions={sessionData?.totalQuestions || 1}
+        sessionType={sessionData?.sessionType}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-8 space-y-6 max-w-6xl mx-auto w-full">

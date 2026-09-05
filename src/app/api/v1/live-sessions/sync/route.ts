@@ -34,27 +34,38 @@ export async function GET(req: NextRequest) {
     const questionTime = session.questionTime || 30;
     const now = Date.now();
 
-    // Auto question progression for Conduct & Live Quiz sessions
+    // Auto question progression and 5-second Top 5 Leaderboard display for Live & Conduct sessions
     if (
       (session.sessionType === 'CONDUCT' || session.sessionType === 'LIVE_GAME') &&
-      session.stage === 'QUESTION_ACTIVE' &&
       session.questionStartTimestamp
     ) {
-      const elapsedSeconds = (now - session.questionStartTimestamp) / 1000;
-      // Allow questionTime + 2 seconds transition
-      if (elapsedSeconds >= questionTime + 2) {
-        if (session.currentQuestionIndex < totalQuestions - 1) {
-          session.currentQuestionIndex = session.currentQuestionIndex + 1;
-          session.questionStartTimestamp = Date.now();
-          session.markModified('currentQuestionIndex');
-          session.markModified('questionStartTimestamp');
-          await session.save();
-        } else {
-          session.stage = 'FINAL_SCOREBOARD';
-          session.closedAt = new Date();
+      if (session.stage === 'QUESTION_ACTIVE') {
+        const elapsedSeconds = (now - session.questionStartTimestamp) / 1000;
+        if (elapsedSeconds >= questionTime + 1) {
+          session.stage = 'SHOWING_RESULT';
+          session.stageStartTimestamp = Date.now();
           session.markModified('stage');
-          session.markModified('closedAt');
+          session.markModified('stageStartTimestamp');
           await session.save();
+        }
+      } else if (session.stage === 'SHOWING_RESULT' && session.stageStartTimestamp) {
+        const elapsedLeaderboard = (now - session.stageStartTimestamp) / 1000;
+        if (elapsedLeaderboard >= 5) {
+          if (session.currentQuestionIndex < totalQuestions - 1) {
+            session.currentQuestionIndex = session.currentQuestionIndex + 1;
+            session.stage = 'QUESTION_ACTIVE';
+            session.questionStartTimestamp = Date.now();
+            session.markModified('currentQuestionIndex');
+            session.markModified('stage');
+            session.markModified('questionStartTimestamp');
+            await session.save();
+          } else {
+            session.stage = 'FINAL_SCOREBOARD';
+            session.closedAt = new Date();
+            session.markModified('stage');
+            session.markModified('closedAt');
+            await session.save();
+          }
         }
       }
     }

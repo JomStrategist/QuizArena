@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, CheckCircle2, XCircle, Loader2, Sparkles, AlertCircle, Award } from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
 import { ConductScoreboard } from './ConductScoreboard';
+import { Top5Leaderboard } from './Top5Leaderboard';
 
 interface ConductQuizStudentProps {
   quizCode: string;
@@ -162,7 +163,21 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
     );
   }
 
-  // Stage 2: Final Scoreboard or Closed
+  // Stage 2: Top 5 Leaderboard after each question
+  if (session.stage === 'SHOWING_RESULT') {
+    return (
+      <Top5Leaderboard
+        rankings={rankings}
+        currentQuestionIndex={session.currentQuestionIndex || 0}
+        totalQuestions={session.totalQuestions || 1}
+        userDisplayName={displayName}
+        userParticipantId={participantId}
+        sessionType={session.sessionType}
+      />
+    );
+  }
+
+  // Stage 3: Final Scoreboard or Closed
   if (session.stage === 'FINAL_SCOREBOARD' || session.stage === 'CLOSED') {
     return (
       <ConductScoreboard

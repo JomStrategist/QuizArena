@@ -16,6 +16,7 @@ export interface ILiveSessionDocument extends Document {
   quizSnapshot: any;
   questionStartTimestamp?: number;
   questionEndTimestamp?: number;
+  stageStartTimestamp?: number;
   participants: Record<string, any>;
   answers: Record<string, any>;
   closedAt?: Date;
@@ -43,6 +44,7 @@ const LiveSessionSchema = new Schema<ILiveSessionDocument>(
     quizSnapshot: { type: Schema.Types.Mixed, required: true },
     questionStartTimestamp: { type: Number },
     questionEndTimestamp: { type: Number },
+    stageStartTimestamp: { type: Number },
     participants: { type: Schema.Types.Mixed, default: {} },
     answers: { type: Schema.Types.Mixed, default: {} },
     closedAt: { type: Date },
