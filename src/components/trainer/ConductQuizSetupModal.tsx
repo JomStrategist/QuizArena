@@ -132,20 +132,20 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-slate-800 text-xs">
-          {/* Quiz Selector if multiple available */}
-          {!initialQuiz && quizzes.length > 0 && (
+          {/* Quiz Selector */}
+          {quizzes.length > 0 && (
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-                Select Quiz to Conduct
+                Select Quiz to Conduct:
               </label>
               <select
                 value={selectedQuizId}
                 onChange={(e) => setSelectedQuizId(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
               >
                 {quizzes.map((q) => (
                   <option key={q._id} value={q._id}>
-                    {q.title} ({q.questionIds?.length || 0} Questions)
+                    {q.title} ({q.questionIds?.length || 0} Questions) - {q.category}
                   </option>
                 ))}
               </select>

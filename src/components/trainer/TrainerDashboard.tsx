@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import {
   Plus,
@@ -24,6 +26,7 @@ import { ImportWizard } from './ImportWizard';
 import { QuizCreatorModal } from './QuizCreatorModal';
 import { AssignQuizModal } from './AssignQuizModal';
 import { ConductQuizSetupModal } from './ConductQuizSetupModal';
+import { LiveGameSetupModal } from './LiveGameSetupModal';
 
 interface TrainerDashboardProps {
   onStartLiveSession: (quizCode: string, quizTitle: string, questions: IQuestion[]) => void;
@@ -43,8 +46,23 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+
   const [isConductSetupOpen, setIsConductSetupOpen] = useState(false);
   const [selectedQuizForConduct, setSelectedQuizForConduct] = useState<IQuiz | null>(null);
+
+  const [isLiveSetupOpen, setIsLiveSetupOpen] = useState(false);
+  const [selectedQuizForLive, setSelectedQuizForLive] = useState<IQuiz | null>(null);
+
+  const handleOpenLiveSetup = (quiz?: IQuiz) => {
+    if (quiz) {
+      setSelectedQuizForLive(quiz);
+    } else if (quizzes.length > 0) {
+      setSelectedQuizForLive(quizzes[0]);
+    } else {
+      setSelectedQuizForLive(null);
+    }
+    setIsLiveSetupOpen(true);
+  };
 
   const { showToast } = useToast();
 
@@ -194,7 +212,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               <button
                 onClick={() => {
                   if (quizzes.length > 0) {
-                    handleLaunchLiveSession(quizzes[0]._id);
+                    handleOpenLiveSetup();
                   } else {
                     showToast('Please create or import a quiz first.', 'warning');
                   }
@@ -436,6 +454,13 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         onSessionCreated={(code, title, questionTime, quizSnapshot) => {
           onStartConductQuiz(code, title, questionTime, quizSnapshot);
         }}
+      />
+      <LiveGameSetupModal
+        isOpen={isLiveSetupOpen}
+        onClose={() => setIsLiveSetupOpen(false)}
+        quizzes={quizzes}
+        initialQuiz={selectedQuizForLive}
+        onLaunchLiveGame={(quizId) => handleLaunchLiveSession(quizId)}
       />
     </div>
   );

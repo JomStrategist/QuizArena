@@ -87,7 +87,7 @@ export default function PublicLandingPage() {
 
     setStudentLoading(true);
     showToast(`Joining Live Quiz Session #${quizCode}...`, 'info');
-    router.push(`/auth/student?code=${quizCode.trim()}&name=${encodeURIComponent(studentName.trim())}`);
+    router.push(`/quiz/join?code=${quizCode.trim()}&name=${encodeURIComponent(studentName.trim())}`);
   };
 
   return (
