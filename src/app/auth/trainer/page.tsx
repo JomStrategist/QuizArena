@@ -49,9 +49,9 @@ function TrainerLoginForm() {
     }
   };
 
-  const handleDemoLogin = () => {
-    setEmail('trainer@kvjanalytics.com');
-    setPassword('trainer123');
+  const handleAdminLogin = () => {
+    setEmail('mail@thestrategist.co.in');
+    setPassword('AjayThomas@1');
   };
 
   return (
@@ -87,7 +87,7 @@ function TrainerLoginForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="trainer@kvjanalytics.com"
+              placeholder="mail@thestrategist.co.in"
               className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
             />
           </div>
@@ -119,10 +119,10 @@ function TrainerLoginForm() {
 
       <div className="border-t border-slate-100 pt-4 text-center">
         <button
-          onClick={handleDemoLogin}
+          onClick={handleAdminLogin}
           className="text-xs font-bold text-blue-600 hover:text-blue-800 underline"
         >
-          Use Quick Demo Credentials (trainer@kvjanalytics.com)
+          Fill Admin Credentials (mail@thestrategist.co.in)
         </button>
       </div>
     </div>

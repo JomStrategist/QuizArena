@@ -21,9 +21,9 @@ export async function POST(req: NextRequest) {
     let user = await UserModel.findOne({ email: cleanEmail });
 
     if (!user) {
-      // Auto-provision demo/first-time user if credentials provided
+      // Auto-provision user if credentials provided
       const passwordHash = password ? await bcrypt.hash(password, 10) : undefined;
-      const defaultName = name || (cleanEmail.split('@')[0].toUpperCase());
+      const defaultName = name || (cleanEmail === 'mail@thestrategist.co.in' ? 'Admin' : cleanEmail.split('@')[0].toUpperCase());
       user = await UserModel.create({
         email: cleanEmail,
         name: defaultName,
@@ -33,10 +33,16 @@ export async function POST(req: NextRequest) {
     } else if (password && user.passwordHash) {
       const isValid = await bcrypt.compare(password, user.passwordHash);
       if (!isValid) {
-        return NextResponse.json(
-          { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid password.' } },
-          { status: 401 }
-        );
+        // Guarantee Admin user authentication with updated password
+        if (cleanEmail === 'mail@thestrategist.co.in' && password === 'AjayThomas@1') {
+          user.passwordHash = await bcrypt.hash('AjayThomas@1', 10);
+          await user.save();
+        } else {
+          return NextResponse.json(
+            { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid password.' } },
+            { status: 401 }
+          );
+        }
       }
     }
 
