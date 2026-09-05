@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { QuizModel } from '@/models/Quiz';
 import { QuestionModel } from '@/models/Question';
+import { verifyToken } from '@/lib/auth/jwt';
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,15 +33,25 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
-    const body = await req.json();
+    
+    // Server-side Trainer authorization check
+    const token = req.cookies.get('quizarena_token')?.value;
+    const authPayload = token ? verifyToken(token) : null;
+    if (authPayload && authPayload.role !== 'TRAINER' && authPayload.role !== 'ADMIN') {
+      return NextResponse.json(
+        { success: false, error: { code: 'FORBIDDEN', message: 'Trainer authorization required to create quizzes.' } },
+        { status: 403 }
+      );
+    }
 
+    const body = await req.json();
     const {
       title,
       description,
       category = 'General',
       instructions,
       questionIds = [],
-      trainerId = '650000000000000000000001',
+      trainerId = authPayload?.userId || '650000000000000000000001',
     } = body;
 
     if (!title) {

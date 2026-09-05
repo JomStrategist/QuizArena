@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI or Not? — Mini Activity</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Segoe UI,Arial,sans-serif;background:linear-gradient(135deg,#fff7ed 0%,#eef7ff 45%,#f5efff 100%);color:#20243a}
+body{overflow-x:hidden}
+.app{max-width:1120px;margin:auto;padding:22px 18px 40px}
+.hero,.panel,.final{background:rgba(255,255,255,.94);border:1px solid #e4dff5;border-radius:20px;box-shadow:0 12px 35px rgba(77,61,128,.12)}
+.hero{padding:24px;margin-bottom:14px;background:linear-gradient(135deg,#fff 0%,#fff4fb 50%,#eef8ff 100%)}
+.badge{display:inline-block;font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#7657d9;margin-bottom:4px}
+h1{font-size:32px;margin:4px 0 8px;color:#29358f}
+h2{font-size:23px;margin:0 0 8px;color:#3743a4}
+h3{font-size:14px;margin:0 0 6px}
+p{line-height:1.45}
+.intro{color:#5b6178;margin:6px 0}
+.note{margin-top:12px;padding:11px 14px;background:linear-gradient(135deg,#fff3d6,#ffe9f1);border:1px solid #f2cfa8;border-radius:10px;line-height:1.45;font-size:13px;color:#51445c}
+.panel{padding:20px}
+.actions{display:flex;gap:9px;margin-top:14px;flex-wrap:wrap}
+button{font:inherit;border:0;border-radius:10px;padding:10px 15px;font-weight:850;cursor:pointer;background:linear-gradient(135deg,#ff5f6d,#8457e8);color:white;box-shadow:0 5px 12px rgba(117,82,207,.2)}
+button.secondary{background:#eef3ff;color:#3e4d88;border:1px solid #ccd6f2;box-shadow:none}
+button:hover{filter:brightness(1.07);transform:translateY(-1px)}
+button:disabled{opacity:.45;cursor:not-allowed}
+#landing{text-align:center;padding:42px 25px}
+#landing .actions{justify-content:center}
+.topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:12px}
+.question-count{margin:12px 0 10px;font-size:13px;font-weight:900;color:#68708a;letter-spacing:.3px}
+.question-timer{min-width:105px;text-align:center;background:linear-gradient(135deg,#fff0f2,#fff7df);border:1px solid #f0c8a5;border-radius:12px;padding:7px 12px;transition:.2s ease}
+.question-timer .timer-label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#8b7080;font-weight:900}
+.question-timer .timer-number{display:inline-block;font-size:25px;line-height:1;font-weight:950;margin-top:3px;color:#d84b63}
+.question-timer .timer-unit{font-size:10px;font-weight:900;color:#8b7080;margin-left:2px}
+.timer-track{height:5px;background:#f1dce0;border-radius:999px;overflow:hidden;margin-top:6px}
+.timer-fill{height:100%;width:100%;background:linear-gradient(90deg,#ff7a59,#ff4f81);border-radius:999px;transition:width .25s linear}
+.question-timer.warning{border-color:#e6b84d;animation:timerPulse .75s ease-in-out infinite}
+.question-timer.warning .timer-number{color:#c88700}
+.question-timer.warning .timer-fill{background:#f2b632}
+.question-timer.danger{border-color:#e16b70;animation:timerShake .32s ease-in-out infinite}
+.question-timer.danger .timer-number{color:#d63f4d}
+.question-timer.danger .timer-fill{background:#e8495b}
+.case{animation:questionIn .28s ease-out}
+.case.timeup{animation:timeUp .45s ease-in-out}
+@keyframes questionIn{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes timerPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes timerShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px)}75%{transform:translateX(2px)}}
+@keyframes timeUp{0%{transform:translateX(0)}25%{transform:translateX(-5px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}100%{transform:translateX(0)}}
+@media(prefers-reduced-motion:reduce){.question-timer,.case{animation:none!important}.timer-fill{transition:none}}
+.pillrow{display:flex;gap:8px;flex-wrap:wrap}
+.pill{background:linear-gradient(135deg,#e9f2ff,#f4eaff);border:1px solid #cdd6f4;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:850;color:#46508d}
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:13px}
+.case{padding:14px;background:linear-gradient(135deg,#f8fbff,#fff8fc);border:1px solid #dce1f1;border-radius:12px}
+.case p{color:#4f5870;font-size:12px;margin:0 0 9px;line-height:1.42}
+.case label{display:block;font-size:11px;font-weight:850;color:#6a7185;margin-bottom:6px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{background:linear-gradient(135deg,#edf3ff,#f8efff);border:1px solid #ccd5ee;color:#34406d}
+.choice.selected{outline:2px solid #7c68df;background:linear-gradient(135deg,#d9e6ff,#f0dfff);color:#4333a0}
+.case.unanswered{border-color:#e0ad42;background:#fffaf0}
+.submitbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;flex-wrap:wrap}
+.status{font-size:12px;font-weight:850;color:#59647b}
+.final{display:none;margin-top:14px;padding:22px;background:linear-gradient(135deg,#fff,#f7f3ff)}
+.final.show{display:block}
+.score{text-align:center;font-size:40px;font-weight:950;margin:4px 0 10px;color:#5b43c6}
+.final-stats{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:15px}
+.final-stats span{padding:8px 11px;background:linear-gradient(135deg,#edf5ff,#f8ecff);border:1px solid #d2d9f2;border-radius:8px;font-weight:850;font-size:12px;color:#4c5877}
+.solutions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.solution{padding:11px;border-radius:10px;background:#fbfcff;border:1px solid #dfe3ef}
+.solution.good{border-color:#70b78d;background:linear-gradient(135deg,#f2fff7,#fbfffd)}
+.solution.bad{border-color:#df8a82;background:linear-gradient(135deg,#fff6f5,#fffdfd)}
+.solution p{margin:4px 0;color:#59647a;font-size:12px;line-height:1.38}
+.key{margin-top:14px;padding:14px;background:linear-gradient(135deg,#fff0f7,#eef4ff);border:1px solid #d9cfee;border-radius:10px}
+.key h3{margin-bottom:7px;color:#6048b8}
+.key p{margin:5px 0;color:#59647a;font-size:12px}
+@media(max-width:760px){.solutions{grid-template-columns:1fr}}
+@media(max-width:560px){.topbar{display:block}.choices{grid-template-columns:1fr}.hero{padding:18px}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<section class="hero">
+  <div class="badge">Interactive AI Workshop Exercise</div>
+  <h1>AI or Not?</h1>
+  <p class="intro">Can you tell the difference between <b>Artificial Intelligence</b> and ordinary automation or programmed systems?</p>
+</section>
+
+<section class="panel" id="landing">
+  <div class="badge">Mini Activity · 15 Marks</div>
+  <h2>AI or Not?</h2>
+  <p class="intro">Look at each real-life situation and decide whether it uses <b>AI</b> or <b>Not AI</b>.</p>
+  <div class="note"><b>Think carefully:</b> Automatic does not always mean AI. Look for learning from data, recognizing patterns, making predictions, understanding information, or generating results.</div>
+  <div class="actions"><button id="start">Start Activity</button></div>
+</section>
+
+<section class="panel" id="quiz" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="badge">15 Situations · 15 Marks</div>
+      <h2>AI or Not?</h2>
+    </div>
+    <div class="pillrow">
+      <div class="question-timer" id="questionTimer" aria-live="polite">
+        <span class="timer-label">Time left</span>
+        <span class="timer-number" id="timer">15</span><span class="timer-unit">sec</span>
+        <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+      </div>
+      <div class="pill">Answered: <span id="count">0/15</span></div>
+    </div>
+  </div>
+  <p class="intro">Read the situation and decide whether it uses <b>AI</b> or <b>Not AI</b>.</p>
+  <div class="question-count">Question <span id="questionNumber">1</span> of 15</div>
+  <div id="cases" class="case-grid"></div>
+  <div class="submitbar">
+    <div class="status" id="status">Choose an answer to continue.</div>
+    <div>
+      <button id="next" type="button">Next →</button>
+      <button id="submit" type="button" style="display:none">Submit Quiz ✓</button>
+    </div>
+  </div>
+</section>
+
+<section class="final" id="results">
+  <div class="badge">Activity Complete</div>
+  <div class="score" id="score"></div>
+  <div class="final-stats">
+    <span>Correct: <b id="correct"></b></span>
+    <span>Incorrect: <b id="wrong"></b></span>
+    <span>Time Taken: <b id="finalTime"></b></span>
+  </div>
+  <div class="solutions" id="solutions"></div>
+  <div class="key">
+    <h3>AI Detective Rule</h3>
+    <p><b>Not AI:</b> A fixed rule or programmed instruction produces a predictable response — “If X happens, do Y.”</p>
+    <p><b>AI:</b> The system uses data, patterns or learned capabilities to recognize, predict, recommend, understand or generate something.</p>
+    <p><b>Remember:</b> Automatic does not automatically mean AI.</p>
+  </div>
+</section>
+
+</div>
+
+<script>
+const cases=[
+ {q:"A music app studies a listener's previous songs, skips and playlists, then recommends songs the listener may enjoy.",ans:1,why:"The system uses patterns in the listener's behavior to make personalized recommendations. This is an AI use case."},
+ {q:"A refrigerator automatically starts its cooling system when its internal temperature rises above 5°C.",ans:0,why:"The refrigerator follows a fixed rule: if the temperature crosses a set threshold, turn cooling on. That is automation, not AI."},
+ {q:"A banking system examines a customer's transaction patterns and identifies unusual activity that may indicate fraud.",ans:1,why:"The system analyzes data patterns to identify unusual behavior and potential fraud. This is an AI use case."},
+ {q:"A phone automatically switches to silent mode every day between 10 PM and 7 AM because the user has configured a schedule.",ans:0,why:"The phone is following a predefined schedule. It does not need to learn or interpret anything, so this is not AI."},
+ {q:"An online shopping website looks at what a customer has viewed and purchased and recommends products they might be interested in.",ans:1,why:"The system uses customer behavior patterns to make personalized recommendations. This is an AI use case."},
+ {q:"A car automatically turns on its headlights when a light sensor detects that the surroundings have become dark.",ans:0,why:"A sensor detects a simple condition and triggers a predefined action. This is ordinary automation, not AI."},
+ {q:"A handwriting application analyzes a person's handwritten notes and converts them into editable digital text.",ans:1,why:"The system has to recognize complex visual patterns and interpret them as characters and words. That is an AI capability."},
+ {q:"A phone unlocks when its front camera recognizes the user's face.",ans:1,why:"The phone analyzes facial features and compares the detected pattern with the enrolled face. This is an AI use case."},
+ {q:"A travel application predicts that a flight is likely to be delayed by analyzing historical flight patterns, weather information and current flight data.",ans:1,why:"The system uses data and patterns to predict a future event. That is an AI use case."},
+ {q:"A traffic light changes from green to yellow to red according to a programmed timing sequence.",ans:0,why:"A sensor detects a simple condition and the machine follows a predefined safety rule. This is not AI."},
+ {q:"A vending machine gives you the selected drink or snack after you insert the required payment.",ans:0,why:"The elevator is executing programmed control rules. It is automatic, but it does not require AI."},
+ {q:"A photo app automatically groups pictures based on what is visible in them, such as pets, beaches or food.",ans:1,why:"The app analyzes image content and recognizes visual patterns to categorize photos. That is an AI use case."},
+ {q:"Amazon Alexa understands when you say, “Set an alarm for 6 AM tomorrow.”",ans:1,why:"The system must interpret human speech and understand the user's request. Speech and language understanding are AI capabilities."},
+ {q:"An office printer automatically prints a report every Monday at 9 AM because a schedule was configured.",ans:0,why:"The printer is simply following a schedule that was configured in advance. This is not AI."},
+ {q:"A weather app predicts whether it will rain tomorrow by analyzing weather data and patterns.",ans:1,why:"The system analyzes data and patterns to make a prediction about a future event. This is an AI use case."}
+];
+
+let answers={},startTime=0,timerId=null,submitted=false,currentQuestion=0;
+const QUESTION_TIME=15;
+let questionStart=0;
+let timerGeneration=0;
+let timeUpTimeout=null;
+
+function formatTime(ms){
+  const total=Math.floor(ms/1000),m=Math.floor(total/60),s=total%60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+function stopQuestionTimer(){
+  if(timerId){clearInterval(timerId);timerId=null;}
+  if(timeUpTimeout){clearTimeout(timeUpTimeout);timeUpTimeout=null;}
+  timerGeneration++;
+}
+function resetQuestionTimer(){
+  stopQuestionTimer();
+  questionStart=Date.now();
+  const timer=document.getElementById('timer');
+  const fill=document.getElementById('timerFill');
+  const box=document.getElementById('questionTimer');
+  timer.textContent=QUESTION_TIME;
+  fill.style.width='100%';
+  box.classList.remove('warning','danger');
+  const generation=timerGeneration;
+  timerId=setInterval(()=>updateQuestionTimer(generation),100);
+}
+function updateQuestionTimer(generation){
+  if(submitted || generation!==timerGeneration)return;
+  const elapsed=(Date.now()-questionStart)/1000;
+  const remaining=Math.max(0,QUESTION_TIME-elapsed);
+  const seconds=Math.max(0,Math.ceil(remaining));
+  document.getElementById('timer').textContent=seconds;
+  document.getElementById('timerFill').style.width=(remaining/QUESTION_TIME*100)+'%';
+  const box=document.getElementById('questionTimer');
+  box.classList.toggle('warning',seconds<=5 && seconds>3);
+  box.classList.toggle('danger',seconds<=3);
+  if(remaining<=0){
+    stopQuestionTimer();
+    handleTimeUp();
+  }
+}
+function handleTimeUp(){
+  if(submitted)return;
+  const card=document.getElementById('case'+currentQuestion);
+  if(card)card.classList.add('timeup');
+  document.getElementById('status').textContent="Time's up! Moving to the next question…";
+  const questionAtTimeout=currentQuestion;
+  timeUpTimeout=setTimeout(()=>{
+    timeUpTimeout=null;
+    if(submitted || questionAtTimeout!==currentQuestion)return;
+    if(currentQuestion===cases.length-1){
+      submitQuiz();
+    }else{
+      currentQuestion++;
+      renderCurrentQuestion();
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+  },650);
+}
+function renderCurrentQuestion(){
+  const root=document.getElementById('cases');
+  const c=cases[currentQuestion];
+  root.innerHTML='';
+  const d=document.createElement('div');
+  d.className='case';
+  d.id='case'+currentQuestion;
+  d.innerHTML=`
+    <p>${c.q}</p>
+    <label>Select your answer</label>
+    <div class="choices">
+      <button type="button" class="choice ${answers[currentQuestion]===1?'selected':''}" data-v="1">AI</button>
+      <button type="button" class="choice ${answers[currentQuestion]===0?'selected':''}" data-v="0">Not AI</button>
+    </div>`;
+  root.appendChild(d);
+
+  document.getElementById('questionNumber').textContent=currentQuestion+1;
+  resetQuestionTimer();
+  const next=document.getElementById('next');
+  const submit=document.getElementById('submit');
+  next.style.display=currentQuestion===cases.length-1?'none':'inline-block';
+  submit.style.display=currentQuestion===cases.length-1?'inline-block':'none';
+
+  const answered=answers[currentQuestion]!==undefined;
+  document.getElementById('status').textContent=answered
+    ? (currentQuestion===cases.length-1?'Ready to submit the quiz.':'Answer selected — click Next to continue.')
+    : 'Choose an answer to continue.';
+
+  root.querySelectorAll('.choice').forEach(btn=>{
+    btn.onclick=()=>{
+      answers[currentQuestion]=Number(btn.dataset.v);
+      document.getElementById('count').textContent=Object.keys(answers).length+'/15';
+      root.querySelectorAll('.choice').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('status').textContent=
+        currentQuestion===cases.length-1?'Ready to submit the quiz.':'Answer selected — click Next to continue.';
+    };
+  });
+}
+
+function goNext(){
+  if(answers[currentQuestion]===undefined){
+    document.getElementById('status').textContent='Please choose AI or Not AI first.';
+    document.getElementById('case'+currentQuestion).classList.add('unanswered');
+    return;
+  }
+  stopQuestionTimer();
+  currentQuestion++;
+  renderCurrentQuestion();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.getElementById('start').onclick=()=>{
+  answers={};submitted=false;currentQuestion=0;startTime=Date.now();
+  // Shuffle the situations for each new attempt.
+  cases.sort(()=>Math.random()-0.5);
+  document.getElementById('landing').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('timer').textContent=QUESTION_TIME;
+  document.getElementById('timerFill').style.width='100%';
+  document.getElementById('questionTimer').classList.remove('warning','danger');
+  document.getElementById('count').textContent='0/15';
+  document.getElementById('status').textContent='Choose an answer to continue.';
+  stopQuestionTimer();
+  renderCurrentQuestion();
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+document.getElementById('next').onclick=goNext;
+
+function submitQuiz(){
+  if(submitted)return;
+  if(answers[currentQuestion]===undefined && currentQuestion===cases.length-1){
+    // The final question may expire without an answer; it is counted as incorrect.
+  }else if(answers[currentQuestion]===undefined){
+    document.getElementById('status').textContent='Please choose an answer before submitting.';
+    document.getElementById('case'+currentQuestion).classList.add('unanswered');
+    return;
+  }
+  if(Object.keys(answers).length!==15 && currentQuestion!==cases.length-1){
+    document.getElementById('status').textContent='Please answer every question before submitting.';
+    return;
+  }
+
+  submitted=true;
+  stopQuestionTimer();
+  const elapsed=Date.now()-startTime;
+  if(timerId){clearInterval(timerId);timerId=null}
+  document.getElementById('timer').textContent='0';
+  document.getElementById('timerFill').style.width='0%';
+  document.getElementById('questionTimer').classList.remove('warning');
+  document.getElementById('questionTimer').classList.add('danger');
+
+  let score=0;
+  const root=document.getElementById('solutions');
+  root.innerHTML='';
+  cases.forEach((c,i)=>{
+    const ok=Number(answers[i])===c.ans;
+    if(ok)score++;
+    const d=document.createElement('div');
+    d.className='solution '+(ok?'good':'bad');
+    d.innerHTML=`
+      <b>${ok?'✓':'✗'} ${c.q}</b>
+      <p><b>Your answer:</b> ${answers[i]===1?'AI':answers[i]===0?'Not AI':'No answer'}</p>
+      <p><b>Correct answer:</b> ${c.ans===1?'AI':'Not AI'}</p>
+      <p><b>Why:</b> ${c.why}</p>`;
+    root.appendChild(d);
+  });
+
+  document.getElementById('score').textContent=score+' / 15 marks';
+  document.getElementById('correct').textContent=score;
+  document.getElementById('wrong').textContent=15-score;
+  document.getElementById('finalTime').textContent=formatTime(elapsed);
+  document.getElementById('results').classList.add('show');
+  document.getElementById('results').scrollIntoView({behavior:'smooth'});
+}
+
+document.getElementById('submit').onclick=submitQuiz;
+</script>
+</body>
+</html>

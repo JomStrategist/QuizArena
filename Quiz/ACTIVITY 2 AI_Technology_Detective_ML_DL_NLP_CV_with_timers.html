@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Technology Detective — ML, Deep Learning, NLP & Computer Vision</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;font-family:Segoe UI,Arial,sans-serif;background:#07111f;color:#edf5ff}
+body{overflow-x:hidden}
+.app{max-width:1240px;margin:auto;padding:18px 18px 35px}
+.hero,.panel,.solution-modal,.activity2,.final{background:#0b1727;border:1px solid #263d58;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.14)}
+.hero{padding:20px 24px;margin-bottom:12px}
+.badge{display:inline-block;font-size:11px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#78b9f0;margin-bottom:3px}
+h1{font-size:31px;margin:4px 0 7px}
+h2{margin:0 0 8px;font-size:23px}
+h3{margin:0}
+.hero p,.intro{color:#c5d5e6;line-height:1.45;margin:5px 0}
+.note{margin-top:10px;padding:10px 13px;background:#10243a;border:1px solid #294b6c;border-radius:10px;line-height:1.4;font-size:13px}
+.progress{height:7px;background:#142337;border-radius:20px;overflow:hidden;margin:10px 0 12px}
+.progress span{display:block;height:100%;width:0;background:#5eabe9;transition:.3s}
+.page{display:none}
+.page.active{display:block}
+.page-nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}
+.page-label{font-size:15px;font-weight:900;color:#b9d5ef}
+.layout{display:grid;grid-template-columns:1.02fr .98fr;gap:14px;align-items:stretch}
+.panel{padding:18px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px}
+.card{background:#112137;border:1px solid #304964;border-radius:11px;padding:10px 11px;cursor:grab;min-height:91px;transition:.15s}
+.card:hover{border-color:#65a9df;transform:translateY(-1px)}
+.card b{font-size:14px;display:block}
+.card .card-text{margin-top:5px;color:#bfd0e2;line-height:1.32;font-size:12px}
+.categories-panel{padding:18px}
+.category-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:10px}
+.zone{min-height:150px;padding:11px;border:2px dashed #3a526b;border-radius:12px;background:#0d1b2d;transition:.15s}
+.zone.over{border-color:#68b4ef;background:#112941}
+.zone h3{font-size:14px;margin-bottom:3px}
+.zone p{font-size:11px;color:#8fa7bf;margin:0 0 6px;line-height:1.3}
+.mini{padding:6px 8px;background:#172a41;border:1px solid #34516e;border-radius:7px;font-size:11px;margin-top:5px;cursor:pointer;line-height:1.2}
+.mini:hover{border-color:#65a9df}
+.actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+button,select{font:inherit}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:850;cursor:pointer;background:#2d83cc;color:white}
+button.secondary{background:#17283c;color:#dceafa;border:1px solid #354d67}
+button:disabled{opacity:.45;cursor:not-allowed}
+.score-strip{display:flex;gap:8px;align-items:center;margin-top:9px;flex-wrap:wrap}
+.score-pill{background:#10243a;border:1px solid #294b6c;border-radius:9px;padding:7px 10px;font-size:12px;font-weight:850}
+/* Solution modal keeps Activity 1 on one page */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(2,8,16,.82);z-index:20;padding:22px;overflow:auto}
+.modal-backdrop.show{display:flex;align-items:flex-start;justify-content:center}
+.solution-modal{width:min(1080px,100%);padding:20px;margin:auto}
+.solution-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:12px}
+.result-banner{padding:12px 14px;border-radius:10px;background:#10243a;border:1px solid #294b6c;margin-bottom:12px}
+.result-score{font-size:27px;font-weight:950}
+.answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.answer{padding:10px;border-radius:10px;background:#0e1d30;border:1px solid #2a435e}
+.answer.good{border-color:#367557}.answer.bad{border-color:#82504e}
+.answer p{margin:4px 0;color:#c5d5e6;line-height:1.35;font-size:12px}
+.concepts{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.concept{background:#101f32;border:1px solid #2b435e;border-radius:10px;padding:10px}
+.concept h3{font-size:13px;margin-bottom:5px}.concept p{margin:0;color:#b9cadd;line-height:1.35;font-size:11px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+/* Activity 2 */
+.activity2{padding:18px}
+.case-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.case{padding:12px;background:#0e1d30;border:1px solid #2a435e;border-radius:11px}
+.case h3{font-size:14px;margin-bottom:5px}.case p{color:#c6d6e6;line-height:1.38;font-size:12px;margin:0 0 8px}
+.case label{display:block;font-size:11px;font-weight:850;color:#a9bdd1;margin-bottom:5px}
+.case select{width:100%;padding:9px;background:#13253a;color:#edf5ff;border:1px solid #3b5670;border-radius:8px}
+.case-result{margin-top:7px;font-weight:800;font-size:11px;line-height:1.35;min-height:15px}
+.activity2-actions{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+#score2{font-weight:900}
+.final{display:none;margin-top:14px;padding:20px;text-align:center}.final.show{display:block}.big{font-size:40px;font-weight:950}
+.total-breakdown{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:10px 0}.total-breakdown span{padding:7px 10px;background:#10243a;border:1px solid #294b6c;border-radius:8px;font-weight:850;font-size:12px}
+@media(max-width:900px){.layout,.case-grid{grid-template-columns:1fr}.concepts{grid-template-columns:1fr 1fr}.category-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.cards,.answers-grid,.concepts,.category-grid{grid-template-columns:1fr}.hero{padding:16px}.panel,.activity2{padding:14px}.page-nav{align-items:flex-start}.page-label{font-size:13px}.card{min-height:auto}}
+
+/* Activity landing screens and timers */
+.activity-landing{background:#0b1727;border:1px solid #263d58;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:34px 24px;text-align:center;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.activity-landing .badge{margin-bottom:8px}
+.activity-landing h2{font-size:28px;margin:4px 0 10px}
+.activity-landing p{max-width:720px;color:#c5d5e6;line-height:1.5;margin:5px 0 18px}
+.start-btn{font-size:16px;padding:12px 22px}
+.timer-bar{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:10px}
+.timer{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;background:#10243a;border:1px solid #294b6c;border-radius:9px;font-size:13px;font-weight:900;letter-spacing:.2px}
+.timer-dot{width:8px;height:8px;border-radius:50%;background:#78b9f0;display:inline-block}
+.finished-time{margin-top:8px;color:#b9d5ef;font-size:13px;font-weight:800}
+</style>
+</head>
+<body>
+<div class="app">
+<section class="hero">
+  <div class="badge">Interactive AI Workshop Exercise</div>
+  <h1>AI Technology Detective</h1>
+  <p>Learn the difference between <b>Traditional Machine Learning, Deep Learning, NLP and Computer Vision</b> by classifying simple real-life solutions.</p>
+  <div class="note"><b>How to think:</b> Structured business data → Traditional ML. Human language → NLP. Images/video → Computer Vision. Neural networks learning complex patterns → Deep Learning.</div>
+</section>
+<div class="progress"><span id="bar"></span></div>
+
+<!-- ACTIVITY 1 LANDING -->
+<section class="page active" id="activity1Landing">
+  <div class="activity-landing">
+    <div class="badge">Activity 1</div>
+    <h2>Ready for Activity 1?</h2>
+    <p>Start Activity 1 when you are ready. Your timer will begin only after you click the button below.</p>
+    <button class="start-btn" id="startActivity1">Start Activity 1 →</button>
+  </div>
+</section>
+
+<!-- PAGE 1 -->
+<section class="page" id="page1">
+  <div class="page-nav">
+    <span class="page-label">Page 1 of 2 — Activity 1 <span id="a1MarkLabel">• 12 marks</span></span>
+    <button id="toPage2" disabled>Next: Activity 2 →</button>
+  </div>
+  <div class="timer-bar"><div class="timer"><span class="timer-dot"></span> Time: <span id="timer1">00:00</span></div></div>
+  <section class="layout">
+    <div class="panel">
+      <h2>Activity 1 — Sort the Solutions</h2>
+      <p class="intro">Drag each of the 12 cards into the category that best describes it. You can also click a card, then click a category.</p>
+      <div id="cards" class="cards"></div>
+      <div class="actions"><button id="check" disabled>Submit Answers</button><button class="secondary" id="reset">Reset</button></div>
+      <div class="score-strip"><div class="score-pill">Activity 1: <span id="liveA1">0/12</span></div><div class="score-pill">Each correct answer = 1 mark</div></div>
+    </div>
+    <div class="panel categories-panel">
+      <h2>Four Categories</h2>
+      <div class="category-grid">
+        <div class="zone" data-cat="ml"><h3>Traditional Machine Learning</h3><p>Structured business data used to predict or classify something.</p><div class="placed"></div></div>
+        <div class="zone" data-cat="dl"><h3>Deep Learning</h3><p>Neural networks learn complex patterns from many examples.</p><div class="placed"></div></div>
+        <div class="zone" data-cat="nlp"><h3>Natural Language Processing (NLP)</h3><p>The main job is to understand or work with human language.</p><div class="placed"></div></div>
+        <div class="zone" data-cat="cv"><h3>Computer Vision</h3><p>The main job is to understand images or video.</p><div class="placed"></div></div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ACTIVITY 2 LANDING -->
+<section class="page" id="activity2Landing">
+  <div class="activity-landing">
+    <div class="badge">Activity 2</div>
+    <h2>Ready for Activity 2?</h2>
+    <p>Start Activity 2 when you are ready. Your timer will begin only after you click the button below.</p>
+    <button class="start-btn" id="startActivity2">Start Activity 2 →</button>
+  </div>
+</section>
+
+<!-- PAGE 2 -->
+<section class="page" id="page2">
+  <div class="page-nav"><button class="secondary" id="backPage1">← Back to Activity 1</button><span class="page-label">Page 2 of 2 — Activity 2</span></div>
+  <div class="timer-bar"><div class="timer"><span class="timer-dot"></span> Time: <span id="timer2">00:00</span></div></div>
+  <section class="activity2">
+    <h2>Activity 2 — Choose the AI Combination</h2>
+    <p class="intro">Now choose the <b>best combination</b> for each real-life case. Some cases use one concept; others combine a problem area with a learning approach.</p>
+    
+    <div id="cases" class="case-grid"></div>
+    <div class="activity2-actions"><button id="check2">Submit Activity 2</button><div id="score2"></div><div class="finished-time" id="a2FinishedTime"></div></div>
+  </section>
+  <section class="final" id="final">
+    <div class="badge">Exercise Complete</div>
+    <div class="big" id="finalScore"></div>
+    <div class="total-breakdown"><span>Activity 1: <b id="finalA1"></b>/12</span><span>Activity 1 Time: <b id="finalA1Time"></b></span><span>Activity 2: <b id="finalA2"></b>/6</span><span>Activity 2 Time: <b id="finalA2Time"></b></span><span>Total: <b id="finalTotal"></b>/18</span><span>Combined Time: <b id="finalCombinedTime"></b></span></div>
+    <p id="finalText" class="intro"></p>
+  </section>
+</section>
+</div>
+
+<!-- ACTIVITY 1 SOLUTION MODAL -->
+<div class="modal-backdrop" id="solutionModal">
+  <section class="solution-modal">
+    <div class="solution-head"><div><div class="badge">Activity 1 Results & Solution</div><h2>Solution Sheet — Understand the Difference</h2></div><button class="secondary" id="closeSolution">Close</button></div>
+    <div class="result-banner"><div class="result-score" id="a1ResultScore"></div><div class="finished-time" id="a1FinishedTime"></div><div class="intro">Review the clue behind every answer before moving to Activity 2.</div></div>
+    <div id="answers" class="answers-grid"></div>
+    <div class="concepts">
+      <div class="concept"><h3>Traditional Machine Learning</h3><p><b>Think: rows and columns.</b> Structured information such as customer data, sales, prices or transactions. Used to predict a number or category.</p></div>
+      <div class="concept"><h3>Deep Learning</h3><p><b>Think: neural networks.</b> A type of Machine Learning that is especially useful for complex patterns and many examples.</p></div>
+      <div class="concept"><h3>NLP</h3><p><b>Think: words and language.</b> Emails, documents, conversations, speech, translation and summaries.</p></div>
+      <div class="concept"><h3>Computer Vision</h3><p><b>Think: eyes.</b> Photographs, camera feeds, scans and video.</p></div>
+    </div>
+    <div class="note"><b>Key idea:</b> Deep Learning is a method inside Machine Learning. NLP and Computer Vision describe the type of problem/data. A real solution can use these concepts together.</div>
+    <div class="modal-actions"><button id="continueToA2">Continue to Activity 2 →</button></div>
+  </section>
+</div>
+
+<script>
+const scenarios=[
+{id:1,cat:"ml",title:"Customer churn prediction",text:"A telecom company predicts which customers may leave using plan type, monthly usage, payment history and contract length.",why:"The information is structured customer data. The goal is to predict an outcome, so Traditional ML is the clearest fit."},
+{id:2,cat:"ml",title:"House price prediction",text:"A property company predicts a home's price using location, size, number of rooms and previous sale prices.",why:"The inputs are structured numbers and categories. This is a classic prediction problem using business/tabular data."},
+{id:3,cat:"ml",title:"Next month's sales forecast",text:"A retailer predicts next month's sales using historical sales, price, promotions, season and store information.",why:"The system learns from historical structured sales data to predict a future number."},
+{id:4,cat:"dl",title:"Handwritten digit recognition",text:"A system learns from thousands of examples of handwritten numbers and recognizes whether a new image contains 0, 1, 2, 3 and so on.",why:"The example specifically focuses on a neural network learning complex patterns from many examples. That is Deep Learning."},
+{id:5,cat:"dl",title:"Speech recognition",text:"A voice assistant uses a neural network trained on large amounts of recorded speech to recognize spoken words.",why:"The key clue is the neural network learning complex speech patterns from a large dataset. That makes Deep Learning the intended category."},
+{id:6,cat:"dl",title:"Complex medical image learning",text:"A neural network learns subtle patterns from a very large collection of medical images to support doctors in identifying abnormalities.",why:"The question explicitly highlights neural networks and large amounts of examples. The learning approach is Deep Learning."},
+{id:7,cat:"nlp",title:"Customer email classification",text:"A support system reads incoming emails and identifies whether each message is a complaint, question, refund request or compliment.",why:"The main thing the computer must understand is human language in emails. That makes NLP the clearest category."},
+{id:8,cat:"nlp",title:"Meeting summary",text:"An AI reads a meeting transcript and produces a short summary of the key decisions and discussion points.",why:"A transcript is human language. Reading and summarizing it is an NLP task."},
+{id:9,cat:"nlp",title:"Language translation",text:"A company automatically translates customer messages from English into Hindi.",why:"The system is processing and transforming human language. Translation is a clear NLP task."},
+{id:10,cat:"cv",title:"Factory defect detection",text:"A factory camera checks products and identifies scratches, cracks or missing parts.",why:"The computer must understand what it sees in camera images. That is Computer Vision."},
+{id:11,cat:"cv",title:"Traffic camera vehicle counting",text:"A traffic camera counts how many cars pass through an intersection during the day.",why:"The input is video from a camera and the task is to understand objects in that video. That is Computer Vision."},
+{id:12,cat:"cv",title:"Reading a barcode from a camera",text:"A supermarket camera identifies the barcode printed on a product package.",why:"The system is interpreting visual information from an image. The main domain is Computer Vision."}
+];
+const combos=[
+ {q:"A customer-service voice assistant must understand what customers say and use a neural network trained on thousands of voice examples. What combination is needed?",opts:["NLP + Deep Learning","Computer Vision + Deep Learning","NLP + Traditional Machine Learning","Computer Vision + Traditional Machine Learning","Traditional Machine Learning only","NLP + Computer Vision"],ans:0,why:"The system works with human speech, so NLP is the problem area. The neural network is the Deep Learning approach."},
+ {q:"A factory wants to use camera images to identify damaged products. What combination is most appropriate?",opts:["NLP + Deep Learning","Computer Vision + Deep Learning","Computer Vision + Traditional Machine Learning","NLP + Traditional Machine Learning","Traditional Machine Learning only","Computer Vision + NLP"],ans:1,why:"The system must understand images, so Computer Vision is the domain. Deep Learning is a common learning approach for complex image recognition."},
+ {q:"A company wants to predict which employees may leave using salary, tenure, age, department and previous performance data. What is the clearest approach?",opts:["Computer Vision + Deep Learning","NLP + Deep Learning","Traditional Machine Learning","NLP + Traditional Machine Learning","Computer Vision + Traditional Machine Learning","Deep Learning only"],ans:2,why:"The inputs are structured employee data and the goal is prediction. Traditional ML is the clearest fit."},
+ {q:"A company wants to automatically classify customer emails as complaint, question, compliment or refund request. What combination best describes the solution?",opts:["NLP + Machine Learning","Computer Vision + Deep Learning","Traditional Machine Learning only","Computer Vision + NLP","NLP + Deep Learning","Computer Vision + Traditional Machine Learning"],ans:0,why:"The system must understand language, so NLP is required. A classification model can use Machine Learning to learn the categories."},
+ {q:"A security system uses camera footage and a neural network to detect whether violence or fighting is happening in the scene. What combination is needed?",opts:["NLP + Traditional Machine Learning","Computer Vision + Deep Learning","NLP + Deep Learning","Traditional Machine Learning only","Computer Vision + Traditional Machine Learning","NLP + Computer Vision"],ans:1,why:"The system analyzes camera footage, making Computer Vision the problem area. The neural network is the Deep Learning approach used to recognize complex visual patterns such as violent activity."},
+ {q:"A bakery wants to predict how many items it will sell next week using previous sales, prices, promotions, day of the week, seasonality and other sales information. What is the clearest approach?",opts:["NLP + Deep Learning","Computer Vision + Deep Learning","Traditional Machine Learning","NLP + Traditional Machine Learning","Computer Vision + Traditional Machine Learning","Deep Learning only"],ans:2,why:"The bakery is using structured sales information to predict a future number. This is a classic Traditional Machine Learning prediction problem."}
+];
+let placements={},selected=null,a1Score=0,a2Score=0;
+let a1StartTime=null,a2StartTime=null,a1Timer=null,a2Timer=null,a1Finished=false,a2Finished=false;
+let a1ElapsedMs=0,a2ElapsedMs=0;
+function formatElapsed(ms){
+ const total=Math.max(0,Math.floor(ms/1000)),m=Math.floor(total/60),sec=total%60;
+ return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+}
+function startTimer(n){
+ const now=Date.now();
+ if(n===1){
+   a1StartTime=now;a1Finished=false;clearInterval(a1Timer);
+   document.getElementById('timer1').textContent='00:00';
+   a1Timer=setInterval(()=>{if(a1StartTime)document.getElementById('timer1').textContent=formatElapsed(Date.now()-a1StartTime)},1000);
+ }else{
+   a2StartTime=now;a2Finished=false;clearInterval(a2Timer);
+   document.getElementById('timer2').textContent='00:00';
+   a2Timer=setInterval(()=>{if(a2StartTime)document.getElementById('timer2').textContent=formatElapsed(Date.now()-a2StartTime)},1000);
+ }
+}
+function stopTimer(n){
+ const now=Date.now();
+ if(n===1){
+   if(!a1StartTime)return null;
+   clearInterval(a1Timer);a1Timer=null;a1Finished=true;
+   a1ElapsedMs=now-a1StartTime;
+   const elapsed=formatElapsed(a1ElapsedMs);
+   document.getElementById('timer1').textContent=elapsed;
+   return {elapsed,ms:a1ElapsedMs,at:new Date(now)};
+ }else{
+   if(!a2StartTime)return null;
+   clearInterval(a2Timer);a2Timer=null;a2Finished=true;
+   a2ElapsedMs=now-a2StartTime;
+   const elapsed=formatElapsed(a2ElapsedMs);
+   document.getElementById('timer2').textContent=elapsed;
+   return {elapsed,ms:a2ElapsedMs,at:new Date(now)};
+ }
+}
+function finishedLabel(n,info){
+ if(!info)return;
+ const label='Finished at '+info.at.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'})+' • Time taken: '+info.elapsed;
+ document.getElementById(n===1?'a1FinishedTime':'a2FinishedTime').textContent=label;
+}
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5)}
+function renderCards(){
+ const root=document.getElementById('cards');root.innerHTML='';
+ shuffle(scenarios.filter(s=>placements[s.id]===undefined)).forEach(s=>{
+  const d=document.createElement('div');d.className='card';d.draggable=true;d.dataset.id=s.id;
+  d.innerHTML=`<b>${s.title}</b><div class="card-text">${s.text}</div>`;
+  d.addEventListener('dragstart',()=>{selected=s.id;d.style.opacity=.45});
+  d.addEventListener('dragend',()=>d.style.opacity=1);
+  d.addEventListener('click',()=>{document.querySelectorAll('.card').forEach(x=>x.style.outline='');selected=s.id;d.style.outline='2px solid #67afe9'});
+  root.appendChild(d);
+ });
+}
+function renderZones(){
+ document.querySelectorAll('.zone').forEach(z=>{
+  const p=z.querySelector('.placed');p.innerHTML='';
+  scenarios.filter(s=>placements[s.id]===z.dataset.cat).forEach(s=>{
+   const m=document.createElement('div');m.className='mini';m.innerHTML=`<b>${s.title}</b>`;m.title=s.text;
+   m.onclick=()=>{delete placements[s.id];renderZones();renderCards();progress()};p.appendChild(m);
+  });
+ });
+}
+function place(id,cat){placements[id]=cat;selected=null;renderZones();renderCards();progress()}
+function progress(){
+ const n=Object.keys(placements).length;
+ document.getElementById('bar').style.width=(n/12*100)+'%';
+ document.getElementById('check').disabled=n!==12;
+ document.getElementById('toPage2').disabled=n!==12;
+ document.getElementById('liveA1').textContent=n+'/12';
+}
+document.querySelectorAll('.zone').forEach(z=>{
+ z.addEventListener('dragover',e=>{e.preventDefault();z.classList.add('over')});
+ z.addEventListener('dragleave',()=>z.classList.remove('over'));
+ z.addEventListener('drop',e=>{e.preventDefault();z.classList.remove('over');if(selected)place(selected,z.dataset.cat)});
+ z.addEventListener('click',()=>{if(selected)place(selected,z.dataset.cat)});
+});
+function showSolution(){
+ if(!a1Finished){const info=stopTimer(1);finishedLabel(1,info);}
+ a1Score=0;const ans=document.getElementById('answers');ans.innerHTML='';
+ scenarios.forEach(s=>{
+  const ok=placements[s.id]===s.cat;if(ok)a1Score++;
+  const best={ml:'Traditional Machine Learning',dl:'Deep Learning',nlp:'NLP',cv:'Computer Vision'}[s.cat];
+  const a=document.createElement('div');a.className='answer '+(ok?'good':'bad');
+  a.innerHTML=`<b>${ok?'✓':'✗'} ${s.title}</b><p><b>Correct category:</b> ${best}</p><p><b>Why:</b> ${s.why}</p>`;ans.appendChild(a);
+ });
+ document.getElementById('a1ResultScore').textContent=`Activity 1 Score: ${a1Score} / 12 marks`;
+ document.getElementById('solutionModal').classList.add('show');
+}
+document.getElementById('check').onclick=showSolution;
+document.getElementById('toPage2').onclick=()=>{document.getElementById('solutionModal').classList.add('show')};
+document.getElementById('closeSolution').onclick=()=>document.getElementById('solutionModal').classList.remove('show');
+document.getElementById('continueToA2').onclick=()=>{document.getElementById('solutionModal').classList.remove('show');document.getElementById('page1').classList.remove('active');document.getElementById('activity2Landing').classList.add('active');document.getElementById('page2').classList.remove('active');window.scrollTo({top:0,behavior:'smooth'});};
+document.getElementById('startActivity1').onclick=()=>{document.getElementById('activity1Landing').classList.remove('active');document.getElementById('page1').classList.add('active');startTimer(1);window.scrollTo({top:0,behavior:'smooth'});};
+document.getElementById('startActivity2').onclick=()=>{document.getElementById('activity2Landing').classList.remove('active');document.getElementById('page2').classList.add('active');renderCases();startTimer(2);window.scrollTo({top:0,behavior:'smooth'});};
+document.getElementById('reset').onclick=()=>{clearInterval(a1Timer);clearInterval(a2Timer);a1Timer=null;a2Timer=null;a1StartTime=null;a2StartTime=null;a1Finished=false;a2Finished=false;document.getElementById('timer1').textContent='00:00';document.getElementById('timer2').textContent='00:00';document.getElementById('a1FinishedTime').textContent='';document.getElementById('a2FinishedTime').textContent='';placements={};selected=null;a1Score=0;document.getElementById('solutionModal').classList.remove('show');document.getElementById('page2').classList.remove('active');document.getElementById('activity2Landing').classList.remove('active');document.getElementById('page1').classList.remove('active');document.getElementById('activity1Landing').classList.add('active');renderCards();renderZones();progress();window.scrollTo({top:0,behavior:'smooth'})};
+document.getElementById('backPage1').onclick=()=>{document.getElementById('page2').classList.remove('active');document.getElementById('page1').classList.add('active');window.scrollTo({top:0,behavior:'smooth'})};
+function renderCases(){
+ const root=document.getElementById('cases');root.innerHTML='';
+ combos.forEach((c,i)=>{
+  const div=document.createElement('div');div.className='case';
+  const correctText=c.opts[c.ans];
+  const shuffled=shuffle(c.opts);
+  const correctIndex=shuffled.indexOf(correctText);
+  div.innerHTML=`<h3>Case ${i+1}</h3><p>${c.q}</p><label>Select the best combination</label><select id="c${i}" data-correct="${correctIndex}"><option value="">Choose...</option>${shuffled.map((o,j)=>`<option value="${j}">${o}</option>`).join('')}</select><div class="case-result" id="r${i}"></div>`;
+  root.appendChild(div);
+ });
+}
+document.getElementById('check2').onclick=()=>{
+  a2Score=0;let answered=0;
+  combos.forEach((c,i)=>{const val=document.getElementById('c'+i).value;const r=document.getElementById('r'+i);if(val!==''){answered++;if(Number(val)===Number(document.getElementById('c'+i).dataset.correct)){a2Score++;r.textContent='✓ Correct — '+c.why;r.style.color='#8bd1a8'}else{r.textContent='✗ Not quite — '+c.why;r.style.color='#e9a4a0'}}else{r.textContent='Please choose an answer.';r.style.color='#f0c984'}});
+  document.getElementById('score2').textContent=`Activity 2 score: ${a2Score} / 6 marks`;
+  if(answered===6){
+    if(!a2Finished){const info=stopTimer(2);finishedLabel(2,info);}
+    const total=a1Score+a2Score;
+    document.getElementById('final').classList.add('show');
+    document.getElementById('finalScore').textContent=`${total} / 18 marks`;
+    document.getElementById('finalA1').textContent=a1Score;
+    document.getElementById('finalA2').textContent=a2Score;
+    document.getElementById('finalTotal').textContent=total;
+    document.getElementById('finalA1Time').textContent=formatElapsed(a1ElapsedMs);
+    document.getElementById('finalA2Time').textContent=formatElapsed(a2ElapsedMs);
+    document.getElementById('finalCombinedTime').textContent=formatElapsed(a1ElapsedMs+a2ElapsedMs);
+    document.getElementById('finalText').textContent=total===18?'Excellent. You can now distinguish the problem area from the learning approach and recognize when technologies work together.':total>=14?'Good work. Review the explanations for the questions you missed and you will have the distinction much more firmly.':'Review the explanations above. The key is to separate what the system works with from how it learns.';
+    document.getElementById('final').scrollIntoView({behavior:'smooth'})
+  }
+};
+renderCards();renderZones();progress();renderCases();
+</script>
+</body>
+</html>
