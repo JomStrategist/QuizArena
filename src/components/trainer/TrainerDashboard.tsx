@@ -16,7 +16,7 @@ import {
   Eye,
   Radio,
 } from 'lucide-react';
-import { IQuiz, IAssignment } from '@/types';
+import { IQuiz, IAssignment, IQuestion } from '@/types';
 import { useToast } from '../ui/ToastNotification';
 import { QuestionBankView } from './QuestionBankView';
 import { ImportWizard } from './ImportWizard';
@@ -24,7 +24,7 @@ import { QuizCreatorModal } from './QuizCreatorModal';
 import { AssignQuizModal } from './AssignQuizModal';
 
 interface TrainerDashboardProps {
-  onStartLiveSession: (quizCode: string) => void;
+  onStartLiveSession: (quizCode: string, quizTitle: string, questions: IQuestion[]) => void;
 }
 
 export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveSession }) => {
@@ -77,9 +77,9 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
         throw new Error(json.error?.message || 'Failed to start Live Session.');
       }
 
-      const quizCode = json.data.quizCode;
-      showToast(`Live Session created! Join Code: ${quizCode}`, 'success');
-      onStartLiveSession(quizCode);
+      const { quizCode, quizTitle, quizSnapshot } = json.data;
+      showToast(`Live Session created for "${quizTitle}"! Join Code: ${quizCode}`, 'success');
+      onStartLiveSession(quizCode, quizTitle, quizSnapshot?.questions || []);
     } catch (err: any) {
       showToast(err.message || 'Error launching live game', 'error');
     }

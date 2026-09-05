@@ -20,48 +20,10 @@ export default function ProtectedTrainerDashboardPage() {
   // Live session management states
   const [viewState, setViewState] = useState<'DASHBOARD' | 'TRAINER_LOBBY' | 'GAME_PLAY' | 'PODIUM'>('DASHBOARD');
   const [activeQuizCode, setActiveQuizCode] = useState('');
-  const [activeQuizTitle, setActiveQuizTitle] = useState('Python Business Analytics');
+  const [activeQuizTitle, setActiveQuizTitle] = useState('');
 
-  const [questions] = useState<IQuestion[]>([
-    {
-      _id: 'q1',
-      trainerId: 't1',
-      questionText: 'What is the capital of France?',
-      questionType: 'MCQ',
-      options: ['London', 'Paris', 'Rome', 'Berlin'],
-      correctOptionIndex: 1,
-      timeLimit: 15,
-      points: 1000,
-      explanation: 'Paris is the capital of France.',
-      category: 'Geography',
-      difficulty: 'EASY',
-      tags: [],
-      createdAt: '',
-      updatedAt: '',
-    },
-    {
-      _id: 'q2',
-      trainerId: 't1',
-      questionText: 'Which data structure follows First-In, First-Out (FIFO)?',
-      questionType: 'MCQ',
-      options: ['Stack', 'Queue', 'Tree', 'Graph'],
-      correctOptionIndex: 1,
-      timeLimit: 20,
-      points: 1000,
-      explanation: 'Queues process elements in FIFO order.',
-      category: 'Computer Science',
-      difficulty: 'MEDIUM',
-      tags: [],
-      createdAt: '',
-      updatedAt: '',
-    },
-  ]);
-
-  const [participants, setParticipants] = useState<ILiveParticipant[]>([
-    { socketId: 's1', displayName: 'Rahul', score: 2840, rank: 1, previousRank: 1, correctAnswers: 2, wrongAnswers: 0, unansweredCount: 0 },
-    { socketId: 's2', displayName: 'Anjali', score: 2650, rank: 2, previousRank: 2, correctAnswers: 2, wrongAnswers: 0, unansweredCount: 0 },
-    { socketId: 's3', displayName: 'Arjun', score: 2320, rank: 3, previousRank: 3, correctAnswers: 1, wrongAnswers: 1, unansweredCount: 0 },
-  ]);
+  const [questions, setQuestions] = useState<IQuestion[]>([]);
+  const [participants, setParticipants] = useState<ILiveParticipant[]>([]);
 
   useEffect(() => {
     async function checkAuth() {
@@ -107,8 +69,12 @@ export default function ProtectedTrainerDashboardPage() {
       <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
         {viewState === 'DASHBOARD' && (
           <TrainerDashboard
-            onStartLiveSession={(code) => {
+            onStartLiveSession={(code, title, liveQuestions) => {
               setActiveQuizCode(code);
+              setActiveQuizTitle(title);
+              if (liveQuestions && liveQuestions.length > 0) {
+                setQuestions(liveQuestions);
+              }
               setViewState('TRAINER_LOBBY');
             }}
           />
