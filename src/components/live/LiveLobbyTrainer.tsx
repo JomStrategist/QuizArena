@@ -8,6 +8,7 @@ import { useToast } from '../ui/ToastNotification';
 interface LiveLobbyTrainerProps {
   quizCode: string;
   quizTitle: string;
+  sessionType?: 'LIVE_GAME' | 'CONDUCT';
   participants: ILiveParticipant[];
   onStartGame: () => void;
 }
@@ -15,6 +16,7 @@ interface LiveLobbyTrainerProps {
 export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   quizCode,
   quizTitle,
+  sessionType = 'LIVE_GAME',
   participants,
   onStartGame,
 }) => {
@@ -28,14 +30,19 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const badgeText = sessionType === 'CONDUCT' ? 'CONDUCT QUIZ LOBBY' : 'LIVE QUIZ LOBBY';
+  const badgeStyle = sessionType === 'CONDUCT'
+    ? 'text-blue-700 bg-blue-50 border-blue-200'
+    : 'text-amber-800 bg-amber-50 border-amber-300';
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-6 md:p-10 space-y-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-6 md:p-10 space-y-8 font-sans">
       {/* Top Banner & Title */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
-          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-            LIVE SESSION LOBBY
+          <span className={`text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border ${badgeStyle}`}>
+            {badgeText}
           </span>
         </div>
         <h1 className="text-lg font-black text-slate-800">{quizTitle}</h1>

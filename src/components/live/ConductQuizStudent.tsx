@@ -135,11 +135,15 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
           </div>
 
           <div className="space-y-2">
-            <span className="px-3 py-1 bg-blue-50 text-blue-800 border border-blue-200 rounded-full text-xs font-black uppercase tracking-wider">
-              CONDUCT QUIZ LOBBY
+            <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider border ${
+              session?.sessionType === 'LIVE_GAME'
+                ? 'bg-amber-100 text-amber-900 border-amber-300'
+                : 'bg-blue-50 text-blue-800 border-blue-200'
+            }`}>
+              {session?.sessionType === 'LIVE_GAME' ? 'LIVE QUIZ LOBBY' : 'CONDUCT QUIZ LOBBY'}
             </span>
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              {session?.quizTitle || 'Conduct Quiz Session'}
+              {session?.quizTitle || (session?.sessionType === 'LIVE_GAME' ? 'Live Quiz Session' : 'Conduct Quiz Session')}
             </h1>
             <p className="text-xs text-slate-500 font-semibold">Trainer: {session?.trainerName || 'Trainer'}</p>
           </div>

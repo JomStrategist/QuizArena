@@ -133,6 +133,7 @@ export default function ProtectedTrainerDashboardPage() {
           <LiveLobbyTrainer
             quizCode={activeQuizCode}
             quizTitle={activeQuizTitle}
+            sessionType="LIVE_GAME"
             participants={participants}
             onStartGame={handleStartConductQuizSession}
           />
@@ -142,6 +143,7 @@ export default function ProtectedTrainerDashboardPage() {
           <LiveLobbyTrainer
             quizCode={activeQuizCode}
             quizTitle={activeQuizTitle}
+            sessionType="CONDUCT"
             participants={participants}
             onStartGame={handleStartConductQuizSession}
           />

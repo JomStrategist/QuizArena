@@ -100,13 +100,17 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
       {/* Top Banner Header */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-bold">
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-white ${sessionData?.sessionType === 'LIVE_GAME' ? 'bg-amber-500' : 'bg-blue-600'}`}>
             <Radio className="w-5 h-5 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <span className="px-2.5 py-0.5 text-[10px] font-extrabold bg-blue-100 text-blue-800 rounded-full">
-                CONDUCT QUIZ SESSION
+              <span className={`px-2.5 py-0.5 text-[10px] font-extrabold rounded-full ${
+                sessionData?.sessionType === 'LIVE_GAME'
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                  : 'bg-blue-100 text-blue-800 border border-blue-200'
+              }`}>
+                {sessionData?.sessionType === 'LIVE_GAME' ? 'LIVE QUIZ SESSION' : 'CONDUCT QUIZ SESSION'}
               </span>
               <span className="text-xs font-mono font-bold text-slate-500">CODE: {quizCode}</span>
             </div>
