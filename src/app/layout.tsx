@@ -4,7 +4,7 @@ import { ToastProvider } from '@/components/ui/ToastNotification';
 
 export const metadata: Metadata = {
   title: 'QuizArena | KVJ Analytics Training Platform',
-  description: 'Modern internal training and learning assessment platform for conducting interactive quizzes.',
+  description: 'QuizArena platform for conducting interactive quizzes and assessments by KVJ Analytics.',
   icons: {
     icon: '/QuizArena Icon.png',
   },

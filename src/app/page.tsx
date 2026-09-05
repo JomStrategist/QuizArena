@@ -30,7 +30,7 @@ export default function PublicLandingPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
       {/* Top Header */}
-      <BrandHeader subtitle="Internal Training & Assessment Platform" />
+      <BrandHeader />
 
       {/* Main Landing & Entry Experience */}
       <main className="flex-1 max-w-6xl mx-auto w-full p-6 md:p-12 space-y-12 flex flex-col justify-center">
@@ -51,7 +51,7 @@ export default function PublicLandingPage() {
           </h1>
 
           <p className="text-sm md:text-base text-slate-600 font-medium max-w-xl mx-auto">
-            Welcome to <strong className="text-slate-900">QuizArena</strong>, the internal training platform by{' '}
+            Welcome to <strong className="text-slate-900">QuizArena</strong> by{' '}
             <strong className="text-slate-900">KVJ Analytics</strong>. Please select your role to proceed.
           </p>
         </div>
@@ -161,7 +161,7 @@ export default function PublicLandingPage() {
 
       {/* Footer */}
       <footer className="py-6 border-t border-slate-200/80 bg-white/50 text-center text-xs text-slate-400 font-medium">
-        QuizArena by KVJ Analytics • Internal Assessment Platform
+        QuizArena by KVJ Analytics
       </footer>
     </div>
   );

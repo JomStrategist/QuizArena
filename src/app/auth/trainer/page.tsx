@@ -139,7 +139,7 @@ export default function TrainerLoginPage() {
         </Suspense>
       </main>
       <footer className="py-4 text-center text-xs text-slate-400 font-medium">
-        QuizArena by KVJ Analytics • Internal Assessment Platform
+        QuizArena by KVJ Analytics
       </footer>
     </div>
   );
