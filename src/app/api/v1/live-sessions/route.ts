@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const quiz = await QuizModel.findById(quizId).populate('questionIds');
+    const quiz = await QuizModel.findById(quizId).populate('questionIds').lean();
     if (!quiz || !quiz.questionIds || quiz.questionIds.length === 0) {
       return NextResponse.json(
         { success: false, error: { code: 'INVALID_QUIZ', message: 'Quiz must contain at least 1 valid question to launch a session.' } },

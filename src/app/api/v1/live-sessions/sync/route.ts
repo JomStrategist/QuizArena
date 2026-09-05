@@ -86,13 +86,15 @@ export async function GET(req: NextRequest) {
       studentAnswer = answersForQ[displayName];
     }
 
-    // Sanitize question for student if question is active
-    let sanitizedQuestion = currentQ ? { ...currentQ } : null;
+    // Ensure current question is a clean plain JavaScript object
+    let plainQuestion = currentQ ? JSON.parse(JSON.stringify(currentQ)) : null;
+    let sanitizedQuestion = plainQuestion ? { ...plainQuestion } : null;
+
     if (role === 'student' && session.stage === 'QUESTION_ACTIVE') {
       if (sanitizedQuestion) {
-        // Omit correctOptionIndex & explanation during active answering
-        const { correctOptionIndex, explanation, ...rest } = sanitizedQuestion;
-        sanitizedQuestion = rest as any;
+        // Omit correctOptionIndex & explanation during active answering for security
+        delete sanitizedQuestion.correctOptionIndex;
+        delete sanitizedQuestion.explanation;
       }
     }
 
