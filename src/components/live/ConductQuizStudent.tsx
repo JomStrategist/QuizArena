@@ -183,6 +183,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
       <ConductScoreboard
         quizTitle={session.quizTitle}
         rankings={rankings}
+        sessionType={session.sessionType}
         onBackToDashboard={onExit || (() => (window.location.href = '/'))}
       />
     );
@@ -205,10 +206,19 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
       {/* Student Top Header */}
       <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <div>
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-            QUESTION {currentIdx} OF {totalQuestions}
-          </span>
-          <h3 className="text-sm font-black text-slate-900">{displayName}</h3>
+          <div className="flex items-center space-x-2">
+            <span className={`px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full border ${
+              isLiveGame
+                ? 'bg-amber-100 text-amber-900 border-amber-300'
+                : 'bg-blue-50 text-blue-800 border-blue-200'
+            }`}>
+              {isLiveGame ? 'LIVE GAME' : 'CONDUCT QUIZ'}
+            </span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              QUESTION {currentIdx} OF {totalQuestions}
+            </span>
+          </div>
+          <h3 className="text-sm font-black text-slate-900 mt-1">{displayName}</h3>
         </div>
 
         {/* Visual Countdown Timer */}

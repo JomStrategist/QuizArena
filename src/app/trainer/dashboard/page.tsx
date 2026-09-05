@@ -77,9 +77,9 @@ export default function ProtectedTrainerDashboardPage() {
       });
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error?.message || 'Failed to start Conduct Quiz session.');
+        throw new Error(json.error?.message || 'Failed to start quiz session.');
       }
-      showToast('Conduct Quiz session started!', 'success');
+      showToast('Quiz session started successfully!', 'success');
       setViewState('CONDUCT_RUNNING');
     } catch (err: any) {
       showToast(err.message || 'Error starting session', 'error');

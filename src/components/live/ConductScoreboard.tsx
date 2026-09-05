@@ -8,12 +8,14 @@ interface ConductScoreboardProps {
   quizTitle: string;
   rankings: any[];
   onBackToDashboard: () => void;
+  sessionType?: 'LIVE_GAME' | 'CONDUCT';
 }
 
 export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
   quizTitle,
   rankings = [],
   onBackToDashboard,
+  sessionType = 'CONDUCT',
 }) => {
   useEffect(() => {
     confetti({
@@ -39,7 +41,7 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
           <span>Back to Dashboard</span>
         </button>
         <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          {quizTitle} • FINAL SCOREBOARD
+          {quizTitle} • {sessionType === 'LIVE_GAME' ? 'LIVE GAME FINALE' : 'FINAL SCOREBOARD'}
         </span>
       </div>
 
@@ -48,7 +50,9 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
         <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center mx-auto border-4 border-amber-200 shadow-lg animate-bounce">
           <Trophy className="w-8 h-8" />
         </div>
-        <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">CONDUCT QUIZ FINALE</h1>
+        <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
+          {sessionType === 'LIVE_GAME' ? 'LIVE GAME FINALE' : 'QUIZ FINALE'}
+        </h1>
         <p className="text-xs md:text-sm font-semibold text-slate-500 max-w-md mx-auto">
           Final performance scoreboard & student rankings for <strong className="text-slate-800">{quizTitle}</strong>
         </p>
