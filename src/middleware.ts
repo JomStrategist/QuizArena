@@ -13,13 +13,15 @@ export function middleware(req: NextRequest) {
       return NextResponse.redirect(url);
     }
     
-    // We also decode token role if JWT format permits
     try {
-      const base64Url = token.split('.')[1];
-      if (base64Url) {
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const parts = token.split('.');
+      if (parts.length === 3) {
+        let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4 !== 0) {
+          base64 += '=';
+        }
         const jsonPayload = JSON.parse(atob(base64));
-        if (jsonPayload.role !== 'TRAINER' && jsonPayload.role !== 'ADMIN') {
+        if (jsonPayload && jsonPayload.role && jsonPayload.role !== 'TRAINER' && jsonPayload.role !== 'ADMIN') {
           const url = req.nextUrl.clone();
           url.pathname = '/auth/trainer';
           url.searchParams.set('error', 'forbidden');
@@ -27,9 +29,7 @@ export function middleware(req: NextRequest) {
         }
       }
     } catch (e) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/auth/trainer';
-      return NextResponse.redirect(url);
+      console.error('Middleware JWT decode error:', e);
     }
   }
 

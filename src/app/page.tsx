@@ -65,7 +65,7 @@ export default function PublicLandingPage() {
       }
 
       showToast(`Welcome back, ${json.data.user.name}!`, 'success');
-      router.push('/trainer/dashboard');
+      window.location.href = '/trainer/dashboard';
     } catch (err: any) {
       showToast(err.message || 'Login failed', 'error');
     } finally {
@@ -187,8 +187,12 @@ export default function PublicLandingPage() {
             <div className="space-y-4">
               {/* Header Icon & Title */}
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100 shadow-xs">
-                  <GraduationCap className="w-6 h-6" />
+                <div className="w-12 h-12 rounded-2xl bg-white p-1.5 flex items-center justify-center mx-auto border border-slate-200 shadow-xs">
+                  <img
+                    src="/QuizArena Icon.png"
+                    alt="QuizArena Logo"
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <div>
                   <h2 className="text-xl font-black text-slate-900 tracking-tight">Trainer Login</h2>

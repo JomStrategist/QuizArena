@@ -41,7 +41,7 @@ function TrainerLoginForm() {
       }
 
       showToast(`Welcome back, ${json.data.user.name}!`, 'success');
-      router.push('/trainer/dashboard');
+      window.location.href = '/trainer/dashboard';
     } catch (err: any) {
       showToast(err.message || 'Login error', 'error');
     } finally {
@@ -52,8 +52,12 @@ function TrainerLoginForm() {
   return (
     <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 space-y-6">
       <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
-          <Shield className="w-6 h-6" />
+        <div className="w-14 h-14 rounded-2xl bg-white p-2 flex items-center justify-center mx-auto border border-slate-200 shadow-sm">
+          <img
+            src="/QuizArena Icon.png"
+            alt="QuizArena Logo"
+            className="w-full h-full object-contain"
+          />
         </div>
         <h1 className="text-2xl font-black text-slate-900 tracking-tight">Trainer Portal Sign In</h1>
         <p className="text-xs text-slate-500 font-medium">
