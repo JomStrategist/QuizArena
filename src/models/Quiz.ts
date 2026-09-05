@@ -1,4 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import '@/models/Question';
+import '@/models/User';
 
 export interface IQuizDocument extends Document {
   trainerId: mongoose.Types.ObjectId;

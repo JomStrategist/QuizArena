@@ -1,4 +1,6 @@
 import mongoose, { Schema, Document, Model } from 'mongoose';
+import '@/models/Quiz';
+import '@/models/User';
 
 export interface ILiveSessionDocument extends Document {
   quizCode: string;
