@@ -73,12 +73,6 @@ export default function PublicLandingPage() {
     }
   };
 
-  // Auto fill Admin Credentials
-  const handleFillAdminCredentials = () => {
-    setTrainerEmail('mail@thestrategist.co.in');
-    setTrainerPassword('AjayThomas@1');
-  };
-
   // Handle Student Live Session Join
   const handleStudentJoin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -256,17 +250,6 @@ export default function PublicLandingPage() {
                   )}
                 </button>
               </form>
-
-              {/* Quick Fill & Forgot Password */}
-              <div className="text-center space-y-1">
-                <button
-                  type="button"
-                  onClick={handleFillAdminCredentials}
-                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 underline block mx-auto"
-                >
-                  Fill Admin Credentials
-                </button>
-              </div>
             </div>
 
             {/* Bottom Contact Admin Box */}

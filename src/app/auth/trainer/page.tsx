@@ -49,11 +49,6 @@ function TrainerLoginForm() {
     }
   };
 
-  const handleAdminLogin = () => {
-    setEmail('mail@thestrategist.co.in');
-    setPassword('AjayThomas@1');
-  };
-
   return (
     <div className="max-w-md w-full bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 space-y-6">
       <div className="text-center space-y-2">
@@ -116,15 +111,6 @@ function TrainerLoginForm() {
           <ArrowRight className="w-4 h-4" />
         </button>
       </form>
-
-      <div className="border-t border-slate-100 pt-4 text-center">
-        <button
-          onClick={handleAdminLogin}
-          className="text-xs font-bold text-blue-600 hover:text-blue-800 underline"
-        >
-          Fill Admin Credentials (mail@thestrategist.co.in)
-        </button>
-      </div>
     </div>
   );
 }
