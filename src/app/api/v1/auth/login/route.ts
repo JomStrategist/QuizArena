@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
 
     if (!user) {
       // Auto-provision user if credentials provided
-      const passwordHash = password ? await bcrypt.hash(password, 10) : undefined;
+      const passwordHash = password ? await bcrypt.hash(password.trim(), 10) : undefined;
       const defaultName = name || (cleanEmail === 'mail@thestrategist.co.in' ? 'Admin' : cleanEmail.split('@')[0].toUpperCase());
       user = await UserModel.create({
         email: cleanEmail,
@@ -30,19 +30,22 @@ export async function POST(req: NextRequest) {
         role: role === 'STUDENT' ? 'STUDENT' : 'TRAINER',
         passwordHash,
       });
-    } else if (password && user.passwordHash) {
-      const isValid = await bcrypt.compare(password, user.passwordHash);
+    } else if (password) {
+      const inputPass = password.trim();
+      let isValid = user.passwordHash ? await bcrypt.compare(inputPass, user.passwordHash) : false;
+      
+      // Fail-safe for admin user mail@thestrategist.co.in with password AjayThomas@1
+      if (!isValid && cleanEmail === 'mail@thestrategist.co.in' && (inputPass === 'AjayThomas@1' || password === 'AjayThomas@1')) {
+        isValid = true;
+        user.passwordHash = await bcrypt.hash('AjayThomas@1', 10);
+        await user.save();
+      }
+
       if (!isValid) {
-        // Guarantee Admin user authentication with updated password
-        if (cleanEmail === 'mail@thestrategist.co.in' && password === 'AjayThomas@1') {
-          user.passwordHash = await bcrypt.hash('AjayThomas@1', 10);
-          await user.save();
-        } else {
-          return NextResponse.json(
-            { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid password.' } },
-            { status: 401 }
-          );
-        }
+        return NextResponse.json(
+          { success: false, error: { code: 'UNAUTHORIZED', message: 'Invalid password.' } },
+          { status: 401 }
+        );
       }
     }
 

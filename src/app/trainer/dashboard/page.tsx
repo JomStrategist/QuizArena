@@ -68,7 +68,7 @@ export default function ProtectedTrainerDashboardPage() {
       try {
         const res = await fetch('/api/v1/auth/me');
         const json = await res.json();
-        if (!res.ok || !json.success || json.data.role !== 'TRAINER') {
+        if (!res.ok || !json.success || (json.data.role !== 'TRAINER' && json.data.role !== 'ADMIN')) {
           showToast('Trainer authentication required.', 'error');
           router.push('/auth/trainer');
           return;
