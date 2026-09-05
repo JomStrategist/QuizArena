@@ -67,11 +67,7 @@ function StudentDashboardContent() {
       setStudentDisplayName(displayName.trim());
 
       const session = json.data;
-      if (session?.sessionType === 'CONDUCT') {
-        setViewState('CONDUCT_SESSION');
-      } else {
-        setViewState('GAME_PLAY');
-      }
+      setViewState('CONDUCT_SESSION');
     } catch (err: any) {
       showToast(err.message || 'Error joining quiz session', 'error');
     }

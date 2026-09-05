@@ -193,6 +193,13 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   const currentIdx = (session.currentQuestionIndex || 0) + 1;
   const isAnswered = !!studentAnswer;
 
+  const isLiveGame = session?.sessionType === 'LIVE_GAME';
+  const isTimeUp = timeLeft <= 0 || session?.stage === 'SHOWING_RESULT';
+
+  // Live Game: Reveal correctness & points for current question ONLY after timeout (timeLeft <= 0 or SHOWING_RESULT stage)
+  // Conduct Quiz: Never reveal per-question correctness during the quiz (only on final scoreboard)
+  const showQuestionResult = isLiveGame && isTimeUp;
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-6 max-w-2xl mx-auto space-y-6 w-full">
       {/* Student Top Header */}
@@ -243,8 +250,8 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
             </button>
           ))}
         </div>
-      ) : (
-        /* Answer Submitted Feedback Screen */
+      ) : showQuestionResult ? (
+        /* Answer Submitted Feedback Screen (Revealed ONLY after timeout in Live Game) */
         <div
           className={`p-8 rounded-3xl border shadow-2xl text-center space-y-6 animate-in zoom-in duration-200 ${
             studentAnswer.isCorrect
@@ -254,7 +261,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
               : 'bg-gradient-to-br from-rose-500 to-red-600 text-white border-rose-400'
           }`}
         >
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto border-2 border-white/30">
             {studentAnswer.isCorrect ? (
               <CheckCircle2 className="w-10 h-10 text-white" />
             ) : studentAnswer.isTimeout ? (
@@ -275,8 +282,29 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
 
           <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 max-w-xs mx-auto">
             <p className="text-xs font-bold uppercase tracking-wider opacity-80">
-              {studentAnswer.isTimeout ? 'Time Expired' : 'Answer Submitted'}
+              {studentAnswer.isTimeout ? 'Time Expired' : 'Answer Locked In'}
             </p>
+            <p className="text-sm font-medium mt-1">Next question will load automatically when timer ends.</p>
+          </div>
+        </div>
+      ) : (
+        /* Neutral Waiting Card (Before timeout in Live Game, or throughout Conduct Quiz) */
+        <div className="p-8 rounded-3xl border border-emerald-400 shadow-2xl text-center space-y-6 animate-in zoom-in duration-200 bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center mx-auto border-2 border-white/30">
+            <CheckCircle2 className="w-10 h-10 text-white" />
+          </div>
+
+          <div className="space-y-1">
+            <h2 className="text-3xl font-black">✓ ANSWER SUBMITTED</h2>
+            <p className="text-sm font-semibold opacity-90">
+              {isLiveGame
+                ? 'Result & points will be revealed after timer ends'
+                : 'Response recorded successfully'}
+            </p>
+          </div>
+
+          <div className="bg-white/10 p-4 rounded-2xl backdrop-blur-md border border-white/20 max-w-xs mx-auto">
+            <p className="text-xs font-bold uppercase tracking-wider opacity-80">ANSWER SUBMITTED</p>
             <p className="text-sm font-medium mt-1">Next question will load automatically when timer ends.</p>
           </div>
         </div>
