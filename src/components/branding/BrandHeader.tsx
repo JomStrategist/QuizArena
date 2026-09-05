@@ -80,13 +80,15 @@ export const BrandHeader: React.FC<BrandHeaderProps> = ({
           </div>
         ) : (
           /* KVJ Analytics Parent Organization Identity */
-          <div className="flex items-center space-x-3 bg-slate-50/80 px-3.5 py-1.5 rounded-xl border border-slate-200/80">
-            <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">BY</span>
-            <img
-              src="/KVJ analytics Logo.png"
-              alt="KVJ Analytics Logo"
-              className={`${compact ? 'h-5' : 'h-6'} object-contain`}
-            />
+          <div className="flex items-center space-x-2.5 bg-white px-3.5 py-1.5 rounded-xl border border-slate-200 shadow-xs hover:border-slate-300 transition-all">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BY</span>
+            <div className="flex items-center">
+              <img
+                src="/KVJ analytics Logo.png"
+                alt="KVJ Analytics Logo"
+                className={`${compact ? 'h-5 max-w-[100px]' : 'h-6.5 max-w-[120px]'} object-contain`}
+              />
+            </div>
           </div>
         )}
       </div>
