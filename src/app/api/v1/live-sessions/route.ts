@@ -11,7 +11,14 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
-    const { quizId, trainerId = '650000000000000000000001', trainerName = 'KVJ Trainer' } = body;
+    const {
+      quizId,
+      trainerId = '650000000000000000000001',
+      trainerName = 'KVJ Trainer',
+      sessionType = 'LIVE_GAME',
+      questionTime = 30,
+      pointsMode = 'QUIZ_SETTINGS',
+    } = body;
 
     if (!quizId) {
       return NextResponse.json(
@@ -23,7 +30,7 @@ export async function POST(req: NextRequest) {
     const quiz = await QuizModel.findById(quizId).populate('questionIds');
     if (!quiz || !quiz.questionIds || quiz.questionIds.length === 0) {
       return NextResponse.json(
-        { success: false, error: { code: 'INVALID_QUIZ', message: 'Quiz must contain at least 1 valid question to launch a live session.' } },
+        { success: false, error: { code: 'INVALID_QUIZ', message: 'Quiz must contain at least 1 valid question to launch a session.' } },
         { status: 400 }
       );
     }
@@ -52,10 +59,14 @@ export async function POST(req: NextRequest) {
       quizTitle: quiz.title,
       trainerId,
       trainerName,
+      sessionType,
+      questionTime: Number(questionTime) || 30,
+      pointsMode,
       stage: 'LOBBY',
       currentQuestionIndex: 0,
       quizSnapshot,
       participants: {},
+      answers: {},
     });
 
     return NextResponse.json({

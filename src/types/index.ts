@@ -106,6 +106,7 @@ export type LiveSessionStage =
   | 'QUESTION_LOCKED'
   | 'SHOWING_RESULT'
   | 'FINAL_PODIUM'
+  | 'FINAL_SCOREBOARD'
   | 'CLOSED';
 
 export interface ILiveParticipant {
@@ -130,6 +131,9 @@ export interface ILiveSession {
   quizTitle: string;
   trainerId: string;
   trainerName: string;
+  sessionType: 'CONDUCT' | 'LIVE_GAME';
+  questionTime: number;
+  pointsMode: string;
   stage: LiveSessionStage;
   currentQuestionIndex: number;
   totalQuestions: number;
@@ -137,6 +141,7 @@ export interface ILiveSession {
   questionStartTimestamp?: number;
   questionEndTimestamp?: number;
   participants: Record<string, ILiveParticipant>; // Keyed by displayName/email
+  answers?: Record<string, Record<string, any>>; // questionIndex -> displayName -> answerObject
   createdAt: string;
   closedAt?: string;
 }

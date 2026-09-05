@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState, useEffect } from 'react';
 import {
   Plus,
@@ -15,6 +13,9 @@ import {
   ListOrdered,
   Eye,
   Radio,
+  ClipboardList,
+  Edit,
+  Archive,
 } from 'lucide-react';
 import { IQuiz, IAssignment, IQuestion } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -22,12 +23,17 @@ import { QuestionBankView } from './QuestionBankView';
 import { ImportWizard } from './ImportWizard';
 import { QuizCreatorModal } from './QuizCreatorModal';
 import { AssignQuizModal } from './AssignQuizModal';
+import { ConductQuizSetupModal } from './ConductQuizSetupModal';
 
 interface TrainerDashboardProps {
   onStartLiveSession: (quizCode: string, quizTitle: string, questions: IQuestion[]) => void;
+  onStartConductQuiz: (quizCode: string, quizTitle: string, questionTime: number, quizSnapshot: any) => void;
 }
 
-export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveSession }) => {
+export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
+  onStartLiveSession,
+  onStartConductQuiz,
+}) => {
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'QUESTION_BANK' | 'QUIZZES' | 'ASSIGNMENTS'>('OVERVIEW');
   const [quizzes, setQuizzes] = useState<IQuiz[]>([]);
   const [assignments, setAssignments] = useState<IAssignment[]>([]);
@@ -37,6 +43,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [isConductSetupOpen, setIsConductSetupOpen] = useState(false);
+  const [selectedQuizForConduct, setSelectedQuizForConduct] = useState<IQuiz | null>(null);
 
   const { showToast } = useToast();
 
@@ -69,7 +77,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
       const res = await fetch('/api/v1/live-sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId }),
+        body: JSON.stringify({ quizId, sessionType: 'LIVE_GAME' }),
       });
 
       const json = await res.json();
@@ -83,6 +91,17 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
     } catch (err: any) {
       showToast(err.message || 'Error launching live game', 'error');
     }
+  };
+
+  const handleOpenConductSetup = (quiz?: IQuiz) => {
+    if (quiz) {
+      setSelectedQuizForConduct(quiz);
+    } else if (quizzes.length > 0) {
+      setSelectedQuizForConduct(quizzes[0]);
+    } else {
+      setSelectedQuizForConduct(null);
+    }
+    setIsConductSetupOpen(true);
   };
 
   return (
@@ -120,7 +139,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
 
       {activeTab === 'OVERVIEW' && (
         <div className="space-y-8">
-          {/* Quick Action Shortcuts Panel */}
+          {/* Quick Action Shortcuts Panel: 5 Buttons Command Center */}
           <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 p-6 rounded-3xl text-white shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -129,36 +148,49 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
                   <h2 className="text-xl font-black">Trainer Command Center</h2>
                 </div>
                 <p className="text-xs text-blue-100 mt-1">
-                  Launch quizzes, assign tasks to students, or import questions in one click.
+                  Conduct structured sessions, start live Kahoot-style games, assign tasks, or import questions in one click.
                 </p>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
+              {/* Button 1: CREATE QUIZ */}
               <button
                 onClick={() => setIsCreateQuizOpen(true)}
                 className="bg-white/10 hover:bg-white/20 border border-white/20 p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group backdrop-blur-md"
               >
                 <Plus className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold">CREATE QUIZ</span>
+                <span className="text-xs font-bold text-center">CREATE QUIZ</span>
               </button>
 
+              {/* Button 2: IMPORT QUESTIONS */}
               <button
                 onClick={() => setIsImportOpen(true)}
                 className="bg-white/10 hover:bg-white/20 border border-white/20 p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group backdrop-blur-md"
               >
                 <FileSpreadsheet className="w-5 h-5 text-emerald-300 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold">IMPORT QUESTIONS</span>
+                <span className="text-xs font-bold text-center">IMPORT QUESTIONS</span>
               </button>
 
+              {/* Button 3: ASSIGN QUIZ */}
               <button
                 onClick={() => setIsAssignOpen(true)}
                 className="bg-white/10 hover:bg-white/20 border border-white/20 p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group backdrop-blur-md"
               >
                 <Send className="w-5 h-5 text-amber-300 group-hover:scale-110 transition-transform" />
-                <span className="text-xs font-bold">ASSIGN QUIZ</span>
+                <span className="text-xs font-bold text-center">ASSIGN QUIZ</span>
               </button>
 
+              {/* Button 4: CONDUCT QUIZ */}
+              <button
+                onClick={() => handleOpenConductSetup()}
+                className="bg-blue-500 hover:bg-blue-400 text-white p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group shadow-lg shadow-blue-500/30 font-black border border-blue-300/40"
+              >
+                <ClipboardList className="w-5 h-5 text-amber-300 group-hover:scale-110 transition-transform" />
+                <span className="text-xs text-center">CONDUCT QUIZ</span>
+              </button>
+
+              {/* Button 5: START LIVE GAME */}
               <button
                 onClick={() => {
                   if (quizzes.length > 0) {
@@ -167,10 +199,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
                     showToast('Please create or import a quiz first.', 'warning');
                   }
                 }}
-                className="bg-amber-400 hover:bg-amber-300 text-slate-950 p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group shadow-lg shadow-amber-500/20 font-black"
+                className="bg-amber-400 hover:bg-amber-300 text-slate-950 p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group shadow-lg shadow-amber-500/20 font-black col-span-2 sm:col-span-1"
               >
-                <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform" />
-                <span className="text-xs">START LIVE GAME</span>
+                <Play className="w-5 h-5 fill-current group-hover:scale-110 transition-transform text-slate-950" />
+                <span className="text-xs text-center">START LIVE GAME</span>
               </button>
             </div>
           </div>
@@ -190,8 +222,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
               <p className="text-2xl font-black text-emerald-600">~200 Students</p>
             </div>
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-              <p className="text-xs text-slate-500 font-medium">Engine Mode</p>
-              <p className="text-base font-black text-purple-600">Kahoot-Style Live</p>
+              <p className="text-xs text-slate-500 font-medium">Modes Available</p>
+              <p className="text-base font-black text-purple-600">Assign • Conduct • Live</p>
             </div>
           </div>
 
@@ -218,7 +250,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
                 {quizzes.map((quiz) => (
                   <div
                     key={quiz._id}
-                    className="p-4 bg-slate-50/80 hover:bg-white rounded-xl border border-slate-200 transition flex items-center justify-between"
+                    className="p-4 bg-slate-50/80 hover:bg-white rounded-xl border border-slate-200 transition flex flex-col md:flex-row md:items-center justify-between gap-3"
                   >
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
@@ -228,17 +260,45 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
                         </span>
                       </div>
                       <p className="text-xs text-slate-500">
-                        {quiz.questionIds?.length || 0} Questions • Created by Trainer
+                        {quiz.questionIds?.length || 0} Questions • Created by Trainer • Version 1
                       </p>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <button
+                        onClick={() => showToast(`Viewing "${quiz.title}" details`, 'info')}
+                        className="px-2.5 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center space-x-1"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>VIEW</span>
+                      </button>
+                      <button
+                        onClick={() => showToast(`Editing "${quiz.title}"`, 'info')}
+                        className="px-2.5 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center space-x-1"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                        <span>EDIT</span>
+                      </button>
+                      <button
+                        onClick={() => setIsAssignOpen(true)}
+                        className="px-2.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold rounded-lg transition flex items-center space-x-1"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>ASSIGN</span>
+                      </button>
+                      <button
+                        onClick={() => handleOpenConductSetup(quiz)}
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-sm"
+                      >
+                        <ClipboardList className="w-3.5 h-3.5" />
+                        <span>CONDUCT QUIZ</span>
+                      </button>
                       <button
                         onClick={() => handleLaunchLiveSession(quiz._id)}
-                        className="px-3.5 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-sm"
+                        className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 shadow-sm"
                       >
                         <Radio className="w-3.5 h-3.5" />
-                        <span>Launch Live Game</span>
+                        <span>LIVE GAME</span>
                       </button>
                     </div>
                   </div>
@@ -263,23 +323,52 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {quizzes.map((q) => (
-              <div key={q._id} className="p-5 border border-slate-200 rounded-2xl space-y-3 bg-slate-50/50">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-900">{q.title}</span>
-                  <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                    {q.status}
-                  </span>
+              <div key={q._id} className="p-5 border border-slate-200 rounded-2xl space-y-3 bg-slate-50/50 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-bold text-slate-900">{q.title}</span>
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
+                      {q.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500">{q.description || 'No description provided.'}</p>
+                  <p className="text-xs font-medium text-slate-400">
+                    {q.questionIds?.length || 0} Questions • Version 1
+                  </p>
                 </div>
-                <p className="text-xs text-slate-500">{q.description || 'No description provided.'}</p>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-xs font-medium text-slate-400">
-                    {q.questionIds?.length || 0} Questions
-                  </span>
+
+                <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-200/60">
+                  <button
+                    onClick={() => showToast(`Editing "${q.title}"`, 'info')}
+                    className="px-2.5 py-1 bg-slate-200/80 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition"
+                  >
+                    EDIT
+                  </button>
+                  <button
+                    onClick={() => setIsAssignOpen(true)}
+                    className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold rounded-lg transition"
+                  >
+                    ASSIGN
+                  </button>
+                  <button
+                    onClick={() => handleOpenConductSetup(q)}
+                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1"
+                  >
+                    <ClipboardList className="w-3 h-3" />
+                    <span>CONDUCT QUIZ</span>
+                  </button>
                   <button
                     onClick={() => handleLaunchLiveSession(q._id)}
-                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-lg"
+                    className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-lg transition flex items-center space-x-1"
                   >
-                    Start Live
+                    <Radio className="w-3 h-3" />
+                    <span>LIVE GAME</span>
+                  </button>
+                  <button
+                    onClick={() => showToast(`Quiz "${q.title}" archived`, 'info')}
+                    className="px-2 py-1 text-slate-400 hover:text-slate-600 text-xs font-bold transition"
+                  >
+                    ARCHIVE
                   </button>
                 </div>
               </div>
@@ -338,6 +427,15 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({ onStartLiveS
         onClose={() => setIsAssignOpen(false)}
         quizzes={quizzes}
         onAssignmentCreated={() => loadData()}
+      />
+      <ConductQuizSetupModal
+        isOpen={isConductSetupOpen}
+        onClose={() => setIsConductSetupOpen(false)}
+        quiz={selectedQuizForConduct}
+        quizzes={quizzes}
+        onSessionCreated={(code, title, questionTime, quizSnapshot) => {
+          onStartConductQuiz(code, title, questionTime, quizSnapshot);
+        }}
       />
     </div>
   );
