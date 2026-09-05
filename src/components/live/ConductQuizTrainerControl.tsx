@@ -95,15 +95,71 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
 
   const totalAns = liveStats.answeredCount || 0;
   const correctPct = totalAns > 0 ? Math.round((liveStats.correctCount / totalAns) * 100) : 0;
+  const isTimeUp = (stage === 'QUESTION_ACTIVE' && timeLeft <= 0) || stage === 'SHOWING_RESULT' || stage === 'QUESTION_LOCKED';
 
   if (stage === 'SHOWING_RESULT') {
     return (
-      <Top5Leaderboard
-        rankings={sessionData?.rankings || []}
-        currentQuestionIndex={sessionData?.currentQuestionIndex || 0}
-        totalQuestions={sessionData?.totalQuestions || 1}
-        sessionType={sessionData?.sessionType}
-      />
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-6 max-w-3xl mx-auto w-full space-y-6 animate-in fade-in duration-300 font-sans">
+        {/* Top Section: Question & Correct Answer Reveal Card */}
+        {currentQuestion && (
+          <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-xl space-y-4 text-center">
+            <div className="flex items-center justify-between">
+              <span className="px-3.5 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-full text-xs font-black uppercase tracking-wider flex items-center space-x-1.5 shadow-xs">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>TIME EXPIRED • CORRECT ANSWER REVEALED</span>
+              </span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                Question {currentIdx} of {totalQuestions}
+              </span>
+            </div>
+
+            <h2 className="text-lg md:text-xl font-black text-slate-900 leading-snug">
+              {currentQuestion.questionText}
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-left">
+              {currentQuestion.options?.map((opt: string, i: number) => {
+                const isCorrectOption = i === currentQuestion.correctOptionIndex;
+                const letters = ['A', 'B', 'C', 'D'];
+
+                return (
+                  <div
+                    key={i}
+                    className={`p-4 rounded-2xl border flex items-center space-x-3 transition-all ${
+                      isCorrectOption
+                        ? 'bg-emerald-50 border-emerald-400 text-emerald-950 ring-2 ring-emerald-500/20 shadow-md'
+                        : 'bg-slate-50 border-slate-200 text-slate-500 opacity-60'
+                    }`}
+                  >
+                    <span
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs font-black ${
+                        isCorrectOption ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {letters[i]}
+                    </span>
+                    <span className="flex-1 text-sm font-extrabold">{opt}</span>
+                    {isCorrectOption && (
+                      <span className="px-2.5 py-1 bg-emerald-600 text-white text-[11px] font-black rounded-lg flex items-center space-x-1 shadow-sm">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>CORRECT</span>
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Bottom Section: Top 5 Leaderboard */}
+        <Top5Leaderboard
+          rankings={sessionData?.rankings || []}
+          currentQuestionIndex={sessionData?.currentQuestionIndex || 0}
+          totalQuestions={sessionData?.totalQuestions || 1}
+          sessionType={sessionData?.sessionType}
+        />
+      </div>
     );
   }
 
@@ -197,7 +253,6 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {currentQuestion.options?.map((opt: string, i: number) => {
-                  const isTimeUp = timeLeft <= 0 || sessionData?.stage === 'SHOWING_RESULT' || sessionData?.stage === 'QUESTION_LOCKED';
                   const isCorrectChoice = isTimeUp && i === currentQuestion.correctOptionIndex;
                   const letters = ['A', 'B', 'C', 'D'];
                   return (
