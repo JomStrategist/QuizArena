@@ -185,14 +185,15 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 {currentQuestion.options?.map((opt: string, i: number) => {
-                  const isCorrectChoice = i === currentQuestion.correctOptionIndex;
+                  const isTimeUp = timeLeft <= 0 || sessionData?.stage === 'SHOWING_RESULT' || sessionData?.stage === 'QUESTION_LOCKED';
+                  const isCorrectChoice = isTimeUp && i === currentQuestion.correctOptionIndex;
                   const letters = ['A', 'B', 'C', 'D'];
                   return (
                     <div
                       key={i}
-                      className={`p-3.5 rounded-2xl border text-xs font-bold flex items-center space-x-3 ${
+                      className={`p-3.5 rounded-2xl border text-xs font-bold flex items-center space-x-3 transition-all ${
                         isCorrectChoice
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900 ring-2 ring-emerald-500/20'
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900 ring-2 ring-emerald-500/20 shadow-xs'
                           : 'bg-slate-50 border-slate-200 text-slate-700'
                       }`}
                     >
