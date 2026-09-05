@@ -79,23 +79,23 @@ function StudentDashboardContent() {
 
   useEffect(() => {
     async function checkAuth() {
+      const codeParam = searchParams.get('code');
+      const nameParam = searchParams.get('name') || '';
+
+      if (codeParam) {
+        router.replace(`/quiz/join?code=${codeParam}&name=${encodeURIComponent(nameParam)}`);
+        return;
+      }
+
       try {
         const res = await fetch('/api/v1/auth/me');
         const json = await res.json();
         if (!res.ok || !json.success) {
-          showToast('Student authentication required.', 'error');
+          showToast('Student authentication required for Assignment Portal.', 'error');
           router.push('/auth/student');
           return;
         }
         setUser(json.data);
-
-        // Check if query params contain auto-join code & name
-        const codeParam = searchParams.get('code');
-        const nameParam = searchParams.get('name') || json.data.name;
-
-        if (codeParam) {
-          await handleJoinCode(codeParam, nameParam);
-        }
       } catch (err) {
         router.push('/auth/student');
       } finally {

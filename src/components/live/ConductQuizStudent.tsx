@@ -164,7 +164,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
       <ConductScoreboard
         quizTitle={session.quizTitle}
         rankings={rankings}
-        onBackToDashboard={onExit || (() => (window.location.href = '/student/dashboard'))}
+        onBackToDashboard={onExit || (() => (window.location.href = '/'))}
       />
     );
   }
