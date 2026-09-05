@@ -3,165 +3,422 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { BrandHeader } from '@/components/branding/BrandHeader';
-import { Shield, User, Play, Sparkles, ArrowRight, FileSpreadsheet, Lock, Send } from 'lucide-react';
+import {
+  ShieldCheck,
+  Zap,
+  Users,
+  BarChart3,
+  GraduationCap,
+  BookOpen,
+  Trophy,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  User,
+  Hash,
+  Play,
+  ListChecks,
+  LogIn,
+  Loader2,
+} from 'lucide-react';
 import { useToast } from '@/components/ui/ToastNotification';
 
 export default function PublicLandingPage() {
-  const [quizCodeInput, setQuizCodeInput] = useState('');
-  const [displayNameInput, setDisplayNameInput] = useState('');
+  // Trainer Login State
+  const [trainerEmail, setTrainerEmail] = useState('');
+  const [trainerPassword, setTrainerPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [trainerLoading, setTrainerLoading] = useState(false);
+
+  // Student Quick Join State
+  const [studentName, setStudentName] = useState('');
+  const [quizCode, setQuizCode] = useState('');
+  const [studentLoading, setStudentLoading] = useState(false);
+
   const router = useRouter();
   const { showToast } = useToast();
 
-  const handleQuickJoin = (e: React.FormEvent) => {
+  // Handle Trainer Direct Login
+  const handleTrainerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quizCodeInput.trim() || quizCodeInput.trim().length !== 6) {
-      showToast('Please enter a valid 6-digit Quiz Code (e.g. 482915)', 'warning');
-      return;
-    }
-    if (!displayNameInput.trim()) {
-      showToast('Please enter your display name to join.', 'warning');
+    if (!trainerEmail.trim()) {
+      showToast('Please enter your trainer email address.', 'warning');
       return;
     }
 
-    showToast(`Joining Live Quiz Session #${quizCodeInput}...`, 'info');
-    router.push(`/auth/student?code=${quizCodeInput.trim()}&name=${encodeURIComponent(displayNameInput.trim())}`);
+    setTrainerLoading(true);
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: trainerEmail.trim(),
+          password: trainerPassword.trim(),
+          role: 'TRAINER',
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        throw new Error(json.error?.message || 'Authentication failed.');
+      }
+
+      showToast(`Welcome back, ${json.data.user.name}!`, 'success');
+      router.push('/trainer/dashboard');
+    } catch (err: any) {
+      showToast(err.message || 'Login failed', 'error');
+    } finally {
+      setTrainerLoading(false);
+    }
+  };
+
+  // Auto fill Admin Credentials
+  const handleFillAdminCredentials = () => {
+    setTrainerEmail('mail@thestrategist.co.in');
+    setTrainerPassword('AjayThomas@1');
+  };
+
+  // Handle Student Live Session Join
+  const handleStudentJoin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!studentName.trim()) {
+      showToast('Please enter your name to join.', 'warning');
+      return;
+    }
+    if (!quizCode.trim() || quizCode.trim().length !== 6) {
+      showToast('Please enter a valid 6-digit Quiz Code (e.g. 482915).', 'warning');
+      return;
+    }
+
+    setStudentLoading(true);
+    showToast(`Joining Live Quiz Session #${quizCode}...`, 'info');
+    router.push(`/auth/student?code=${quizCode.trim()}&name=${encodeURIComponent(studentName.trim())}`);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans">
       {/* Top Header */}
       <BrandHeader />
 
-      {/* Main Landing & Entry Experience */}
-      <main className="flex-1 max-w-6xl mx-auto w-full p-6 md:p-12 space-y-12 flex flex-col justify-center">
-        {/* Hero Branding Section */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center space-x-2 bg-blue-50 px-3.5 py-1.5 rounded-full border border-blue-200">
-            <Sparkles className="w-4 h-4 text-blue-600 animate-pulse" />
-            <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
-              ENTERPRISE LEARNING & ASSESSMENT
-            </span>
-          </div>
+      {/* Main Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center my-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          
+          {/* ================= LEFT COLUMN: HERO & FEATURES & ILLUSTRATION (6 cols) ================= */}
+          <div className="lg:col-span-6 flex flex-col justify-between space-y-6 bg-white/60 p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            {/* Title & Description */}
+            <div className="space-y-3">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-tight">
+                Learn. Play. <span className="text-blue-600">Compete.</span> Grow.
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed max-w-xl">
+                QuizArena is an internal training and assessment platform for <strong className="text-slate-900 font-bold">KVJ Analytics</strong> designed to make learning engaging, interactive, and impactful.
+              </p>
+            </div>
 
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight leading-none">
-            Interactive Quizzes & <br />
-            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
-              Real-Time Assessments
-            </span>
-          </h1>
-
-          <p className="text-sm md:text-base text-slate-600 font-medium max-w-xl mx-auto">
-            Welcome to <strong className="text-slate-900">QuizArena</strong> by{' '}
-            <strong className="text-slate-900">KVJ Analytics</strong>. Please select your role to proceed.
-          </p>
-        </div>
-
-        {/* Dual Entry Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto w-full">
-          {/* TRAINER PORTAL CARD */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-8 flex flex-col justify-between space-y-6 hover:border-blue-300 transition group">
-            <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100 group-hover:scale-105 transition-transform">
-                <Shield className="w-7 h-7" />
+            {/* 4 Feature Badges Grid */}
+            <div className="grid grid-cols-2 gap-3.5 pt-1">
+              {/* Feature 1 */}
+              <div className="bg-slate-50/90 p-3 rounded-2xl border border-slate-200/70 flex items-start space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-blue-100/80 text-blue-600 flex items-center justify-center flex-shrink-0">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Create & Manage Quizzes</h4>
+                  <p className="text-[11px] text-slate-500 font-medium leading-tight">Build engaging content with ease</p>
+                </div>
               </div>
 
-              <div>
-                <h2 className="text-2xl font-black text-slate-900">Trainer Portal</h2>
-                <p className="text-xs text-slate-500 font-medium mt-1">
-                  For trainers and instructors managing quizzes, importing questions, assigning tests, and conducting live games.
-                </p>
+              {/* Feature 2 */}
+              <div className="bg-slate-50/90 p-3 rounded-2xl border border-slate-200/70 flex items-start space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-100/80 text-purple-600 flex items-center justify-center flex-shrink-0">
+                  <Users className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Assign & Assess</h4>
+                  <p className="text-[11px] text-slate-500 font-medium leading-tight">Assign quizzes & track progress</p>
+                </div>
               </div>
 
-              <div className="space-y-2 pt-2 text-xs font-semibold text-slate-600">
-                <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>Question Bank & Excel/Word File Import</span>
+              {/* Feature 3 */}
+              <div className="bg-slate-50/90 p-3 rounded-2xl border border-slate-200/70 flex items-start space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100/80 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                  <BarChart3 className="w-4 h-4" />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>Assign Quizzes by Student Emails</span>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Live Game Mode</h4>
+                  <p className="text-[11px] text-slate-500 font-medium leading-tight">Real-time games for ~200 students</p>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
-                  <span>Launch ~200 Student Live Game Sessions</span>
+              </div>
+
+              {/* Feature 4 */}
+              <div className="bg-slate-50/90 p-3 rounded-2xl border border-slate-200/70 flex items-start space-x-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-600 flex items-center justify-center flex-shrink-0">
+                  <Trophy className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Analytics & Reports</h4>
+                  <p className="text-[11px] text-slate-500 font-medium leading-tight">Gain insights & measure outcomes</p>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-3 pt-4 border-t border-slate-100">
-              <button
-                onClick={() => router.push('/auth/trainer')}
-                className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2"
-              >
-                <Lock className="w-4 h-4" />
-                <span>Trainer Sign In</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+            {/* Illustration with Callout Overlays */}
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-md group mt-2">
+              <img
+                src="/classroom_trainer_illustration.jpg"
+                alt="QuizArena Classroom Presentation"
+                className="w-full h-48 sm:h-56 object-cover object-center group-hover:scale-102 transition-transform duration-500"
+              />
+              
+              {/* Overlay Callout Left */}
+              <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-200/80 shadow-sm">
+                <span className="text-[11px] font-black italic bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
+                  Knowledge Builds Brighter Futures
+                </span>
+              </div>
+
+              {/* Overlay Callout Right */}
+              <div className="absolute top-3 right-3 bg-blue-600/90 text-white backdrop-blur-md px-3 py-1.5 rounded-xl border border-blue-500/80 shadow-sm">
+                <span className="text-[11px] font-bold">
+                  Same Classroom, Bigger Possibilities
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* STUDENT PORTAL CARD */}
-          <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-slate-950 rounded-3xl shadow-xl p-8 flex flex-col justify-between space-y-6">
+          {/* ================= CENTER COLUMN: TRAINER LOGIN CARD (3 cols) ================= */}
+          <div className="lg:col-span-3 bg-white rounded-3xl border border-slate-200 shadow-xl p-6 flex flex-col justify-between space-y-5">
             <div className="space-y-4">
-              <div className="w-14 h-14 rounded-2xl bg-white/20 text-slate-950 flex items-center justify-center backdrop-blur-md">
-                <User className="w-7 h-7" />
-              </div>
-
-              <div>
-                <h2 className="text-2xl font-black">Student Portal</h2>
-                <p className="text-xs font-semibold text-slate-900/80 mt-1">
-                  Access your assigned quizzes, view upcoming due dates, or join a live classroom competition.
-                </p>
-              </div>
-
-              {/* Instant Live Code Join Form */}
-              <form onSubmit={handleQuickJoin} className="bg-white/95 p-4 rounded-2xl space-y-3 text-slate-900 shadow-inner">
-                <p className="text-xs font-black uppercase tracking-wider text-slate-800">Quick Join Live Quiz</p>
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    required
-                    value={displayNameInput}
-                    onChange={(e) => setDisplayNameInput(e.target.value)}
-                    placeholder="Your Display Name"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900"
-                  />
-                  <input
-                    type="text"
-                    required
-                    maxLength={6}
-                    value={quizCodeInput}
-                    onChange={(e) => setQuizCodeInput(e.target.value)}
-                    placeholder="6-Digit Code (e.g. 482915)"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-center text-sm font-black tracking-widest uppercase text-slate-900"
-                  />
+              {/* Header Icon & Title */}
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100 shadow-xs">
+                  <GraduationCap className="w-6 h-6" />
                 </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Trainer Login</h2>
+                  <p className="text-[11px] text-slate-500 font-medium leading-tight mt-0.5">
+                    Create, manage and deliver amazing learning experiences
+                  </p>
+                </div>
+              </div>
+
+              {/* Trainer Login Form */}
+              <form onSubmit={handleTrainerLogin} className="space-y-3 pt-1">
+                <div>
+                  <div className="relative">
+                    <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="email"
+                      required
+                      value={trainerEmail}
+                      onChange={(e) => setTrainerEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="relative">
+                    <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={trainerPassword}
+                      onChange={(e) => setTrainerPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full pl-9 pr-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
                 <button
                   type="submit"
-                  className="w-full py-2.5 bg-slate-950 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition flex items-center justify-center space-x-1.5"
+                  disabled={trainerLoading}
+                  className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl transition shadow-md shadow-blue-500/20 flex items-center justify-center space-x-1.5"
                 >
-                  <Play className="w-3.5 h-3.5 text-amber-400 fill-current" />
-                  <span>Join Live Session</span>
+                  {trainerLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <>
+                      <LogIn className="w-3.5 h-3.5" />
+                      <span>Login as Trainer</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Quick Fill & Forgot Password */}
+              <div className="text-center space-y-1">
+                <button
+                  type="button"
+                  onClick={handleFillAdminCredentials}
+                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 underline block mx-auto"
+                >
+                  Fill Admin Credentials
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Contact Admin Box */}
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider text-center">New Trainer?</p>
+              <div className="bg-blue-50/70 border border-blue-100 rounded-2xl p-2.5 flex items-center space-x-2 text-blue-800">
+                <div className="w-7 h-7 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+                <div className="text-[11px]">
+                  <p className="font-bold leading-tight">Contact Administrator</p>
+                  <p className="text-[10px] text-blue-600 font-medium">for access credentials</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ================= RIGHT COLUMN: STUDENT ACCESS CARD (3 cols) ================= */}
+          <div className="lg:col-span-3 bg-gradient-to-b from-amber-50/90 via-orange-50/50 to-amber-100/40 rounded-3xl border border-amber-200/80 shadow-xl p-6 flex flex-col justify-between space-y-5">
+            <div className="space-y-4">
+              {/* Header Icon & Title */}
+              <div className="text-center space-y-2">
+                <div className="w-12 h-12 rounded-full bg-orange-100/80 text-orange-600 flex items-center justify-center mx-auto border border-orange-200 shadow-xs">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Student Access</h2>
+                  <p className="text-[11px] text-slate-600 font-medium leading-tight mt-0.5">
+                    Join assignments and live quizzes to test your knowledge
+                  </p>
+                </div>
+              </div>
+
+              {/* Student Join Form */}
+              <form onSubmit={handleStudentJoin} className="space-y-3 pt-1">
+                <div>
+                  <div className="relative">
+                    <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      placeholder="Enter your name"
+                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition shadow-2xs"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium mt-1 pl-1">
+                    Use your full name (as per registration)
+                  </p>
+                </div>
+
+                <div>
+                  <div className="relative">
+                    <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                    <input
+                      type="text"
+                      required
+                      maxLength={6}
+                      value={quizCode}
+                      onChange={(e) => setQuizCode(e.target.value)}
+                      placeholder="Enter 6-digit Quiz Code"
+                      className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition shadow-2xs"
+                    />
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-medium mt-1 pl-1">
+                    Example: 482915
+                  </p>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={studentLoading}
+                  className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl transition shadow-md shadow-orange-500/20 flex items-center justify-center space-x-1.5"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>Join Live Quiz</span>
                 </button>
               </form>
             </div>
 
-            <div className="pt-2">
+            {/* Go to Student Dashboard Button */}
+            <div className="pt-3 border-t border-amber-200/60 text-center space-y-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">OR</span>
               <button
+                type="button"
                 onClick={() => router.push('/auth/student')}
-                className="w-full py-3 bg-white/20 hover:bg-white/30 text-slate-950 font-black text-xs rounded-xl transition flex items-center justify-center space-x-2 border border-white/30"
+                className="w-full py-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-amber-200/90 font-bold text-xs rounded-xl transition shadow-xs flex items-center justify-center space-x-2"
               >
-                <span>Open Student Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
+                <ListChecks className="w-4 h-4 text-amber-600" />
+                <div className="text-left leading-tight">
+                  <p className="text-xs font-black text-slate-900">Go to Student Dashboard</p>
+                  <p className="text-[10px] text-slate-500 font-medium">View your assignments & results</p>
+                </div>
               </button>
             </div>
           </div>
+
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="py-6 border-t border-slate-200/80 bg-white/50 text-center text-xs text-slate-400 font-medium">
-        QuizArena by KVJ Analytics
+      {/* ================= BOTTOM FOOTER BANNER (No KVJ Analytics logo on bottom right per request) ================= */}
+      <footer className="w-full bg-white border-t border-slate-200 py-3.5 px-4 sm:px-8 mt-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-medium text-slate-600">
+          
+          {/* Left Stylized Typography */}
+          <div className="flex items-center space-x-1 text-slate-500">
+            <span className="font-extrabold italic bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
+              Powered by People. Driven by Knowledge.
+            </span>
+          </div>
+
+          {/* Middle 4 Feature Items */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 text-[11px]">
+            {/* Feature 1 */}
+            <div className="flex items-center space-x-2">
+              <ShieldCheck className="w-4 h-4 text-blue-600 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900 leading-tight">Secure & Reliable</p>
+                <p className="text-[10px] text-slate-500">Your data is safe with us</p>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="flex items-center space-x-2">
+              <Zap className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900 leading-tight">Real-Time Experience</p>
+                <p className="text-[10px] text-slate-500">Engage, Compete, Learn</p>
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="flex items-center space-x-2">
+              <Users className="w-4 h-4 text-purple-600 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900 leading-tight">For Up to 200 Students</p>
+                <p className="text-[10px] text-slate-500">Built for classrooms</p>
+              </div>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <div>
+                <p className="font-bold text-slate-900 leading-tight">Insights & Analytics</p>
+                <p className="text-[10px] text-slate-500">Track progress & performance</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
       </footer>
     </div>
   );
