@@ -280,9 +280,9 @@ export default function PublicLandingPage() {
                   <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Student Access</h2>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">Join a Quiz</h2>
                   <p className="text-[11px] text-slate-600 font-medium leading-tight mt-0.5">
-                    Join assignments and live quizzes to test your knowledge
+                    Enter your name and the 6-digit code provided by your trainer.
                   </p>
                 </div>
               </div>
@@ -290,6 +290,9 @@ export default function PublicLandingPage() {
               {/* Student Join Form */}
               <form onSubmit={handleStudentJoin} className="space-y-3 pt-1">
                 <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                    YOUR NAME
+                  </label>
                   <div className="relative">
                     <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -301,12 +304,12 @@ export default function PublicLandingPage() {
                       className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition shadow-2xs"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-medium mt-1 pl-1">
-                    Use your full name (as per registration)
-                  </p>
                 </div>
 
                 <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                    QUIZ CODE
+                  </label>
                   <div className="relative">
                     <Hash className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                     <input
@@ -315,29 +318,31 @@ export default function PublicLandingPage() {
                       maxLength={6}
                       value={quizCode}
                       onChange={(e) => setQuizCode(e.target.value)}
-                      placeholder="Enter 6-digit Quiz Code"
+                      placeholder="6-digit code"
                       className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900 tracking-wider uppercase focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition shadow-2xs"
                     />
                   </div>
-                  <p className="text-[10px] text-slate-500 font-medium mt-1 pl-1">
-                    Example: 482915
-                  </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={studentLoading}
-                  className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl transition shadow-md shadow-orange-500/20 flex items-center justify-center space-x-1.5"
+                  className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs rounded-xl transition shadow-md shadow-orange-500/20 flex items-center justify-center space-x-1.5 uppercase tracking-wider"
                 >
                   <Play className="w-3.5 h-3.5 fill-current" />
-                  <span>Join Live Quiz</span>
+                  <span>JOIN QUIZ</span>
                 </button>
+
+                <div className="flex items-center justify-center space-x-1.5 pt-1 text-slate-500 text-[11px] font-semibold">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>No account required</span>
+                </div>
               </form>
             </div>
 
-            {/* Go to Student Dashboard Button */}
+            {/* Go to Student Dashboard Button (For Assignments Only) */}
             <div className="pt-3 border-t border-amber-200/60 text-center space-y-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">OR</span>
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">HAVING ASSIGNMENTS?</span>
               <button
                 type="button"
                 onClick={() => router.push('/auth/student')}
@@ -345,8 +350,8 @@ export default function PublicLandingPage() {
               >
                 <ListChecks className="w-4 h-4 text-amber-600" />
                 <div className="text-left leading-tight">
-                  <p className="text-xs font-black text-slate-900">Go to Student Dashboard</p>
-                  <p className="text-[10px] text-slate-500 font-medium">View your assignments & results</p>
+                  <p className="text-xs font-black text-slate-900">Student Assignment Login</p>
+                  <p className="text-[10px] text-slate-500 font-medium">View & complete assigned quizzes</p>
                 </div>
               </button>
             </div>

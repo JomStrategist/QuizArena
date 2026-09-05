@@ -27,13 +27,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Register or update participant
+    // Generate or reuse unique participantId
+    let { participantId } = body;
     const participants = session.participants || {};
-    const key = displayName.trim();
 
-    if (!participants[key]) {
-      participants[key] = {
-        displayName: key,
+    if (!participantId || !participants[participantId]) {
+      const randHex = Math.random().toString(36).substring(2, 9);
+      participantId = `p_${randHex}_${Date.now().toString(36)}`;
+    }
+
+    const name = displayName.trim();
+
+    if (!participants[participantId]) {
+      participants[participantId] = {
+        participantId,
+        displayName: name,
         email: email || '',
         score: 0,
         rank: Object.keys(participants).length + 1,
@@ -43,8 +51,9 @@ export async function POST(req: NextRequest) {
         unansweredCount: 0,
         joinedAt: new Date().toISOString(),
       };
-    } else if (email) {
-      participants[key].email = email;
+    } else {
+      participants[participantId].displayName = name;
+      if (email) participants[participantId].email = email;
     }
 
     session.participants = participants;
@@ -54,7 +63,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       data: session,
-      participant: participants[key],
+      participantId,
+      participant: participants[participantId],
       timestamp: new Date().toISOString(),
     });
   } catch (error: any) {

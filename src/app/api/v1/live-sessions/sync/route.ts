@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
     await connectToDatabase();
     const { searchParams } = new URL(req.url);
     const quizCode = searchParams.get('code');
+    const participantId = searchParams.get('participantId');
     const displayName = searchParams.get('displayName');
     const role = searchParams.get('role'); // 'trainer' | 'student'
 
@@ -78,7 +79,12 @@ export async function GET(req: NextRequest) {
       else wrongCount++;
     });
 
-    const studentAnswer = displayName && answersForQ[displayName] ? answersForQ[displayName] : null;
+    let studentAnswer = null;
+    if (participantId && answersForQ[participantId]) {
+      studentAnswer = answersForQ[participantId];
+    } else if (displayName && answersForQ[displayName]) {
+      studentAnswer = answersForQ[displayName];
+    }
 
     // Sanitize question for student if question is active
     let sanitizedQuestion = currentQ ? { ...currentQ } : null;

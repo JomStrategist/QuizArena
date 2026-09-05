@@ -42,8 +42,8 @@ function StudentDashboardContent() {
   ]);
 
   const [participants] = useState<ILiveParticipant[]>([
-    { socketId: 's1', displayName: 'Rahul', score: 2840, rank: 1, previousRank: 1, correctAnswers: 2, wrongAnswers: 0, unansweredCount: 0 },
-    { socketId: 's2', displayName: 'Anjali', score: 2650, rank: 2, previousRank: 2, correctAnswers: 2, wrongAnswers: 0, unansweredCount: 0 },
+    { participantId: 'p1', socketId: 's1', displayName: 'Rahul', score: 2840, rank: 1, previousRank: 1, correctAnswers: 2, wrongAnswers: 0, unansweredCount: 0 },
+    { participantId: 'p2', socketId: 's2', displayName: 'Anjali', score: 2650, rank: 2, previousRank: 2, correctAnswers: 2, wrongAnswers: 0, unansweredCount: 0 },
   ]);
 
   const handleJoinCode = async (code: string, displayName: string) => {

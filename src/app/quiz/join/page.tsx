@@ -20,6 +20,7 @@ function PublicQuizJoinContent() {
 
   const [quizCode, setQuizCode] = useState(codeFromUrl);
   const [displayName, setDisplayName] = useState(nameFromUrl);
+  const [participantId, setParticipantId] = useState<string>('');
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [joined, setJoined] = useState(false);
@@ -30,12 +31,15 @@ function PublicQuizJoinContent() {
 
     setLoading(true);
     try {
+      const storedParticipantId = typeof window !== 'undefined' ? sessionStorage.getItem(`participant_${code.trim()}`) : null;
+
       const res = await fetch('/api/v1/live-sessions/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quizCode: code.trim(),
           displayName: name.trim(),
+          participantId: storedParticipantId || undefined,
         }),
       });
 
@@ -45,6 +49,11 @@ function PublicQuizJoinContent() {
       }
 
       setSession(json.data);
+      const pId = json.participantId || json.participant?.participantId || '';
+      setParticipantId(pId);
+      if (pId && typeof window !== 'undefined') {
+        sessionStorage.setItem(`participant_${code.trim()}`, pId);
+      }
       setJoined(true);
       showToast(`Joined session for "${json.data.quizTitle}"!`, 'success');
     } catch (err: any) {
@@ -85,47 +94,21 @@ function PublicQuizJoinContent() {
     );
   }
 
-  // Active Session View (Conduct Quiz or Live Game)
+  // Active Session View (Conduct Quiz & Live Quiz Session Client)
   if (joined && session) {
-    if (session.sessionType === 'CONDUCT') {
-      return (
-        <ConductQuizStudent
-          quizCode={quizCode}
-          displayName={displayName}
-          onExit={() => router.push('/')}
-        />
-      );
-    }
-
-    // Default Live Game view for Live Session
     return (
-      <div className="min-h-screen flex flex-col justify-between bg-slate-50">
-        <BrandHeader subtitle="Live Quiz Arena" />
-        <main className="flex-1 p-4 md:p-8 max-w-4xl mx-auto w-full flex items-center justify-center">
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-2xl text-center space-y-6 max-w-md w-full">
-            <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mx-auto border-4 border-amber-50">
-              <Users className="w-8 h-8" />
-            </div>
-            <div className="space-y-1">
-              <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-black uppercase">
-                LIVE GAME SESSION
-              </span>
-              <h1 className="text-2xl font-black text-slate-900 pt-2">{session.quizTitle}</h1>
-              <p className="text-xs font-bold text-slate-500">Player: {displayName}</p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs font-bold text-amber-700 flex items-center justify-center space-x-2">
-              <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Waiting for Trainer to start the Live Game...</span>
-            </div>
-          </div>
-        </main>
-      </div>
+      <ConductQuizStudent
+        quizCode={quizCode}
+        displayName={displayName}
+        participantId={participantId}
+        onExit={() => router.push('/')}
+      />
     );
   }
 
   // Public Join Form if code/name not prefilled
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between font-sans">
       <BrandHeader subtitle="Join Quiz Session" />
 
       <main className="flex-1 flex items-center justify-center p-4">
@@ -134,15 +117,17 @@ function PublicQuizJoinContent() {
             <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto border border-blue-100">
               <Users className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Join Quiz Arena</h1>
-            <p className="text-xs text-slate-500 font-medium">
-              Enter your 6-digit Quiz Code and name to join the session immediately
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Join a Quiz</h1>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Enter your name and the 6-digit code provided by your trainer.
             </p>
           </div>
 
           <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
             <div>
-              <label className="block font-bold text-slate-700 mb-1">Your Display Name</label>
+              <label className="block font-black text-slate-700 uppercase tracking-wider mb-1">
+                YOUR NAME
+              </label>
               <div className="relative">
                 <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
@@ -157,7 +142,9 @@ function PublicQuizJoinContent() {
             </div>
 
             <div>
-              <label className="block font-bold text-slate-700 mb-1">6-Digit Quiz Code</label>
+              <label className="block font-black text-slate-700 uppercase tracking-wider mb-1">
+                QUIZ CODE
+              </label>
               <div className="relative">
                 <Hash className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
                 <input
@@ -166,7 +153,7 @@ function PublicQuizJoinContent() {
                   maxLength={6}
                   value={quizCode}
                   onChange={(e) => setQuizCode(e.target.value)}
-                  placeholder="e.g. 482915"
+                  placeholder="6-digit code"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-black tracking-widest text-slate-900 uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
@@ -175,11 +162,15 @@ function PublicQuizJoinContent() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-sm rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2"
+              className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-sm rounded-xl transition shadow-lg shadow-blue-500/20 flex items-center justify-center space-x-2 uppercase tracking-wider"
             >
               <Play className="w-4 h-4 fill-current text-amber-300" />
-              <span>Join Quiz Now</span>
+              <span>JOIN QUIZ</span>
             </button>
+
+            <div className="text-center pt-1 text-slate-500 text-xs font-semibold">
+              <span>No account required</span>
+            </div>
           </form>
         </div>
       </main>

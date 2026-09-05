@@ -110,7 +110,8 @@ export type LiveSessionStage =
   | 'CLOSED';
 
 export interface ILiveParticipant {
-  socketId: string;
+  participantId?: string;
+  socketId?: string;
   email?: string;
   displayName: string;
   score: number;

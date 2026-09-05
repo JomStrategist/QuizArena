@@ -9,13 +9,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       quizCode,
+      participantId,
       displayName,
       questionIndex,
       selectedOptionIndex,
       responseTimeMs = 1000,
     } = body;
 
-    if (!quizCode || !displayName || questionIndex === undefined || selectedOptionIndex === undefined) {
+    if (!quizCode || (!participantId && !displayName) || questionIndex === undefined || selectedOptionIndex === undefined) {
       return NextResponse.json(
         { success: false, error: { code: 'BAD_REQUEST', message: 'Missing required submission fields.' } },
         { status: 400 }
@@ -33,6 +34,35 @@ export async function POST(req: NextRequest) {
         { status: 404 }
       );
     }
+
+    const participants = session.participants || {};
+
+    // Determine target participant key (prefer participantId)
+    let pKey = participantId;
+    if (!pKey || !participants[pKey]) {
+      // Fallback lookup by displayName
+      const foundKey = Object.keys(participants).find(
+        (k) => participants[k].displayName === displayName
+      );
+      if (foundKey) {
+        pKey = foundKey;
+      }
+    }
+
+    if (!pKey || !participants[pKey]) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'You have not joined this active quiz session. Please join first.',
+          },
+        },
+        { status: 403 }
+      );
+    }
+
+    const targetParticipant = participants[pKey];
 
     const qIdx = Number(questionIndex);
     const questions = session.quizSnapshot?.questions || [];
@@ -68,9 +98,9 @@ export async function POST(req: NextRequest) {
       answers[qIdx] = {};
     }
 
-    // Prevent duplicate submission for same question
-    if (answers[qIdx][displayName]) {
-      const existing = answers[qIdx][displayName];
+    // Prevent duplicate submission for same question by this participant
+    if (answers[qIdx][pKey]) {
+      const existing = answers[qIdx][pKey];
       return NextResponse.json({
         success: true,
         data: existing,
@@ -91,7 +121,8 @@ export async function POST(req: NextRequest) {
         });
 
     const responseRecord = {
-      displayName,
+      participantId: pKey,
+      displayName: targetParticipant.displayName || displayName,
       questionIndex: qIdx,
       selectedOptionIndex,
       isCorrect,
@@ -101,34 +132,31 @@ export async function POST(req: NextRequest) {
       timestamp: Date.now(),
     };
 
-    answers[qIdx][displayName] = responseRecord;
+    answers[qIdx][pKey] = responseRecord;
     session.answers = answers;
     session.markModified('answers');
 
     // Update participant aggregate stats
-    const participants = session.participants || {};
-    if (participants[displayName]) {
-      const p = participants[displayName];
-      p.score = (p.score || 0) + pointsEarned;
-      if (isCorrect) {
-        p.correctAnswers = (p.correctAnswers || 0) + 1;
-      } else if (isTimeout) {
-        p.unansweredCount = (p.unansweredCount || 0) + 1;
-      } else {
-        p.wrongAnswers = (p.wrongAnswers || 0) + 1;
-      }
-      p.lastPointsEarned = pointsEarned;
-      p.lastIsCorrect = isCorrect;
-      p.lastResponseTimeMs = responseTimeMs;
-      participants[displayName] = p;
+    targetParticipant.score = (targetParticipant.score || 0) + pointsEarned;
+    if (isCorrect) {
+      targetParticipant.correctAnswers = (targetParticipant.correctAnswers || 0) + 1;
+    } else if (isTimeout) {
+      targetParticipant.unansweredCount = (targetParticipant.unansweredCount || 0) + 1;
+    } else {
+      targetParticipant.wrongAnswers = (targetParticipant.wrongAnswers || 0) + 1;
     }
+    targetParticipant.lastPointsEarned = pointsEarned;
+    targetParticipant.lastIsCorrect = isCorrect;
+    targetParticipant.lastResponseTimeMs = responseTimeMs;
+    participants[pKey] = targetParticipant;
 
     // Recalculate participant ranks
     const sortedList = Object.values(participants).sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
     sortedList.forEach((item: any, rankIdx: number) => {
-      if (participants[item.displayName]) {
-        participants[item.displayName].previousRank = participants[item.displayName].rank || (rankIdx + 1);
-        participants[item.displayName].rank = rankIdx + 1;
+      const k = item.participantId || item.displayName;
+      if (participants[k]) {
+        participants[k].previousRank = participants[k].rank || (rankIdx + 1);
+        participants[k].rank = rankIdx + 1;
       }
     });
 

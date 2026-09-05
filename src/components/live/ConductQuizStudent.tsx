@@ -8,6 +8,7 @@ import { ConductScoreboard } from './ConductScoreboard';
 interface ConductQuizStudentProps {
   quizCode: string;
   displayName: string;
+  participantId?: string;
   studentEmail?: string;
   onExit?: () => void;
 }
@@ -15,6 +16,7 @@ interface ConductQuizStudentProps {
 export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   quizCode,
   displayName,
+  participantId = '',
   studentEmail = '',
   onExit,
 }) => {
@@ -32,9 +34,11 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
 
   const syncState = async () => {
     try {
-      const res = await fetch(
-        `/api/v1/live-sessions/sync?code=${quizCode}&displayName=${encodeURIComponent(displayName)}&role=student`
-      );
+      let syncUrl = `/api/v1/live-sessions/sync?code=${quizCode}&role=student&displayName=${encodeURIComponent(displayName)}`;
+      if (participantId) {
+        syncUrl += `&participantId=${encodeURIComponent(participantId)}`;
+      }
+      const res = await fetch(syncUrl);
       const json = await res.json();
 
       if (json.success && json.data) {
@@ -69,7 +73,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
     syncState();
     const interval = setInterval(syncState, 1000);
     return () => clearInterval(interval);
-  }, [quizCode, displayName]);
+  }, [quizCode, displayName, participantId]);
 
   // Reset selected option when question index changes
   useEffect(() => {
@@ -94,6 +98,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           quizCode,
+          participantId,
           displayName,
           questionIndex: session?.currentQuestionIndex || 0,
           selectedOptionIndex: index,
