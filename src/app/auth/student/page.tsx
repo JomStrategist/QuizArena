@@ -14,6 +14,14 @@ function StudentLoginForm() {
   const { showToast } = useToast();
   const searchParams = useSearchParams();
 
+  React.useEffect(() => {
+    const codeParam = searchParams.get('code');
+    const nameParam = searchParams.get('name') || '';
+    if (codeParam) {
+      router.replace(`/quiz/join?code=${codeParam}&name=${encodeURIComponent(nameParam)}`);
+    }
+  }, [searchParams, router]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {

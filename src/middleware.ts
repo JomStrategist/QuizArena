@@ -36,6 +36,12 @@ export function middleware(req: NextRequest) {
   // Protected Student Routes
   if (pathname.startsWith('/student')) {
     if (!token) {
+      const code = req.nextUrl.searchParams.get('code');
+      if (code) {
+        const joinUrl = req.nextUrl.clone();
+        joinUrl.pathname = '/quiz/join';
+        return NextResponse.redirect(joinUrl);
+      }
       const url = req.nextUrl.clone();
       url.pathname = '/auth/student';
       return NextResponse.redirect(url);
