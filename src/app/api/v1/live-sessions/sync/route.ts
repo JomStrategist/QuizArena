@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
     const questionTime = session.questionTime || 30;
     const now = Date.now();
 
-    // Auto question progression for Conduct Quiz sessions
+    // Auto question progression for Conduct & Live Quiz sessions
     if (
-      session.sessionType === 'CONDUCT' &&
+      (session.sessionType === 'CONDUCT' || session.sessionType === 'LIVE_GAME') &&
       session.stage === 'QUESTION_ACTIVE' &&
       session.questionStartTimestamp
     ) {

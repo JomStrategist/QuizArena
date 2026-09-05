@@ -134,7 +134,7 @@ export default function ProtectedTrainerDashboardPage() {
             quizCode={activeQuizCode}
             quizTitle={activeQuizTitle}
             participants={participants}
-            onStartGame={() => setViewState('GAME_PLAY')}
+            onStartGame={handleStartConductQuizSession}
           />
         )}
 
