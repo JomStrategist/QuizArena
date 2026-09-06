@@ -33,6 +33,13 @@ export const metadata: Metadata = {
     siteName: 'QuizArena',
     images: [
       {
+        url: `${siteUrl}/og-square.jpg`,
+        width: 600,
+        height: 600,
+        alt: 'QuizArena Logo',
+        type: 'image/jpeg',
+      },
+      {
         url: `${siteUrl}/og-image.jpg`,
         width: 1200,
         height: 630,
@@ -46,13 +53,6 @@ export const metadata: Metadata = {
         alt: 'QuizArena - KVJ Analytics Training Platform',
         type: 'image/png',
       },
-      {
-        url: `${siteUrl}/og-square.jpg`,
-        width: 600,
-        height: 600,
-        alt: 'QuizArena Logo',
-        type: 'image/jpeg',
-      },
     ],
     locale: 'en_US',
     type: 'website',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'QuizArena | KVJ Analytics Training Platform',
     description: 'Interactive live quiz & training assessment platform by KVJ Analytics. Play, Learn, Assess & Grow together.',
-    images: [`${siteUrl}/og-image.jpg`],
+    images: [`${siteUrl}/og-square.jpg`],
   },
 };
 
@@ -73,13 +73,13 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <head>
-        <meta property="og:image" content={`${siteUrl}/og-image.jpg`} />
-        <meta property="og:image:secure_url" content={`${siteUrl}/og-image.jpg`} />
+        <meta property="og:image" content={`${siteUrl}/og-square.jpg`} />
+        <meta property="og:image:secure_url" content={`${siteUrl}/og-square.jpg`} />
         <meta property="og:image:type" content="image/jpeg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="QuizArena - KVJ Analytics Training Platform" />
-        <link rel="image_src" href={`${siteUrl}/og-image.jpg`} />
+        <meta property="og:image:width" content="600" />
+        <meta property="og:image:height" content="600" />
+        <meta property="og:image:alt" content="QuizArena Logo" />
+        <link rel="image_src" href={`${siteUrl}/og-square.jpg`} />
       </head>
       <body className="bg-slate-50 text-slate-900 min-h-screen">
         <ToastProvider>{children}</ToastProvider>
