@@ -102,15 +102,19 @@ export default function ProtectedTrainerDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-slate-50">
-      <BrandHeader
-        subtitle="Trainer Dashboard"
-        user={user}
-        onLogout={() => router.push('/')}
-      />
+      {viewState !== 'DASHBOARD' && (
+        <BrandHeader
+          subtitle="Trainer Dashboard"
+          user={user}
+          onLogout={() => router.push('/')}
+        />
+      )}
 
-      <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full">
         {viewState === 'DASHBOARD' && (
           <TrainerDashboard
+            user={user}
+            onLogout={() => router.push('/')}
             onStartLiveSession={(code, title, liveQuestions) => {
               setActiveQuizCode(code);
               setActiveQuizTitle(title);
