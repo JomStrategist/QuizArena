@@ -142,13 +142,9 @@ function StudentDashboardContent() {
 
         {viewState === 'GAME_PLAY' && (
           <LiveGameStudent
-            question={questions[0]}
-            questionNumber={1}
-            totalQuestions={1}
+            quizCode={activeQuizCode}
             displayName={user.name}
-            onAnswerSubmitted={() => {
-              setTimeout(() => setViewState('PODIUM'), 2000);
-            }}
+            onExit={() => setViewState('DASHBOARD')}
           />
         )}
 

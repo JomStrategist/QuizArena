@@ -110,15 +110,21 @@ export async function POST(req: NextRequest) {
 
     const isCorrect = selectedOptionIndex >= 0 && selectedOptionIndex === question.correctOptionIndex;
     const isTimeout = selectedOptionIndex === -1;
+    const maxPts = question.points || 1000;
 
-    const pointsEarned = isTimeout || !isCorrect
-      ? 0
-      : calculateQuestionScore({
+    let pointsEarned = 0;
+    if (isCorrect && !isTimeout) {
+      if (session.speedScoring !== false) {
+        pointsEarned = calculateQuestionScore({
           isCorrect: true,
-          maxPoints: question.points || 1000,
+          maxPoints: maxPts,
           timeLimitSeconds: timeLimit,
           responseTimeMs,
         });
+      } else {
+        pointsEarned = maxPts;
+      }
+    }
 
     const responseRecord = {
       participantId: pKey,
@@ -150,13 +156,16 @@ export async function POST(req: NextRequest) {
     targetParticipant.lastResponseTimeMs = responseTimeMs;
     participants[pKey] = targetParticipant;
 
-    // Recalculate participant ranks
+    // Recalculate participant ranks and compute rank delta
     const sortedList = Object.values(participants).sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
     sortedList.forEach((item: any, rankIdx: number) => {
       const k = item.participantId || item.displayName;
       if (participants[k]) {
-        participants[k].previousRank = participants[k].rank || (rankIdx + 1);
-        participants[k].rank = rankIdx + 1;
+        const oldRank = participants[k].rank || (rankIdx + 1);
+        const newRank = rankIdx + 1;
+        participants[k].previousRank = oldRank;
+        participants[k].rank = newRank;
+        participants[k].lastRankDelta = oldRank - newRank; // Positive means moved up, negative means fell down
       }
     });
 

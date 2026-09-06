@@ -96,6 +96,16 @@ function PublicQuizJoinContent() {
 
   // Active Session View (Conduct Quiz & Live Quiz Session Client)
   if (joined && session) {
+    if (session.sessionType === 'LIVE_GAME') {
+      return (
+        <LiveGameStudent
+          quizCode={quizCode}
+          displayName={displayName}
+          participantId={participantId}
+          onExit={() => router.push('/')}
+        />
+      );
+    }
     return (
       <ConductQuizStudent
         quizCode={quizCode}

@@ -27,9 +27,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    session.stage = 'QUESTION_ACTIVE';
+    session.stage = 'STARTING';
+    session.stageStartTimestamp = Date.now();
     session.currentQuestionIndex = 0;
-    session.questionStartTimestamp = Date.now();
     await session.save();
 
     return NextResponse.json({

@@ -7,6 +7,7 @@ import { TrainerDashboard } from '@/components/trainer/TrainerDashboard';
 import { LiveLobbyTrainer } from '@/components/live/LiveLobbyTrainer';
 import { LiveGameStudent } from '@/components/live/LiveGameStudent';
 import { LivePodiumFinale } from '@/components/live/LivePodiumFinale';
+import { LiveGameTrainerControl } from '@/components/live/LiveGameTrainerControl';
 import { ConductQuizTrainerControl } from '@/components/live/ConductQuizTrainerControl';
 import { ILiveParticipant, IQuestion } from '@/types';
 import { useToast } from '@/components/ui/ToastNotification';
@@ -20,7 +21,7 @@ export default function ProtectedTrainerDashboardPage() {
 
   // Session management states
   const [viewState, setViewState] = useState<
-    'DASHBOARD' | 'LIVE_LOBBY' | 'CONDUCT_LOBBY' | 'CONDUCT_RUNNING' | 'GAME_PLAY' | 'PODIUM'
+    'DASHBOARD' | 'LIVE_LOBBY' | 'LIVE_RUNNING' | 'CONDUCT_LOBBY' | 'CONDUCT_RUNNING' | 'PODIUM'
   >('DASHBOARD');
   const [activeQuizCode, setActiveQuizCode] = useState('');
   const [activeQuizTitle, setActiveQuizTitle] = useState('');
@@ -68,7 +69,7 @@ export default function ProtectedTrainerDashboardPage() {
     }
   }, [viewState, activeQuizCode]);
 
-  const handleStartConductQuizSession = async () => {
+  const handleStartSession = async (targetViewState: 'LIVE_RUNNING' | 'CONDUCT_RUNNING') => {
     try {
       const res = await fetch('/api/v1/live-sessions/start', {
         method: 'POST',
@@ -79,8 +80,8 @@ export default function ProtectedTrainerDashboardPage() {
       if (!res.ok || !json.success) {
         throw new Error(json.error?.message || 'Failed to start quiz session.');
       }
-      showToast('Quiz session started successfully!', 'success');
-      setViewState('CONDUCT_RUNNING');
+      showToast('Live Game started successfully!', 'success');
+      setViewState(targetViewState);
     } catch (err: any) {
       showToast(err.message || 'Error starting session', 'error');
     }
@@ -135,7 +136,15 @@ export default function ProtectedTrainerDashboardPage() {
             quizTitle={activeQuizTitle}
             sessionType="LIVE_GAME"
             participants={participants}
-            onStartGame={handleStartConductQuizSession}
+            onStartGame={() => handleStartSession('LIVE_RUNNING')}
+          />
+        )}
+
+        {viewState === 'LIVE_RUNNING' && (
+          <LiveGameTrainerControl
+            quizCode={activeQuizCode}
+            quizTitle={activeQuizTitle}
+            onCloseSession={() => setViewState('DASHBOARD')}
           />
         )}
 
@@ -145,7 +154,7 @@ export default function ProtectedTrainerDashboardPage() {
             quizTitle={activeQuizTitle}
             sessionType="CONDUCT"
             participants={participants}
-            onStartGame={handleStartConductQuizSession}
+            onStartGame={() => handleStartSession('CONDUCT_RUNNING')}
           />
         )}
 
@@ -154,18 +163,6 @@ export default function ProtectedTrainerDashboardPage() {
             quizCode={activeQuizCode}
             quizTitle={activeQuizTitle}
             onCloseSession={() => setViewState('DASHBOARD')}
-          />
-        )}
-
-        {viewState === 'GAME_PLAY' && (
-          <LiveGameStudent
-            question={questions[0]}
-            questionNumber={1}
-            totalQuestions={questions.length}
-            displayName={user.name}
-            onAnswerSubmitted={() => {
-              setTimeout(() => setViewState('PODIUM'), 2000);
-            }}
           />
         )}
 

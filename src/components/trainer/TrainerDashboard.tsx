@@ -90,12 +90,31 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     loadData();
   }, []);
 
-  const handleLaunchLiveSession = async (quizId: string) => {
+  const handleLaunchLiveSession = async (
+    quizId: string,
+    settings?: {
+      questionTime?: number;
+      maxParticipants?: number;
+      speedScoring?: boolean;
+      showCorrectAnswer?: boolean;
+      showLeaderboard?: boolean;
+      finalPodium?: boolean;
+    }
+  ) => {
     try {
       const res = await fetch('/api/v1/live-sessions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ quizId, sessionType: 'LIVE_GAME' }),
+        body: JSON.stringify({
+          quizId,
+          sessionType: 'LIVE_GAME',
+          questionTime: settings?.questionTime || 20,
+          maxParticipants: settings?.maxParticipants || 200,
+          speedScoring: settings?.speedScoring !== false,
+          showCorrectAnswer: settings?.showCorrectAnswer !== false,
+          showLeaderboard: settings?.showLeaderboard !== false,
+          finalPodium: settings?.finalPodium !== false,
+        }),
       });
 
       const json = await res.json();
@@ -460,7 +479,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         onClose={() => setIsLiveSetupOpen(false)}
         quizzes={quizzes}
         initialQuiz={selectedQuizForLive}
-        onLaunchLiveGame={(quizId) => handleLaunchLiveSession(quizId)}
+        onLaunchLiveGame={(quizId, settings) => handleLaunchLiveSession(quizId, settings)}
       />
     </div>
   );

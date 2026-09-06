@@ -30,6 +30,36 @@ export async function POST(req: NextRequest) {
     // Generate or reuse unique participantId
     let { participantId } = body;
     const participants = session.participants || {};
+    const maxLimit = session.maxParticipants || 200;
+    const isExistingParticipant = Boolean(participantId && participants[participantId]);
+
+    // Late join check: If game has already started and user is NOT an existing participant
+    if (!isExistingParticipant && session.stage !== 'LOBBY') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'GAME_ALREADY_STARTED',
+            message: 'This Live Game has already started. Late joining is not allowed.',
+          },
+        },
+        { status: 403 }
+      );
+    }
+
+    // Capacity limit check
+    if (!isExistingParticipant && Object.keys(participants).length >= maxLimit) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            code: 'GAME_FULL',
+            message: `This Live Game is full (maximum ${maxLimit} participants reached).`,
+          },
+        },
+        { status: 403 }
+      );
+    }
 
     if (!participantId || !participants[participantId]) {
       const randHex = Math.random().toString(36).substring(2, 9);

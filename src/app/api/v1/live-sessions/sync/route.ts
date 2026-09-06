@@ -34,14 +34,20 @@ export async function GET(req: NextRequest) {
     const questionTime = session.questionTime || 30;
     const now = Date.now();
 
-    // Auto question progression and 5-second Top 5 Leaderboard display for Live & Conduct sessions
-    if (
-      (session.sessionType === 'CONDUCT' || session.sessionType === 'LIVE_GAME') &&
-      session.questionStartTimestamp
-    ) {
-      if (session.stage === 'QUESTION_ACTIVE') {
+    // Synchronized State Machine Auto Progression
+    if (session.stage !== 'PAUSED' && session.stage !== 'CLOSED' && session.stage !== 'LOBBY') {
+      if (session.stage === 'STARTING' && session.stageStartTimestamp) {
+        const countdownElapsed = (now - session.stageStartTimestamp) / 1000;
+        if (countdownElapsed >= 3) {
+          session.stage = 'QUESTION_ACTIVE';
+          session.questionStartTimestamp = Date.now();
+          session.markModified('stage');
+          session.markModified('questionStartTimestamp');
+          await session.save();
+        }
+      } else if (session.stage === 'QUESTION_ACTIVE' && session.questionStartTimestamp) {
         const elapsedSeconds = (now - session.questionStartTimestamp) / 1000;
-        if (elapsedSeconds >= questionTime + 1) {
+        if (elapsedSeconds >= questionTime + 0.5) {
           session.stage = 'SHOWING_RESULT';
           session.stageStartTimestamp = Date.now();
           session.markModified('stage');
@@ -49,8 +55,39 @@ export async function GET(req: NextRequest) {
           await session.save();
         }
       } else if (session.stage === 'SHOWING_RESULT' && session.stageStartTimestamp) {
+        const elapsedResult = (now - session.stageStartTimestamp) / 1000;
+        const resultDelay = 4; // 4 seconds score/answer reveal
+        if (elapsedResult >= resultDelay) {
+          const showLeaderboard = session.showLeaderboard !== false;
+          if (showLeaderboard) {
+            session.stage = 'LEADERBOARD';
+            session.stageStartTimestamp = Date.now();
+            session.markModified('stage');
+            session.markModified('stageStartTimestamp');
+            await session.save();
+          } else {
+            // Skip leaderboard and advance to next question or end
+            if (session.currentQuestionIndex < totalQuestions - 1) {
+              session.currentQuestionIndex = session.currentQuestionIndex + 1;
+              session.stage = 'QUESTION_ACTIVE';
+              session.questionStartTimestamp = Date.now();
+              session.markModified('currentQuestionIndex');
+              session.markModified('stage');
+              session.markModified('questionStartTimestamp');
+              await session.save();
+            } else {
+              session.stage = session.finalPodium !== false ? 'FINAL_PODIUM' : 'FINAL_SCOREBOARD';
+              session.closedAt = new Date();
+              session.markModified('stage');
+              session.markModified('closedAt');
+              await session.save();
+            }
+          }
+        }
+      } else if (session.stage === 'LEADERBOARD' && session.stageStartTimestamp) {
         const elapsedLeaderboard = (now - session.stageStartTimestamp) / 1000;
-        if (elapsedLeaderboard >= 5) {
+        const leaderboardDelay = 5; // 5 seconds leaderboard view
+        if (elapsedLeaderboard >= leaderboardDelay) {
           if (session.currentQuestionIndex < totalQuestions - 1) {
             session.currentQuestionIndex = session.currentQuestionIndex + 1;
             session.stage = 'QUESTION_ACTIVE';
@@ -60,7 +97,7 @@ export async function GET(req: NextRequest) {
             session.markModified('questionStartTimestamp');
             await session.save();
           } else {
-            session.stage = 'FINAL_SCOREBOARD';
+            session.stage = session.finalPodium !== false ? 'FINAL_PODIUM' : 'FINAL_SCOREBOARD';
             session.closedAt = new Date();
             session.markModified('stage');
             session.markModified('closedAt');
@@ -119,11 +156,18 @@ export async function GET(req: NextRequest) {
           trainerName: session.trainerName,
           sessionType: session.sessionType,
           questionTime,
+          maxParticipants: session.maxParticipants || 200,
+          speedScoring: session.speedScoring !== false,
+          showCorrectAnswer: session.showCorrectAnswer !== false,
+          showLeaderboard: session.showLeaderboard !== false,
+          finalPodium: session.finalPodium !== false,
           pointsMode: session.pointsMode,
           stage: session.stage,
+          previousStage: session.previousStage,
           currentQuestionIndex: session.currentQuestionIndex,
           totalQuestions,
           questionStartTimestamp: session.questionStartTimestamp,
+          stageStartTimestamp: session.stageStartTimestamp,
           closedAt: session.closedAt,
         },
         currentQuestion: sanitizedQuestion,

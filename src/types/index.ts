@@ -105,6 +105,8 @@ export type LiveSessionStage =
   | 'QUESTION_ACTIVE'
   | 'QUESTION_LOCKED'
   | 'SHOWING_RESULT'
+  | 'LEADERBOARD'
+  | 'PAUSED'
   | 'FINAL_PODIUM'
   | 'FINAL_SCOREBOARD'
   | 'CLOSED';
@@ -123,6 +125,16 @@ export interface ILiveParticipant {
   lastResponseTimeMs?: number;
   lastPointsEarned?: number;
   lastIsCorrect?: boolean;
+  lastRankDelta?: number;
+  joinedAt?: string;
+}
+
+export interface ILiveGameSettings {
+  maxParticipants?: number;
+  speedScoring?: boolean;
+  showCorrectAnswer?: boolean;
+  showLeaderboard?: boolean;
+  finalPodium?: boolean;
 }
 
 export interface ILiveSession {
@@ -134,15 +146,24 @@ export interface ILiveSession {
   trainerName: string;
   sessionType: 'CONDUCT' | 'LIVE_GAME';
   questionTime: number;
+  maxParticipants?: number;
+  speedScoring?: boolean;
+  showCorrectAnswer?: boolean;
+  showLeaderboard?: boolean;
+  finalPodium?: boolean;
   pointsMode: string;
   stage: LiveSessionStage;
+  previousStage?: LiveSessionStage;
   currentQuestionIndex: number;
   totalQuestions: number;
   quizSnapshot: IQuiz;
   questionStartTimestamp?: number;
   questionEndTimestamp?: number;
-  participants: Record<string, ILiveParticipant>; // Keyed by displayName/email
-  answers?: Record<string, Record<string, any>>; // questionIndex -> displayName -> answerObject
+  stageStartTimestamp?: number;
+  pauseStartTimestamp?: number;
+  totalPausedMs?: number;
+  participants: Record<string, ILiveParticipant>; // Keyed by participantId
+  answers?: Record<string, Record<string, any>>; // questionIndex -> participantId -> answerObject
   createdAt: string;
   closedAt?: string;
 }

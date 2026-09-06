@@ -10,7 +10,14 @@ interface LiveGameSetupModalProps {
   onClose: () => void;
   quizzes: IQuiz[];
   initialQuiz?: IQuiz | null;
-  onLaunchLiveGame: (quizId: string) => void;
+  onLaunchLiveGame: (quizId: string, settings: {
+    questionTime: number;
+    maxParticipants: number;
+    speedScoring: boolean;
+    showCorrectAnswer: boolean;
+    showLeaderboard: boolean;
+    finalPodium: boolean;
+  }) => void;
 }
 
 export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
@@ -22,7 +29,15 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
 }) => {
   const [selectedQuizId, setSelectedQuizId] = useState<string>('');
   const [selectedQuiz, setSelectedQuiz] = useState<IQuiz | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  
+  // Game Settings State
+  const [questionTime, setQuestionTime] = useState<number>(20);
+  const [maxParticipants, setMaxParticipants] = useState<number>(200);
+  const [speedScoring, setSpeedScoring] = useState<boolean>(true);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(true);
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(true);
+  const [finalPodium, setFinalPodium] = useState<boolean>(true);
+
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -58,13 +73,20 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
       return;
     }
 
-    onLaunchLiveGame(selectedQuiz._id);
+    onLaunchLiveGame(selectedQuiz._id, {
+      questionTime,
+      maxParticipants,
+      speedScoring,
+      showCorrectAnswer,
+      showLeaderboard,
+      finalPodium,
+    });
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white max-w-lg w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col">
+      <div className="bg-white max-w-xl w-full rounded-3xl border border-slate-200 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 p-6 text-slate-950 flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -72,9 +94,9 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
               <Radio className="w-5 h-5 animate-pulse" />
             </div>
             <div>
-              <h2 className="text-xl font-black tracking-tight text-slate-950">SELECT LIVE GAME QUIZ</h2>
-              <p className="text-xs text-slate-900 font-semibold opacity-90">
-                Choose which quiz to launch for Kahoot-style live participation
+              <h2 className="text-xl font-black tracking-tight text-slate-950">START LIVE GAME</h2>
+              <p className="text-xs text-slate-950 font-semibold opacity-90">
+                Configure real-time competitive settings for up to {maxParticipants} students
               </p>
             </div>
           </div>
@@ -87,11 +109,11 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 text-xs text-slate-800">
+        <div className="p-6 space-y-5 text-xs text-slate-800 overflow-y-auto">
           {/* Quiz Selection Dropdown */}
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
-              Select Quiz to Launch:
+              Select Quiz Activity:
             </label>
             {quizzes.length === 0 ? (
               <p className="text-slate-500 text-xs italic">No quizzes available. Please create a quiz first.</p>
@@ -112,29 +134,117 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
 
           {/* Selected Quiz Card Preview */}
           {selectedQuiz && (
-            <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-2">
+            <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-2xl space-y-1.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-black uppercase tracking-wider text-amber-900">
                   {selectedQuiz.category}
                 </span>
                 <span className="px-2.5 py-0.5 text-[10px] font-bold bg-amber-400 text-slate-950 rounded-full">
-                  Live Mode
+                  {selectedQuiz.questionIds?.length || selectedQuiz.questions?.length || 0} Questions
                 </span>
               </div>
               <h3 className="text-base font-black text-slate-900">{selectedQuiz.title}</h3>
               <p className="text-xs text-slate-600 font-medium">
                 {selectedQuiz.description || 'No description provided.'}
               </p>
-              <div className="flex items-center space-x-3 text-xs font-bold text-slate-600 pt-1">
-                <span className="flex items-center space-x-1">
-                  <BookOpen className="w-3.5 h-3.5 text-amber-600" />
-                  <span>{selectedQuiz.questionIds?.length || selectedQuiz.questions?.length || 0} Questions</span>
-                </span>
-                <span>•</span>
-                <span>Speed-based Kahoot Scoring</span>
-              </div>
             </div>
           )}
+
+          {/* GAME SETTINGS GRID */}
+          <div className="space-y-3 pt-2 border-t border-slate-200">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">GAME SETTINGS</h4>
+
+            <div className="grid grid-cols-2 gap-3">
+              {/* Setting 1: Question Time */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                <label className="block text-[11px] font-bold text-slate-700">Question Time Limit</label>
+                <select
+                  value={questionTime}
+                  onChange={(e) => setQuestionTime(Number(e.target.value))}
+                  className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none"
+                >
+                  <option value={15}>15 Seconds</option>
+                  <option value={20}>20 Seconds (Default)</option>
+                  <option value={30}>30 Seconds</option>
+                  <option value={45}>45 Seconds</option>
+                  <option value={60}>60 Seconds</option>
+                </select>
+              </div>
+
+              {/* Setting 2: Maximum Participants */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-1">
+                <label className="block text-[11px] font-bold text-slate-700">Maximum Participants</label>
+                <select
+                  value={maxParticipants}
+                  onChange={(e) => setMaxParticipants(Number(e.target.value))}
+                  className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none"
+                >
+                  <option value={50}>50 Students</option>
+                  <option value={100}>100 Students</option>
+                  <option value={200}>200 Students (Max)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Checkbox / Toggle Settings */}
+            <div className="grid grid-cols-2 gap-3 pt-1">
+              {/* Toggle 1: Speed Scoring */}
+              <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 transition">
+                <div>
+                  <p className="font-bold text-slate-900 text-[11px]">Speed Scoring</p>
+                  <p className="text-[10px] text-slate-500">Faster answers get more points</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={speedScoring}
+                  onChange={(e) => setSpeedScoring(e.target.checked)}
+                  className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400"
+                />
+              </label>
+
+              {/* Toggle 2: Show Correct Answer */}
+              <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 transition">
+                <div>
+                  <p className="font-bold text-slate-900 text-[11px]">Show Correct Answer</p>
+                  <p className="text-[10px] text-slate-500">Reveal answer after timer ends</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={showCorrectAnswer}
+                  onChange={(e) => setShowCorrectAnswer(e.target.checked)}
+                  className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400"
+                />
+              </label>
+
+              {/* Toggle 3: Show Leaderboard */}
+              <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 transition">
+                <div>
+                  <p className="font-bold text-slate-900 text-[11px]">Show Leaderboard</p>
+                  <p className="text-[10px] text-slate-500">Display leaderboard between questions</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={showLeaderboard}
+                  onChange={(e) => setShowLeaderboard(e.target.checked)}
+                  className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400"
+                />
+              </label>
+
+              {/* Toggle 4: Final Podium */}
+              <label className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-slate-100 transition">
+                <div>
+                  <p className="font-bold text-slate-900 text-[11px]">Final Podium</p>
+                  <p className="text-[10px] text-slate-500">Show 1st/2nd/3rd place celebration</p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={finalPodium}
+                  onChange={(e) => setFinalPodium(e.target.checked)}
+                  className="w-4 h-4 text-amber-500 rounded focus:ring-amber-400"
+                />
+              </label>
+            </div>
+          </div>
         </div>
 
         {/* Modal Footer */}
@@ -151,7 +261,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
             className="px-6 py-2.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black rounded-xl transition shadow-lg shadow-amber-400/20 flex items-center space-x-2 disabled:opacity-50"
           >
             <Play className="w-4 h-4 fill-current" />
-            <span>Launch Live Game</span>
+            <span>CREATE LIVE GAME</span>
           </button>
         </div>
       </div>
