@@ -916,13 +916,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {paginatedQuizzes.map((quiz) => {
-                          const modifiedDate = quiz.updatedAt
-                            ? new Date(quiz.updatedAt).toLocaleDateString('en-GB', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                              })
-                            : '06 Sep 2026';
+                          const modifiedDate = formatDateSafe(quiz.updatedAt);
 
                           return (
                             <tr key={quiz._id} className="hover:bg-slate-50/70 transition">

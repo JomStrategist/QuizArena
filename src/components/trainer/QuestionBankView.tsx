@@ -586,13 +586,19 @@ export const QuestionBankView: React.FC = () => {
         <div className="space-y-4">
           {paginatedQuestions.map((q, index) => {
             const questionCode = `Q${String((currentPage - 1) * itemsPerPage + index + 1).padStart(3, '0')}`;
-            const modifiedDate = q.updatedAt
-              ? new Date(q.updatedAt).toLocaleDateString('en-GB', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })
-              : '05 Sept 2026';
+            let modifiedDate = '05 Sept 2026';
+            if (q.updatedAt) {
+              try {
+                const d = new Date(q.updatedAt);
+                if (!isNaN(d.getTime())) {
+                  modifiedDate = d.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                  });
+                }
+              } catch (e) {}
+            }
 
             return (
               <div

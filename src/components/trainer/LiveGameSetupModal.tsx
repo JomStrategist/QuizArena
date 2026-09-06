@@ -93,8 +93,8 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
   // Extract unique categories for filter
   const categories = useMemo(() => {
     const set = new Set<string>();
-    quizzes.forEach((q) => {
-      if (q.category) set.add(q.category);
+    (quizzes || []).forEach((q) => {
+      if (q && q.category) set.add(q.category);
     });
     return Array.from(set);
   }, [quizzes]);
@@ -115,24 +115,26 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
     });
   }, [quizzes, searchQuery, selectedCategory]);
 
-  if (!isOpen) return null;
-
   // Calculate Question Time Limits & Duration dynamically from Question model
   const questionsList = selectedQuiz?.questions || [];
   const totalQuestions = selectedQuiz?.questionIds?.length || questionsList.length || 0;
 
   const totalQuizSeconds = useMemo(() => {
-    if (questionsList.length > 0) {
-      return questionsList.reduce((acc, q) => acc + (q.timeLimit || 20), 0);
+    if (questionsList && questionsList.length > 0) {
+      return questionsList.reduce((acc, q) => acc + (q?.timeLimit || 20), 0);
     }
-    return totalQuestions * 20;
+    return (totalQuestions || 0) * 20;
   }, [questionsList, totalQuestions]);
 
   const timePerQuestionLabel = useMemo(() => {
-    if (questionsList.length > 0) {
-      const times = questionsList.map((q) => q.timeLimit || 20);
+    if (questionsList && questionsList.length > 0) {
+      const times = questionsList.map((q) => q?.timeLimit || 20);
+      if (times.length === 0) return 'From Questions (Auto)';
       const minTime = Math.min(...times);
       const maxTime = Math.max(...times);
+      if (isNaN(minTime) || isNaN(maxTime) || !isFinite(minTime) || !isFinite(maxTime)) {
+        return 'From Questions (Auto)';
+      }
       if (minTime === maxTime) {
         return `${minTime} seconds (Question Default)`;
       }

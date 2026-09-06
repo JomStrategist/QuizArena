@@ -137,7 +137,18 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ onJoinLiveQu
                   <div className="flex items-center space-x-3 text-xs text-slate-500">
                     <span className="flex items-center space-x-1">
                       <Clock className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Due: {new Date(a.dueDate).toLocaleDateString()}</span>
+                      <span>
+                        Due:{' '}
+                        {(() => {
+                          if (!a.dueDate) return 'No due date';
+                          try {
+                            const d = new Date(a.dueDate);
+                            return isNaN(d.getTime()) ? 'No due date' : d.toLocaleDateString();
+                          } catch (e) {
+                            return 'No due date';
+                          }
+                        })()}
+                      </span>
                     </span>
                     <span>• {a.quizSnapshot?.questions?.length || 0} Questions</span>
                   </div>
