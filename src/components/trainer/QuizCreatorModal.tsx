@@ -1,17 +1,23 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Check, Search, BookOpen } from 'lucide-react';
+import { X, Check, BookOpen, Edit } from 'lucide-react';
 import { IQuestion, IQuiz } from '@/types';
 import { useToast } from '../ui/ToastNotification';
 
 interface QuizCreatorModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialQuiz?: IQuiz | null;
   onQuizCreated: (quiz: IQuiz) => void;
 }
 
-export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({ isOpen, onClose, onQuizCreated }) => {
+export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
+  isOpen,
+  onClose,
+  initialQuiz,
+  onQuizCreated,
+}) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Python');
@@ -24,8 +30,28 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({ isOpen, onCl
   useEffect(() => {
     if (isOpen) {
       fetchAvailableQuestions();
+      if (initialQuiz) {
+        setTitle(initialQuiz.title || '');
+        setDescription(initialQuiz.description || '');
+        setCategory(initialQuiz.category || 'General');
+        
+        let existingIds: string[] = [];
+        if (initialQuiz.questionIds && Array.isArray(initialQuiz.questionIds)) {
+          existingIds = initialQuiz.questionIds.map((item: any) =>
+            typeof item === 'string' ? item : item._id
+          );
+        } else if (initialQuiz.questions && Array.isArray(initialQuiz.questions)) {
+          existingIds = initialQuiz.questions.map((q: any) => q._id);
+        }
+        setSelectedQuestionIds(existingIds);
+      } else {
+        setTitle('');
+        setDescription('');
+        setCategory('General');
+        setSelectedQuestionIds([]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialQuiz]);
 
   const fetchAvailableQuestions = async () => {
     setLoading(true);
@@ -63,27 +89,38 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({ isOpen, onCl
 
     setSubmitting(true);
     try {
+      const method = initialQuiz ? 'PUT' : 'POST';
+      const bodyPayload = initialQuiz
+        ? {
+            id: initialQuiz._id,
+            title: title.trim(),
+            description,
+            category,
+            questionIds: selectedQuestionIds,
+          }
+        : {
+            title: title.trim(),
+            description,
+            category,
+            questionIds: selectedQuestionIds,
+          };
+
       const res = await fetch('/api/v1/quizzes', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title,
-          description,
-          category,
-          questionIds: selectedQuestionIds,
-        }),
+        body: JSON.stringify(bodyPayload),
       });
 
       const json = await res.json();
       if (!res.ok || !json.success) {
-        throw new Error(json.error?.message || 'Failed to create quiz.');
+        throw new Error(json.error?.message || `Failed to ${initialQuiz ? 'update' : 'create'} quiz.`);
       }
 
-      showToast(`Quiz "${title}" created successfully!`, 'success');
+      showToast(`Quiz "${title}" ${initialQuiz ? 'updated' : 'created'} successfully!`, 'success');
       onQuizCreated(json.data);
       onClose();
     } catch (err: any) {
-      showToast(err.message || 'Error creating quiz', 'error');
+      showToast(err.message || `Error ${initialQuiz ? 'updating' : 'creating'} quiz`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -91,16 +128,18 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({ isOpen, onCl
 
   if (!isOpen) return null;
 
+  const isEditing = !!initialQuiz;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
       <form
         onSubmit={handleSubmit}
-        className="bg-white rounded-2xl border border-slate-200 p-6 max-w-2xl w-full space-y-5 shadow-2xl max-h-[90vh] flex flex-col justify-between"
+        className="bg-white rounded-2xl border border-slate-200 p-6 max-w-2xl w-full space-y-5 shadow-2xl max-h-[90vh] flex flex-col justify-between font-sans"
       >
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center space-x-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            <h2 className="text-lg font-bold text-slate-900">Build New Quiz</h2>
+            {isEditing ? <Edit className="w-5 h-5 text-amber-600" /> : <BookOpen className="w-5 h-5 text-blue-600" />}
+            <h2 className="text-lg font-bold text-slate-900">{isEditing ? 'Edit Quiz' : 'Build New Quiz'}</h2>
           </div>
           <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600">
             <X className="w-5 h-5" />
@@ -201,9 +240,11 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({ isOpen, onCl
           <button
             type="submit"
             disabled={submitting || selectedQuestionIds.length === 0}
-            className="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 rounded-xl shadow-md shadow-blue-600/20"
+            className={`px-5 py-2 text-sm font-semibold text-white rounded-xl shadow-md disabled:opacity-50 ${
+              isEditing ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-600/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
+            }`}
           >
-            Save Quiz ({selectedQuestionIds.length} Questions)
+            {isEditing ? 'Update Quiz' : 'Save Quiz'} ({selectedQuestionIds.length} Questions)
           </button>
         </div>
       </form>

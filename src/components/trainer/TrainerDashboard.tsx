@@ -17,7 +17,7 @@ import {
   Radio,
   ClipboardList,
   Edit,
-  Archive,
+  Trash2,
   History,
 } from 'lucide-react';
 import { IQuiz, IAssignment, IQuestion } from '@/types';
@@ -48,6 +48,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   // Modals
   const [isImportOpen, setIsImportOpen] = useState(false);
   const [isCreateQuizOpen, setIsCreateQuizOpen] = useState(false);
+  const [editingQuiz, setEditingQuiz] = useState<IQuiz | null>(null);
   const [isAssignOpen, setIsAssignOpen] = useState(false);
 
   const [isConductSetupOpen, setIsConductSetupOpen] = useState(false);
@@ -57,6 +58,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [selectedQuizForLive, setSelectedQuizForLive] = useState<IQuiz | null>(null);
 
   const [viewingConductResultsCode, setViewingConductResultsCode] = useState<string | null>(null);
+
+  const { showToast } = useToast();
 
   const handleOpenLiveSetup = (quiz?: IQuiz) => {
     if (quiz) {
@@ -69,7 +72,33 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     setIsLiveSetupOpen(true);
   };
 
-  const { showToast } = useToast();
+  const handleEditQuiz = (quiz: IQuiz) => {
+    setEditingQuiz(quiz);
+    setIsCreateQuizOpen(true);
+  };
+
+  const handleCreateNewQuiz = () => {
+    setEditingQuiz(null);
+    setIsCreateQuizOpen(true);
+  };
+
+  const handleDeleteQuiz = async (quiz: IQuiz) => {
+    if (!confirm(`Are you sure you want to delete the quiz "${quiz.title}"?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/v1/quizzes?id=${quiz._id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        showToast(`Quiz "${quiz.title}" deleted successfully.`, 'info');
+        loadData();
+      } else {
+        showToast(json.error?.message || 'Failed to delete quiz.', 'error');
+      }
+    } catch (err) {
+      showToast('Error deleting quiz.', 'error');
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -210,7 +239,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-2">
               {/* Button 1: CREATE QUIZ */}
               <button
-                onClick={() => setIsCreateQuizOpen(true)}
+                onClick={handleCreateNewQuiz}
                 className="bg-white/10 hover:bg-white/20 border border-white/20 p-3.5 rounded-2xl flex flex-col items-center justify-center space-y-1.5 transition group backdrop-blur-md"
               >
                 <Plus className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
@@ -327,7 +356,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900">Your Quizzes</h3>
               <button
-                onClick={() => setIsCreateQuizOpen(true)}
+                onClick={handleCreateNewQuiz}
                 className="text-xs font-bold text-blue-600 hover:text-blue-800"
               >
                 + Build New Quiz
@@ -355,21 +384,14 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                         </span>
                       </div>
                       <p className="text-xs text-slate-500">
-                        {quiz.questionIds?.length || 0} Questions • Created by Trainer • Version 1
+                        {quiz.questionIds?.length || 0} Questions • Created by Trainer
                       </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-1.5">
                       <button
-                        onClick={() => showToast(`Viewing "${quiz.title}" details`, 'info')}
-                        className="px-2.5 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center space-x-1"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>VIEW</span>
-                      </button>
-                      <button
-                        onClick={() => showToast(`Editing "${quiz.title}"`, 'info')}
-                        className="px-2.5 py-1.5 bg-slate-200/80 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition flex items-center space-x-1"
+                        onClick={() => handleEditQuiz(quiz)}
+                        className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold rounded-lg transition flex items-center space-x-1"
                       >
                         <Edit className="w-3.5 h-3.5" />
                         <span>EDIT</span>
@@ -395,6 +417,13 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                         <Radio className="w-3.5 h-3.5" />
                         <span>LIVE GAME</span>
                       </button>
+                      <button
+                        onClick={() => handleDeleteQuiz(quiz)}
+                        title="Delete Quiz"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -409,7 +438,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-slate-900">All Quizzes</h2>
             <button
-              onClick={() => setIsCreateQuizOpen(true)}
+              onClick={handleCreateNewQuiz}
               className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl"
             >
               + Create Quiz
@@ -428,16 +457,17 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   </div>
                   <p className="text-xs text-slate-500">{q.description || 'No description provided.'}</p>
                   <p className="text-xs font-medium text-slate-400">
-                    {q.questionIds?.length || 0} Questions • Version 1
+                    {q.questionIds?.length || 0} Questions
                   </p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-200/60">
                   <button
-                    onClick={() => showToast(`Editing "${q.title}"`, 'info')}
-                    className="px-2.5 py-1 bg-slate-200/80 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-lg transition"
+                    onClick={() => handleEditQuiz(q)}
+                    className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold rounded-lg transition flex items-center space-x-1"
                   >
-                    EDIT
+                    <Edit className="w-3.5 h-3.5" />
+                    <span>EDIT</span>
                   </button>
                   <button
                     onClick={() => setIsAssignOpen(true)}
@@ -460,10 +490,11 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     <span>LIVE GAME</span>
                   </button>
                   <button
-                    onClick={() => showToast(`Quiz "${q.title}" archived`, 'info')}
-                    className="px-2 py-1 text-slate-400 hover:text-slate-600 text-xs font-bold transition"
+                    onClick={() => handleDeleteQuiz(q)}
+                    title="Delete Quiz"
+                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                   >
-                    ARCHIVE
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -514,7 +545,11 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
       />
       <QuizCreatorModal
         isOpen={isCreateQuizOpen}
-        onClose={() => setIsCreateQuizOpen(false)}
+        onClose={() => {
+          setIsCreateQuizOpen(false);
+          setEditingQuiz(null);
+        }}
+        initialQuiz={editingQuiz}
         onQuizCreated={() => loadData()}
       />
       <AssignQuizModal

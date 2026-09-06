@@ -438,3 +438,78 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    await connectToDatabase();
+    const body = await req.json();
+    const { id, title, description, category, instructions, questionIds, status } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: { code: 'BAD_REQUEST', message: 'Quiz ID is required.' } },
+        { status: 400 }
+      );
+    }
+
+    const quiz = await QuizModel.findById(id);
+    if (!quiz) {
+      return NextResponse.json(
+        { success: false, error: { code: 'NOT_FOUND', message: 'Quiz not found.' } },
+        { status: 404 }
+      );
+    }
+
+    if (title) quiz.title = title.trim();
+    if (description !== undefined) quiz.description = description;
+    if (category) quiz.category = category;
+    if (instructions !== undefined) quiz.instructions = instructions;
+    if (questionIds) {
+      quiz.questionIds = questionIds;
+      quiz.status = questionIds.length > 0 ? 'READY' : 'DRAFT';
+    }
+    if (status) quiz.status = status;
+
+    await quiz.save();
+    const updatedQuiz = await QuizModel.findById(id).populate('questionIds');
+
+    return NextResponse.json({
+      success: true,
+      data: updatedQuiz,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SERVER_ERROR', message: error.message } },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    await connectToDatabase();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: { code: 'BAD_REQUEST', message: 'Quiz ID is required.' } },
+        { status: 400 }
+      );
+    }
+
+    await QuizModel.findByIdAndDelete(id);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Quiz deleted successfully.',
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SERVER_ERROR', message: error.message } },
+      { status: 500 }
+    );
+  }
+}
