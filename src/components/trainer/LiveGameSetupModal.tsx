@@ -143,6 +143,18 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
     return 'From Questions (Auto)';
   }, [questionsList]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
   const estimatedDurationMinutes = Math.max(1, Math.ceil(totalQuizSeconds / 60));
   const totalPoints = totalQuestions * pointsPerQuestion;
 
@@ -190,8 +202,16 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 font-sans">
-      <div className="bg-white max-w-6xl w-full rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-slate-900">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 font-sans cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white max-w-6xl w-full rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-slate-900 cursor-default"
+      >
         
         {/* TOP BANNER HEADER */}
         <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 text-white relative overflow-hidden shrink-0">
