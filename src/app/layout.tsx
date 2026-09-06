@@ -1,12 +1,67 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ToastProvider } from '@/components/ui/ToastNotification';
 
+const siteUrl = 'https://quizarena-sable-rho.vercel.app';
+
+export const viewport: Viewport = {
+  themeColor: '#1e3a8a',
+};
+
 export const metadata: Metadata = {
-  title: 'QuizArena | KVJ Analytics Training Platform',
-  description: 'QuizArena platform for conducting interactive quizzes and assessments by KVJ Analytics.',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'QuizArena | KVJ Analytics Training Platform',
+    template: '%s | QuizArena',
+  },
+  description: 'Interactive live quiz & training assessment platform by KVJ Analytics. Play, Learn, Assess & Grow together.',
+  applicationName: 'QuizArena',
+  authors: [{ name: 'KVJ Analytics' }],
+  keywords: ['QuizArena', 'KVJ Analytics', 'Live Quiz', 'Training Platform', 'Interactive Assessment'],
   icons: {
-    icon: '/QuizArena Icon.png',
+    icon: [
+      { url: '/QuizArena Icon.png' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/QuizArena Icon.png',
+    apple: [{ url: '/apple-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  openGraph: {
+    title: 'QuizArena | KVJ Analytics Training Platform',
+    description: 'Interactive live quiz & training assessment platform by KVJ Analytics. Play, Learn, Assess & Grow together.',
+    url: siteUrl,
+    siteName: 'QuizArena',
+    images: [
+      {
+        url: `${siteUrl}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'QuizArena - KVJ Analytics Training Platform',
+        type: 'image/jpeg',
+      },
+      {
+        url: `${siteUrl}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'QuizArena - KVJ Analytics Training Platform',
+        type: 'image/png',
+      },
+      {
+        url: `${siteUrl}/og-square.jpg`,
+        width: 600,
+        height: 600,
+        alt: 'QuizArena Logo',
+        type: 'image/jpeg',
+      },
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'QuizArena | KVJ Analytics Training Platform',
+    description: 'Interactive live quiz & training assessment platform by KVJ Analytics. Play, Learn, Assess & Grow together.',
+    images: [`${siteUrl}/og-image.jpg`],
   },
 };
 
@@ -17,6 +72,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="light">
+      <head>
+        <meta property="og:image" content={`${siteUrl}/og-image.jpg`} />
+        <meta property="og:image:secure_url" content={`${siteUrl}/og-image.jpg`} />
+        <meta property="og:image:type" content="image/jpeg" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="QuizArena - KVJ Analytics Training Platform" />
+        <link rel="image_src" href={`${siteUrl}/og-image.jpg`} />
+      </head>
       <body className="bg-slate-50 text-slate-900 min-h-screen">
         <ToastProvider>{children}</ToastProvider>
       </body>
