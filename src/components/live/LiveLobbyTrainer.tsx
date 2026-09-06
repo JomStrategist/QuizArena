@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Play, Users, Copy, Check, Radio, Sparkles, QrCode } from 'lucide-react';
+import { Play, Users, Copy, Check, Radio, Sparkles, QrCode, Maximize2 } from 'lucide-react';
 import { ILiveParticipant } from '@/types';
 import { useToast } from '../ui/ToastNotification';
 import { QRCodeImage } from '@/lib/game/qrGenerator';
+import { FullScreenQRModal } from '../common/FullScreenQRModal';
 
 interface LiveLobbyTrainerProps {
   quizCode: string;
@@ -23,6 +24,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [joinUrl, setJoinUrl] = useState('');
+  const [isFullScreenQROpen, setIsFullScreenQROpen] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -42,8 +44,18 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-6 md:p-10 space-y-8 font-sans">
+      {/* Full Screen Projector View Modal */}
+      <FullScreenQRModal
+        isOpen={isFullScreenQROpen}
+        onClose={() => setIsFullScreenQROpen(false)}
+        title={quizTitle}
+        code={quizCode}
+        subtitle={sessionType === 'CONDUCT' ? 'Join Our Conduct Session' : 'Join Our Live Game'}
+        customUrl={joinUrl}
+      />
+
       {/* Top Bar Header */}
-      <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200/80 pb-4 gap-4">
         <div className="flex items-center space-x-3">
           <a href="/" className="flex items-center space-x-2">
             <img src="/QuizArena Icon.png" alt="QuizArena Logo" className="w-9 h-9 object-contain" />
@@ -57,9 +69,18 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <h2 className="text-base font-extrabold text-slate-800 hidden sm:block">{quizTitle}</h2>
-          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+        <div className="flex items-center space-x-3">
+          <h2 className="text-base font-extrabold text-slate-800 hidden md:block">{quizTitle}</h2>
+
+          <button
+            onClick={() => setIsFullScreenQROpen(true)}
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl text-xs font-black transition flex items-center space-x-2 shadow-md shadow-blue-600/20 active:scale-95"
+          >
+            <Maximize2 className="w-4 h-4" />
+            <span>Projector View (Full Screen)</span>
+          </button>
+
+          <div className="hidden lg:flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
             <span className="font-bold text-slate-400">BY</span>
             <img src="/KVJ analytics Logo.png" alt="KVJ Analytics" className="h-5 object-contain" />
           </div>
@@ -71,16 +92,41 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
           {/* Left Column: Large QR Code */}
           <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-4 text-center">
-            <div className="flex items-center space-x-2 text-xs font-black text-slate-600 uppercase tracking-widest">
-              <QrCode className="w-4 h-4 text-blue-600" />
-              <span>SCAN TO JOIN</span>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center space-x-2 text-xs font-black text-slate-600 uppercase tracking-widest">
+                <QrCode className="w-4 h-4 text-blue-600" />
+                <span>SCAN TO JOIN</span>
+              </div>
+              <button
+                onClick={() => setIsFullScreenQROpen(true)}
+                className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                title="Expand Full Screen"
+              >
+                <Maximize2 className="w-4 h-4" />
+              </button>
             </div>
 
-            <QRCodeImage value={joinUrl || `https://quizarena.app/quiz/join?code=${quizCode}`} size={210} />
+            <div
+              onClick={() => setIsFullScreenQROpen(true)}
+              className="cursor-pointer group relative p-2 bg-white rounded-2xl shadow-xs hover:shadow-md transition"
+              title="Click for full screen view"
+            >
+              <QRCodeImage value={joinUrl || `https://quizarena.app/quiz/join?code=${quizCode}`} size={210} />
+              <div className="absolute inset-0 bg-blue-950/0 group-hover:bg-blue-950/10 rounded-2xl transition flex items-center justify-center">
+                <span className="opacity-0 group-hover:opacity-100 bg-slate-900/90 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-full shadow-lg transition transform scale-95 group-hover:scale-100 flex items-center space-x-1.5">
+                  <Maximize2 className="w-3.5 h-3.5" />
+                  <span>Full Screen</span>
+                </span>
+              </div>
+            </div>
 
-            <p className="text-xs text-slate-500 font-semibold max-w-xs">
-              Point mobile camera at QR code to open QuizArena join screen automatically
-            </p>
+            <button
+              onClick={() => setIsFullScreenQROpen(true)}
+              className="w-full py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-xs font-black transition flex items-center justify-center space-x-2 shadow-2xs"
+            >
+              <Maximize2 className="w-4 h-4 text-blue-600" />
+              <span>Full Screen QR & Code</span>
+            </button>
           </div>
 
           {/* Right Column: 6-Digit Join Code & Launcher */}
@@ -177,3 +223,4 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
     </div>
   );
 };
+

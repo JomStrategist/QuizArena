@@ -17,12 +17,14 @@ import {
   Check,
   Volume2,
   VolumeX,
+  Maximize2,
 } from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
 import { Top5Leaderboard } from './Top5Leaderboard';
 import { LiveLobbyTrainer } from './LiveLobbyTrainer';
 import { LivePodiumFinale } from './LivePodiumFinale';
 import { soundManager } from '@/lib/game/soundManager';
+import { FullScreenQRModal } from '../common/FullScreenQRModal';
 
 interface LiveGameTrainerControlProps {
   quizCode: string;
@@ -49,6 +51,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [copied, setCopied] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(soundManager.getMuted());
+  const [isFullScreenQROpen, setIsFullScreenQROpen] = useState<boolean>(false);
 
   const { showToast } = useToast();
 
@@ -228,6 +231,14 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-8 space-y-6 max-w-7xl mx-auto w-full font-sans">
+      <FullScreenQRModal
+        isOpen={isFullScreenQROpen}
+        onClose={() => setIsFullScreenQROpen(false)}
+        title={quizTitle}
+        code={quizCode}
+        subtitle="Join Live Session"
+      />
+
       {/* Top Banner Header */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
@@ -247,6 +258,16 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
 
         {/* 6-Digit Code & Controls */}
         <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto justify-between lg:justify-end">
+          {/* Full Screen Projector View Toggle */}
+          <button
+            onClick={() => setIsFullScreenQROpen(true)}
+            className="px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-2xs"
+            title="Open Full Screen QR & Code"
+          >
+            <Maximize2 className="w-4 h-4 text-blue-600" />
+            <span>Projector View</span>
+          </button>
+
           {/* Audio Toggle */}
           <button
             onClick={handleToggleMute}
