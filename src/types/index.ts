@@ -131,8 +131,10 @@ export interface ILiveParticipant {
 
 export interface ILiveGameSettings {
   maxParticipants?: number;
+  allowLateJoin?: boolean;
   speedScoring?: boolean;
   showCorrectAnswer?: boolean;
+  showScore?: boolean;
   showLeaderboard?: boolean;
   finalPodium?: boolean;
 }
@@ -147,8 +149,10 @@ export interface ILiveSession {
   sessionType: 'CONDUCT' | 'LIVE_GAME';
   questionTime: number;
   maxParticipants?: number;
+  allowLateJoin?: boolean;
   speedScoring?: boolean;
   showCorrectAnswer?: boolean;
+  showScore?: boolean;
   showLeaderboard?: boolean;
   finalPodium?: boolean;
   pointsMode: string;

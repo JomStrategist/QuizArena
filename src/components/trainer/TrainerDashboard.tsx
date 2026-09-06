@@ -18,6 +18,7 @@ import {
   ClipboardList,
   Edit,
   Archive,
+  History,
 } from 'lucide-react';
 import { IQuiz, IAssignment, IQuestion } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -27,6 +28,7 @@ import { QuizCreatorModal } from './QuizCreatorModal';
 import { AssignQuizModal } from './AssignQuizModal';
 import { ConductQuizSetupModal } from './ConductQuizSetupModal';
 import { LiveGameSetupModal } from './LiveGameSetupModal';
+import { ConductQuizResultsView } from './ConductQuizResultsView';
 
 interface TrainerDashboardProps {
   onStartLiveSession: (quizCode: string, quizTitle: string, questions: IQuestion[]) => void;
@@ -40,6 +42,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'QUESTION_BANK' | 'QUIZZES' | 'ASSIGNMENTS'>('OVERVIEW');
   const [quizzes, setQuizzes] = useState<IQuiz[]>([]);
   const [assignments, setAssignments] = useState<IAssignment[]>([]);
+  const [recentConductResults, setRecentConductResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modals
@@ -52,6 +55,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
   const [isLiveSetupOpen, setIsLiveSetupOpen] = useState(false);
   const [selectedQuizForLive, setSelectedQuizForLive] = useState<IQuiz | null>(null);
+
+  const [viewingConductResultsCode, setViewingConductResultsCode] = useState<string | null>(null);
 
   const handleOpenLiveSetup = (quiz?: IQuiz) => {
     if (quiz) {
@@ -69,16 +74,19 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const loadData = async () => {
     setLoading(true);
     try {
-      const [quizRes, assignRes] = await Promise.all([
+      const [quizRes, assignRes, resultsRes] = await Promise.all([
         fetch('/api/v1/quizzes'),
         fetch('/api/v1/assignments'),
+        fetch('/api/v1/live-sessions/results'),
       ]);
 
       const quizJson = await quizRes.json();
       const assignJson = await assignRes.json();
+      const resultsJson = await resultsRes.json();
 
       if (quizJson.success) setQuizzes(quizJson.data);
       if (assignJson.success) setAssignments(assignJson.data);
+      if (resultsJson.success) setRecentConductResults(resultsJson.data || []);
     } catch (err) {
       showToast('Error loading dashboard data', 'error');
     } finally {
@@ -141,8 +149,17 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     setIsConductSetupOpen(true);
   };
 
+  if (viewingConductResultsCode) {
+    return (
+      <ConductQuizResultsView
+        quizCode={viewingConductResultsCode}
+        onClose={() => setViewingConductResultsCode(null)}
+      />
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Tab Navigation Header */}
       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
         <div className="flex items-center space-x-2">
@@ -176,7 +193,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
       {activeTab === 'OVERVIEW' && (
         <div className="space-y-8">
-          {/* Quick Action Shortcuts Panel: 5 Buttons Command Center */}
+          {/* Quick Action Shortcuts Panel: Command Center */}
           <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 p-6 rounded-3xl text-white shadow-xl space-y-4">
             <div className="flex items-center justify-between">
               <div>
@@ -185,7 +202,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   <h2 className="text-xl font-black">Trainer Command Center</h2>
                 </div>
                 <p className="text-xs text-blue-100 mt-1">
-                  Conduct structured sessions, start live Kahoot-style games, assign tasks, or import questions in one click.
+                  Conduct structured assessment sessions, launch live Kahoot games, assign tasks, or import questions.
                 </p>
               </div>
             </div>
@@ -255,14 +272,55 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               <p className="text-2xl font-black text-blue-600">{assignments.length}</p>
             </div>
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-              <p className="text-xs text-slate-500 font-medium">Capacity Target</p>
-              <p className="text-2xl font-black text-emerald-600">~200 Students</p>
+              <p className="text-xs text-slate-500 font-medium">Conduct Reports</p>
+              <p className="text-2xl font-black text-emerald-600">{recentConductResults.length}</p>
             </div>
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
               <p className="text-xs text-slate-500 font-medium">Modes Available</p>
               <p className="text-base font-black text-purple-600">Assign • Conduct • Live</p>
             </div>
           </div>
+
+          {/* Recent Conduct Quiz History Reports */}
+          {recentConductResults.length > 0 && (
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+                  <History className="w-4 h-4 text-blue-600" />
+                  <span>Recent Conduct Quiz Reports</span>
+                </h3>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                {recentConductResults.slice(0, 6).map((res) => (
+                  <div
+                    key={res._id || res.quizCode}
+                    className="p-4 bg-slate-50 rounded-xl border border-slate-200 hover:bg-blue-50/50 hover:border-blue-200 transition space-y-2 flex flex-col justify-between"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold text-blue-600">CODE: {res.quizCode}</span>
+                        <span className="text-[10px] text-slate-400 font-bold">
+                          {new Date(res.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-black text-slate-900 mt-1 line-clamp-1">{res.quizTitle}</h4>
+                      <p className="text-[11px] text-slate-500 font-semibold mt-0.5">
+                        {res.totalParticipants || 0} Trainees • Avg Score: {res.averageScore || 0}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setViewingConductResultsCode(res.quizCode)}
+                      className="w-full py-1.5 bg-white border border-slate-200 hover:bg-blue-600 hover:text-white hover:border-blue-600 text-blue-700 text-xs font-bold rounded-lg transition text-center shadow-xs"
+                    >
+                      VIEW REPORT
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Quizzes Overview List */}
           <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">

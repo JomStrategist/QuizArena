@@ -34,13 +34,14 @@ export async function POST(req: NextRequest) {
     const isExistingParticipant = Boolean(participantId && participants[participantId]);
 
     // Late join check: If game has already started and user is NOT an existing participant
-    if (!isExistingParticipant && session.stage !== 'LOBBY') {
+    if (!isExistingParticipant && session.stage !== 'LOBBY' && !session.allowLateJoin) {
+      const modeLabel = session.sessionType === 'CONDUCT' ? 'Conduct Quiz' : 'Live Game';
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'GAME_ALREADY_STARTED',
-            message: 'This Live Game has already started. Late joining is not allowed.',
+            message: `This ${modeLabel} session has already started. Late joining is not allowed.`,
           },
         },
         { status: 403 }
@@ -49,12 +50,13 @@ export async function POST(req: NextRequest) {
 
     // Capacity limit check
     if (!isExistingParticipant && Object.keys(participants).length >= maxLimit) {
+      const modeLabel = session.sessionType === 'CONDUCT' ? 'Conduct Quiz' : 'Live Game';
       return NextResponse.json(
         {
           success: false,
           error: {
             code: 'GAME_FULL',
-            message: `This Live Game is full (maximum ${maxLimit} participants reached).`,
+            message: `This ${modeLabel} session is full (maximum ${maxLimit} participants reached).`,
           },
         },
         { status: 403 }

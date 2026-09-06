@@ -11,8 +11,10 @@ export interface ILiveSessionDocument extends Document {
   sessionType: 'CONDUCT' | 'LIVE_GAME';
   questionTime: number;
   maxParticipants: number;
+  allowLateJoin: boolean;
   speedScoring: boolean;
   showCorrectAnswer: boolean;
+  showScore: boolean;
   showLeaderboard: boolean;
   finalPodium: boolean;
   pointsMode: string;
@@ -42,8 +44,10 @@ const LiveSessionSchema = new Schema<ILiveSessionDocument>(
     sessionType: { type: String, enum: ['CONDUCT', 'LIVE_GAME'], default: 'LIVE_GAME' },
     questionTime: { type: Number, default: 20 },
     maxParticipants: { type: Number, default: 200 },
+    allowLateJoin: { type: Boolean, default: false },
     speedScoring: { type: Boolean, default: true },
     showCorrectAnswer: { type: Boolean, default: true },
+    showScore: { type: Boolean, default: true },
     showLeaderboard: { type: Boolean, default: true },
     finalPodium: { type: Boolean, default: true },
     pointsMode: { type: String, default: 'QUIZ_SETTINGS' },

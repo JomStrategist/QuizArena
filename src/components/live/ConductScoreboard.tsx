@@ -2,13 +2,14 @@
 
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, Crown, ArrowLeft, Award, CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { Trophy, Crown, ArrowLeft, Award, CheckCircle2, XCircle, Clock, Check, BarChart2 } from 'lucide-react';
 
 interface ConductScoreboardProps {
   quizTitle: string;
   rankings: any[];
   onBackToDashboard: () => void;
   sessionType?: 'LIVE_GAME' | 'CONDUCT';
+  userDisplayName?: string;
 }
 
 export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
@@ -16,6 +17,7 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
   rankings = [],
   onBackToDashboard,
   sessionType = 'CONDUCT',
+  userDisplayName,
 }) => {
   useEffect(() => {
     confetti({
@@ -29,34 +31,74 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
   const secondPlace = rankings[1] || { displayName: 'Runner-up', score: 0, correctAnswers: 0, wrongAnswers: 0 };
   const thirdPlace = rankings[2] || { displayName: '3rd Place', score: 0, correctAnswers: 0, wrongAnswers: 0 };
 
+  // Find current user ranking if userDisplayName is passed
+  const userRankIndex = userDisplayName
+    ? rankings.findIndex((r) => r.displayName?.trim().toLowerCase() === userDisplayName.trim().toLowerCase())
+    : -1;
+  const userStat = userRankIndex >= 0 ? rankings[userRankIndex] : null;
+
+  const userCorrect = userStat?.correctAnswers || 0;
+  const userWrong = userStat?.wrongAnswers || 0;
+  const userTotalAns = userCorrect + userWrong;
+  const userAccuracy = userTotalAns > 0 ? Math.round((userCorrect / userTotalAns) * 100) : 0;
+
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-8 space-y-8 max-w-5xl mx-auto w-full">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-8 space-y-8 max-w-5xl mx-auto w-full font-sans">
       {/* Header Bar */}
       <div className="flex items-center justify-between">
         <button
           onClick={onBackToDashboard}
-          className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 transition flex items-center space-x-2 shadow-sm"
+          className="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition flex items-center space-x-2 shadow-sm"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Dashboard</span>
+          <span>Exit Session</span>
         </button>
         <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          {quizTitle} • {sessionType === 'LIVE_GAME' ? 'LIVE GAME FINALE' : 'FINAL SCOREBOARD'}
+          {quizTitle} • {sessionType === 'LIVE_GAME' ? 'LIVE GAME FINALE' : 'CONDUCT QUIZ RESULTS'}
         </span>
       </div>
 
-      {/* Hero Trophy Header */}
+      {/* Hero Header */}
       <div className="text-center space-y-3">
-        <div className="w-16 h-16 rounded-full bg-amber-100 text-amber-500 flex items-center justify-center mx-auto border-4 border-amber-200 shadow-lg animate-bounce">
+        <div className="w-16 h-16 rounded-2xl bg-amber-100 text-amber-500 flex items-center justify-center mx-auto border-4 border-amber-200 shadow-lg animate-bounce">
           <Trophy className="w-8 h-8" />
         </div>
         <h1 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">
-          {sessionType === 'LIVE_GAME' ? 'LIVE GAME FINALE' : 'QUIZ FINALE'}
+          {sessionType === 'LIVE_GAME' ? 'LIVE GAME FINALE' : 'QUIZ COMPLETE!'}
         </h1>
         <p className="text-xs md:text-sm font-semibold text-slate-500 max-w-md mx-auto">
-          Final performance scoreboard & student rankings for <strong className="text-slate-800">{quizTitle}</strong>
+          Final performance summary & standings for <strong className="text-slate-800">{quizTitle}</strong>
         </p>
       </div>
+
+      {/* Personal Student Summary Card (if student is viewing) */}
+      {userStat && (
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 md:p-8 rounded-3xl text-white shadow-xl space-y-4 max-w-2xl mx-auto w-full text-center">
+          <div className="flex items-center justify-between border-b border-blue-400/30 pb-3">
+            <span className="text-xs font-black uppercase tracking-wider text-blue-200">Your Result</span>
+            <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-mono font-black">
+              Rank #{userRankIndex + 1}
+            </span>
+          </div>
+
+          <h2 className="text-xl md:text-2xl font-black">{userStat.displayName}</h2>
+
+          <div className="grid grid-cols-3 gap-3 pt-2">
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/20">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-200">Total Score</p>
+              <p className="text-xl md:text-2xl font-black mt-0.5">{userStat.score || 0}</p>
+            </div>
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/20">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-200">Correct</p>
+              <p className="text-xl md:text-2xl font-black text-emerald-300 mt-0.5">{userCorrect}</p>
+            </div>
+            <div className="p-3 bg-white/10 rounded-2xl border border-white/20">
+              <p className="text-[10px] font-extrabold uppercase tracking-wider text-blue-200">Accuracy</p>
+              <p className="text-xl md:text-2xl font-black text-amber-300 mt-0.5">{userAccuracy}%</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Top 3 Podium Cards */}
       <div className="flex items-end justify-center gap-3 sm:gap-6 pt-4 pb-2">
@@ -102,7 +144,7 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
 
       {/* Comprehensive Leaderboard Table */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Full Session Leaderboard</h3>
+        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Performers & Full Leaderboard</h3>
 
         {rankings.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-xs">No responses recorded for this session.</div>
@@ -125,11 +167,20 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
                   const wrong = r.wrongAnswers || 0;
                   const total = correct + wrong;
                   const acc = total > 0 ? Math.round((correct / total) * 100) : 0;
+                  const isCurrentUser = userDisplayName && r.displayName?.trim().toLowerCase() === userDisplayName.trim().toLowerCase();
 
                   return (
-                    <tr key={idx} className="hover:bg-slate-50/80 transition font-semibold text-slate-800">
+                    <tr
+                      key={idx}
+                      className={`transition font-semibold ${
+                        isCurrentUser ? 'bg-blue-50/90 text-blue-900 border-l-4 border-l-blue-600' : 'hover:bg-slate-50/80 text-slate-800'
+                      }`}
+                    >
                       <td className="py-3 px-3 font-mono font-black text-blue-600">#{idx + 1}</td>
-                      <td className="py-3 px-3 font-bold text-slate-900">{r.displayName}</td>
+                      <td className="py-3 px-3 font-bold text-slate-900">
+                        {r.displayName}
+                        {isCurrentUser && <span className="ml-2 text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">YOU</span>}
+                      </td>
                       <td className="py-3 px-3 font-black text-slate-900">{r.score || 0} pts</td>
                       <td className="py-3 px-3 text-emerald-600 font-bold">{correct}</td>
                       <td className="py-3 px-3 text-rose-500 font-bold">{wrong}</td>

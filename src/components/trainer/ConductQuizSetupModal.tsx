@@ -12,6 +12,10 @@ import {
   Play,
   Loader2,
   BookOpen,
+  Check,
+  Sliders,
+  Eye,
+  Trophy,
 } from 'lucide-react';
 import { IQuiz } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -35,6 +39,11 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
   const [selectedQuiz, setSelectedQuiz] = useState<IQuiz | null>(null);
   const [quizCode, setQuizCode] = useState<string>('');
   const [questionTime, setQuestionTime] = useState<number>(30);
+  const [allowLateJoin, setAllowLateJoin] = useState<boolean>(false);
+  const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(true);
+  const [showScore, setShowScore] = useState<boolean>(true);
+  const [showLeaderboard, setShowLeaderboard] = useState<boolean>(true);
+  const [finalLeaderboard, setFinalLeaderboard] = useState<boolean>(true);
   const [pointsMode, setPointsMode] = useState<string>('QUIZ_SETTINGS');
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -88,6 +97,11 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
           quizId: selectedQuiz._id,
           sessionType: 'CONDUCT',
           questionTime,
+          allowLateJoin,
+          showCorrectAnswer,
+          showScore,
+          showLeaderboard,
+          finalPodium: finalLeaderboard,
           pointsMode,
         }),
       });
@@ -119,7 +133,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
             </div>
             <div>
               <h2 className="text-xl font-black tracking-tight">CONDUCT QUIZ SETUP</h2>
-              <p className="text-xs text-blue-100 font-medium">Configure session parameters & generate Quiz Code</p>
+              <p className="text-xs text-blue-100 font-medium">Run a structured real-time assessment with your trainees</p>
             </div>
           </div>
           <button
@@ -158,7 +172,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-blue-700">Selected Quiz</span>
                 <span className="px-2.5 py-0.5 text-[10px] font-bold bg-blue-600 text-white rounded-full">
-                  Version 1
+                  Structured Mode
                 </span>
               </div>
               <h3 className="text-base font-black text-slate-900">{selectedQuiz.title}</h3>
@@ -168,42 +182,24 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
                   <span>{selectedQuiz.questionIds?.length || selectedQuiz.questions?.length || 0} Questions</span>
                 </span>
                 <span>•</span>
-                <span>Created by Trainer</span>
+                <span>Prepared by Trainer</span>
               </div>
             </div>
           )}
 
           {/* Session Settings Section */}
           <div className="space-y-4 border-t border-slate-100 pt-4">
-            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Session Settings</h4>
+            <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center space-x-2">
+              <Sliders className="w-3.5 h-3.5 text-blue-600" />
+              <span>SESSION SETTINGS</span>
+            </h4>
 
-            {/* Quiz Code */}
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-              <div className="flex items-center justify-between">
-                <label className="font-bold text-slate-700">Quiz Code:</label>
-                <button
-                  type="button"
-                  onClick={generateCode}
-                  className="px-2.5 py-1 bg-white border border-slate-200 hover:bg-slate-100 text-blue-600 font-bold text-[11px] rounded-lg transition flex items-center space-x-1"
-                >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Generate Code</span>
-                </button>
-              </div>
-              <div className="text-center py-2 bg-white rounded-xl border border-slate-200 shadow-inner">
-                <span className="text-3xl font-black font-mono tracking-[0.3em] text-blue-600">{quizCode}</span>
-              </div>
-              <p className="text-[10px] text-slate-400 font-medium text-center">
-                Students will enter this 6-digit code to join the Conduct Quiz session.
-              </p>
-            </div>
-
-            {/* Question Time Dropdown */}
+            {/* Question Time & Points Mode */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block font-bold text-slate-700 mb-1.5 flex items-center space-x-1.5">
                   <Clock className="w-4 h-4 text-amber-500" />
-                  <span>Question Time:</span>
+                  <span>Question Time Limit</span>
                 </label>
                 <select
                   value={questionTime}
@@ -221,27 +217,135 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
               <div>
                 <label className="block font-bold text-slate-700 mb-1.5 flex items-center space-x-1.5">
                   <Award className="w-4 h-4 text-emerald-500" />
-                  <span>Points:</span>
+                  <span>Scoring Formula</span>
                 </label>
                 <select
                   value={pointsMode}
                   onChange={(e) => setPointsMode(e.target.value)}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 >
-                  <option value="QUIZ_SETTINGS">Use Quiz Settings (Speed-Based)</option>
-                  <option value="STANDARD_1000">Standard 1000 Pts / Question</option>
+                  <option value="QUIZ_SETTINGS">Speed-Based Points (Up to 1000)</option>
+                  <option value="STANDARD_1000">Fixed 1000 Pts / Question</option>
                 </select>
               </div>
             </div>
 
-            {/* Student Access Info */}
+            {/* Toggles */}
+            <div className="space-y-3 pt-2">
+              {/* Allow Late Join */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="font-bold text-slate-800 text-xs block">Allow Late Join</span>
+                  <span className="text-[10px] text-slate-400">Students can join after the trainer starts</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAllowLateJoin(!allowLateJoin)}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                    allowLateJoin ? 'bg-blue-600' : 'bg-slate-300'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                      allowLateJoin ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Show Correct Answer After Each Question */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="font-bold text-slate-800 text-xs block">Show Correct Answer After Each Question</span>
+                  <span className="text-[10px] text-slate-400">Reveal correct choice during result stage</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCorrectAnswer(!showCorrectAnswer)}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                    showCorrectAnswer ? 'bg-blue-600' : 'bg-slate-300'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                      showCorrectAnswer ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Show Score After Each Question */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="font-bold text-slate-800 text-xs block">Show Score After Each Question</span>
+                  <span className="text-[10px] text-slate-400">Display points earned per question to students</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowScore(!showScore)}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                    showScore ? 'bg-blue-600' : 'bg-slate-300'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                      showScore ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Show Leaderboard During Quiz */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="font-bold text-slate-800 text-xs block">Show Leaderboard During Quiz</span>
+                  <span className="text-[10px] text-slate-400">Brief standings between questions</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowLeaderboard(!showLeaderboard)}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                    showLeaderboard ? 'bg-blue-600' : 'bg-slate-300'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                      showLeaderboard ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+
+              {/* Final Leaderboard */}
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                <div>
+                  <span className="font-bold text-slate-800 text-xs block">Final Leaderboard / Results</span>
+                  <span className="text-[10px] text-slate-400">Show complete rank summary at the end</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFinalLeaderboard(!finalLeaderboard)}
+                  className={`w-12 h-6 rounded-full p-1 transition-colors ${
+                    finalLeaderboard ? 'bg-blue-600' : 'bg-slate-300'
+                  }`}
+                >
+                  <div
+                    className={`w-4 h-4 rounded-full bg-white transition-transform ${
+                      finalLeaderboard ? 'translate-x-6' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Student Access Banner */}
             <div className="flex items-center justify-between p-3.5 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-900">
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4 text-emerald-600" />
-                <span className="font-bold">Student Access:</span>
+                <span className="font-bold">Student Login Policy:</span>
               </div>
               <span className="font-black bg-emerald-200/70 text-emerald-800 px-2.5 py-0.5 rounded-lg text-[11px]">
-                Join with Quiz Code
+                No Account Required (Name + Code)
               </span>
             </div>
           </div>
@@ -265,7 +369,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
             ) : (
               <>
                 <Play className="w-4 h-4 fill-current text-amber-300" />
-                <span>Create Session</span>
+                <span>CREATE CONDUCT QUIZ</span>
               </>
             )}
           </button>
