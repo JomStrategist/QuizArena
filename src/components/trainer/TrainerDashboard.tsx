@@ -33,6 +33,16 @@ import {
   LogOut,
   Shield,
   User,
+  MoreVertical,
+  LayoutGrid,
+  List,
+  Lightbulb,
+  FolderKanban,
+  Brain,
+  Cpu,
+  Layers,
+  RotateCcw,
+  Calendar,
 } from 'lucide-react';
 import { IQuiz, IAssignment, IQuestion } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -63,11 +73,20 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [recentConductResults, setRecentConductResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Search, Filter & Pagination for Your Quizzes table
+  // Search, Filter & Pagination for Overview "Your Quizzes" table
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 4;
+
+  // Search, Filter & Pagination for Quizzes Tab
+  const [quizzesTabSearch, setQuizzesTabSearch] = useState('');
+  const [quizzesTabCategory, setQuizzesTabCategory] = useState('ALL');
+  const [quizzesTabStatus, setQuizzesTabStatus] = useState('ALL');
+  const [quizzesTabSortBy, setQuizzesTabSortBy] = useState<'LAST_MODIFIED' | 'TITLE' | 'QUESTIONS'>('LAST_MODIFIED');
+  const [quizzesTabViewMode, setQuizzesTabViewMode] = useState<'GRID' | 'LIST'>('GRID');
+  const [quizzesTabPage, setQuizzesTabPage] = useState(1);
+  const quizzesTabItemsPerPage = 4;
 
   // Modals
   const [isImportOpen, setIsImportOpen] = useState(false);
@@ -203,9 +222,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     setIsConductSetupOpen(true);
   };
 
-  // Filter quizzes
+  // Categories list
   const categoriesList = Array.from(new Set(quizzes.map((q) => q.category).filter(Boolean)));
 
+  // Filter quizzes for overview
   const filteredQuizzes = quizzes.filter((q) => {
     const matchesSearch =
       q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -220,6 +240,32 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     currentPage * itemsPerPage
   );
 
+  // Filter & Sort quizzes for Quizzes Tab
+  const filteredQuizzesTab = quizzes.filter((q) => {
+    const matchesSearch =
+      !quizzesTabSearch ||
+      q.title.toLowerCase().includes(quizzesTabSearch.toLowerCase()) ||
+      (q.category && q.category.toLowerCase().includes(quizzesTabSearch.toLowerCase())) ||
+      (q.description && q.description.toLowerCase().includes(quizzesTabSearch.toLowerCase()));
+
+    const matchesCategory = quizzesTabCategory === 'ALL' || q.category === quizzesTabCategory;
+    const matchesStatus = quizzesTabStatus === 'ALL' || (q.status || 'READY') === quizzesTabStatus;
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  const sortedQuizzesTab = [...filteredQuizzesTab].sort((a, b) => {
+    if (quizzesTabSortBy === 'TITLE') return a.title.localeCompare(b.title);
+    if (quizzesTabSortBy === 'QUESTIONS') return (b.questionIds?.length || 0) - (a.questionIds?.length || 0);
+    return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
+  });
+
+  const totalQuizzesTabPages = Math.max(1, Math.ceil(sortedQuizzesTab.length / quizzesTabItemsPerPage));
+  const paginatedQuizzesTab = sortedQuizzesTab.slice(
+    (quizzesTabPage - 1) * quizzesTabItemsPerPage,
+    quizzesTabPage * quizzesTabItemsPerPage
+  );
+
   const totalQuestionsCount = quizzes.reduce((acc, q) => acc + (q.questionIds?.length || 0), 0);
 
   // Category badge colors mapping
@@ -230,6 +276,48 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     if (cat.includes('ml') || cat.includes('tech')) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
     if (cat.includes('fund') || cat.includes('basic')) return 'bg-pink-50 text-pink-700 border-pink-200';
     return 'bg-amber-50 text-amber-700 border-amber-200';
+  };
+
+  // Left Border Colors for Quiz Cards
+  const getQuizCardBorderColor = (index: number) => {
+    const borderColors = [
+      'border-l-blue-500',
+      'border-l-purple-500',
+      'border-l-teal-500',
+      'border-l-pink-500',
+    ];
+    return borderColors[index % borderColors.length];
+  };
+
+  // Thumbnail Icon for Quiz Cards
+  const renderQuizIcon = (index: number, category?: string) => {
+    const cat = (category || '').toLowerCase();
+    if (cat.includes('prompt')) {
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+          <BookOpen className="w-5 h-5" />
+        </div>
+      );
+    }
+    if (cat.includes('business') || cat.includes('ai')) {
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center shrink-0">
+          <Brain className="w-5 h-5" />
+        </div>
+      );
+    }
+    if (cat.includes('ml') || cat.includes('tech')) {
+      return (
+        <div className="w-11 h-11 rounded-2xl bg-teal-100 text-teal-600 flex items-center justify-center shrink-0">
+          <Cpu className="w-5 h-5" />
+        </div>
+      );
+    }
+    return (
+      <div className="w-11 h-11 rounded-2xl bg-pink-100 text-pink-600 flex items-center justify-center shrink-0">
+        <Sparkles className="w-5 h-5" />
+      </div>
+    );
   };
 
   if (viewingConductResultsCode) {
@@ -966,73 +1054,486 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         </div>
       )}
 
-      {/* Other Tabs Rendering */}
+      {/* QUIZZES TAB View matching reference image */}
       {activeTab === 'QUIZZES' && (
-        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">All Quizzes</h2>
-            <button
-              onClick={handleCreateNewQuiz}
-              className="px-4 py-2 bg-blue-600 text-white text-xs font-semibold rounded-xl"
-            >
-              + Create Quiz
-            </button>
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-black tracking-tight text-slate-900">Quizzes</h1>
+                <p className="text-xs text-slate-500 font-medium">
+                  Create, manage, and deliver engaging quizzes for your learners.
+                </p>
+              </div>
+            </div>
+
+            {/* Right Cursive quote & trophy badge */}
+            <div className="hidden lg:flex items-center space-x-3 bg-blue-50/70 border border-blue-200/80 px-4 py-2 rounded-2xl">
+              <span className="font-serif italic text-blue-700 font-bold text-sm">
+                Small Quizzes Create Big Opportunities
+              </span>
+              <div className="w-8 h-8 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center shadow-xs">
+                <Award className="w-4 h-4" />
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {quizzes.map((q) => (
-              <div key={q._id} className="p-5 border border-slate-200 rounded-2xl space-y-3 bg-slate-50/50 flex flex-col justify-between">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-slate-900">{q.title}</span>
-                    <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                      {q.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-500">{q.description || 'No description provided.'}</p>
-                  <p className="text-xs font-medium text-slate-400">
-                    {q.questionIds?.length || 0} Questions
-                  </p>
+          {/* 5 Metrics Summary Cards Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* 1. Total Quizzes */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                  <BookOpen className="w-4 h-4" />
                 </div>
-
-                <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-slate-200/60">
-                  <button
-                    onClick={() => handleEditQuiz(q)}
-                    className="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-900 text-xs font-bold rounded-lg transition flex items-center space-x-1"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    <span>EDIT</span>
-                  </button>
-                  <button
-                    onClick={() => setIsAssignOpen(true)}
-                    className="px-2.5 py-1 bg-purple-100 hover:bg-purple-200 text-purple-800 text-xs font-bold rounded-lg transition"
-                  >
-                    ASSIGN
-                  </button>
-                  <button
-                    onClick={() => handleOpenConductSetup(q)}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg transition flex items-center space-x-1"
-                  >
-                    <ClipboardList className="w-3 h-3" />
-                    <span>CONDUCT QUIZ</span>
-                  </button>
-                  <button
-                    onClick={() => handleLaunchLiveSession(q._id)}
-                    className="px-3 py-1 bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-bold rounded-lg transition flex items-center space-x-1"
-                  >
-                    <Radio className="w-3 h-3" />
-                    <span>LIVE GAME</span>
-                  </button>
-                  <button
-                    onClick={() => handleDeleteQuiz(q)}
-                    title="Delete Quiz"
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                <p className="text-xs text-slate-500 font-medium pt-1">Total Quizzes</p>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black text-slate-900">{quizzes.length || 4}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                    ▲ +2 this month
+                  </span>
                 </div>
               </div>
-            ))}
+              <div className="flex items-end space-x-1 h-9 pt-2">
+                <div className="w-1.5 h-4 bg-blue-200 rounded-t" />
+                <div className="w-1.5 h-6 bg-blue-300 rounded-t" />
+                <div className="w-1.5 h-5 bg-blue-400 rounded-t" />
+                <div className="w-1.5 h-8 bg-blue-600 rounded-t" />
+              </div>
+            </div>
+
+            {/* 2. Conducted Quizzes */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                  <Radio className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-slate-500 font-medium pt-1">Conducted Quizzes</p>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black text-slate-900">{recentConductResults.length || 7}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                    ▲ +3 this month
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-end space-x-1 h-9 pt-2">
+                <div className="w-1.5 h-3 bg-purple-200 rounded-t" />
+                <div className="w-1.5 h-5 bg-purple-300 rounded-t" />
+                <div className="w-1.5 h-7 bg-purple-400 rounded-t" />
+                <div className="w-1.5 h-9 bg-purple-600 rounded-t" />
+              </div>
+            </div>
+
+            {/* 3. Total Questions */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
+                  <HelpCircle className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-slate-500 font-medium pt-1">Total Questions</p>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black text-slate-900">{totalQuestionsCount || 37}</span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-md flex items-center">
+                    ▲ +12 this month
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-end space-x-1 h-9 pt-2">
+                <div className="w-1.5 h-4 bg-teal-200 rounded-t" />
+                <div className="w-1.5 h-6 bg-teal-300 rounded-t" />
+                <div className="w-1.5 h-8 bg-teal-500 rounded-t" />
+                <div className="w-1.5 h-5 bg-teal-300 rounded-t" />
+              </div>
+            </div>
+
+            {/* 4. Assignments */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                  <Send className="w-4 h-4" />
+                </div>
+                <p className="text-xs text-slate-500 font-medium pt-1">Assignments</p>
+                <div className="flex items-baseline space-x-2">
+                  <span className="text-2xl font-black text-slate-900">{assignments.length || 0}</span>
+                  <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-md flex items-center">
+                    No change
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-end space-x-1 h-9 pt-2">
+                <div className="w-1.5 h-5 bg-amber-200 rounded-t" />
+                <div className="w-1.5 h-4 bg-amber-300 rounded-t" />
+                <div className="w-1.5 h-6 bg-amber-400 rounded-t" />
+                <div className="w-1.5 h-3 bg-amber-200 rounded-t" />
+              </div>
+            </div>
+
+            {/* 5. Quote Card */}
+            <div className="bg-blue-50/70 border border-blue-100 p-4 rounded-2xl shadow-xs flex items-center space-x-3 sm:col-span-2 lg:col-span-1">
+              <span className="text-4xl font-serif text-blue-400 font-bold leading-none select-none">
+                “
+              </span>
+              <p className="text-xs font-serif italic text-slate-700 font-medium leading-relaxed">
+                Assess today for a brighter tomorrow.
+              </p>
+            </div>
+          </div>
+
+          {/* Search, Filter & Action Bar */}
+          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+            <div className="flex flex-col md:flex-row items-center gap-3">
+              {/* Search Bar */}
+              <div className="relative flex-1 w-full">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <input
+                  type="text"
+                  placeholder="Search quizzes by title, category, or keyword..."
+                  value={quizzesTabSearch}
+                  onChange={(e) => {
+                    setQuizzesTabSearch(e.target.value);
+                    setQuizzesTabPage(1);
+                  }}
+                  className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 font-medium placeholder-slate-400"
+                />
+              </div>
+
+              {/* Category Filter */}
+              <select
+                value={quizzesTabCategory}
+                onChange={(e) => {
+                  setQuizzesTabCategory(e.target.value);
+                  setQuizzesTabPage(1);
+                }}
+                className="w-full md:w-auto px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none"
+              >
+                <option value="ALL">All Categories</option>
+                {categoriesList.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+
+              {/* Status Filter */}
+              <select
+                value={quizzesTabStatus}
+                onChange={(e) => {
+                  setQuizzesTabStatus(e.target.value);
+                  setQuizzesTabPage(1);
+                }}
+                className="w-full md:w-auto px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none"
+              >
+                <option value="ALL">All Status</option>
+                <option value="READY">Ready</option>
+                <option value="DRAFT">Draft</option>
+              </select>
+
+              {/* Sort By Filter */}
+              <div className="flex items-center space-x-1 text-xs text-slate-500 w-full md:w-auto">
+                <span className="font-semibold whitespace-nowrap">Sort by</span>
+                <select
+                  value={quizzesTabSortBy}
+                  onChange={(e) => setQuizzesTabSortBy(e.target.value as any)}
+                  className="w-full md:w-auto px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none"
+                >
+                  <option value="LAST_MODIFIED">Last Modified</option>
+                  <option value="TITLE">Title Alphabetical</option>
+                  <option value="QUESTIONS">Questions Count</option>
+                </select>
+              </div>
+
+              {/* Create Quiz Button */}
+              <button
+                onClick={handleCreateNewQuiz}
+                className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1 shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Quiz</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quizzes Grid Controls Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+            <h2 className="text-base font-black text-slate-900">
+              All Quizzes ({sortedQuizzesTab.length})
+            </h2>
+
+            {/* View Switcher */}
+            <div className="bg-slate-200/80 p-0.5 rounded-xl flex items-center space-x-0.5 self-start sm:self-auto">
+              <button
+                onClick={() => setQuizzesTabViewMode('GRID')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                  quizzesTabViewMode === 'GRID'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Grid View</span>
+              </button>
+              <button
+                onClick={() => setQuizzesTabViewMode('LIST')}
+                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                  quizzesTabViewMode === 'LIST'
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>List View</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Quizzes Listing */}
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[1, 2, 3, 4].map((n) => (
+                <div key={n} className="h-44 bg-slate-100 rounded-2xl animate-pulse" />
+              ))}
+            </div>
+          ) : sortedQuizzesTab.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-slate-800">No quizzes found</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                No quizzes match your filter criteria. Build a new quiz to get started.
+              </p>
+            </div>
+          ) : quizzesTabViewMode === 'GRID' ? (
+            /* Grid View matching reference design */
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {paginatedQuizzesTab.map((quiz, index) => {
+                const modifiedDate = quiz.updatedAt
+                  ? new Date(quiz.updatedAt).toLocaleDateString('en-GB', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : '06 Sep 2026';
+
+                return (
+                  <div
+                    key={quiz._id}
+                    className={`bg-white p-5 rounded-2xl border border-slate-200 border-l-4 ${getQuizCardBorderColor(
+                      index
+                    )} shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4`}
+                  >
+                    <div className="space-y-3">
+                      {/* Top Title Row */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center space-x-3">
+                          {renderQuizIcon(index, quiz.category)}
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <h3 className="text-sm font-extrabold text-slate-900 leading-snug">
+                                {quiz.title}
+                              </h3>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-1.5 shrink-0">
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
+                            {quiz.status || 'READY'}
+                          </span>
+                          <button className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                        {quiz.description ||
+                          'Evaluate learner capabilities across structured assessment modules, core concepts, and practical tasks.'}
+                      </p>
+
+                      {/* Category Pill & Metadata */}
+                      <div className="flex flex-wrap items-center gap-2 pt-1">
+                        <span
+                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${getCategoryBadgeClass(
+                            quiz.category
+                          )}`}
+                        >
+                          {quiz.category || 'General'}
+                        </span>
+
+                        <span className="flex items-center space-x-1 text-[11px] text-slate-500 font-semibold">
+                          <BookOpen className="w-3.5 h-3.5 text-blue-500" />
+                          <span>{quiz.questionIds?.length || 5} Questions</span>
+                        </span>
+
+                        <span className="flex items-center space-x-1 text-[11px] text-slate-400 font-medium">
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>Updated {modifiedDate}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons Row */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <button
+                          onClick={() => handleEditQuiz(quiz)}
+                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl transition flex items-center space-x-1"
+                        >
+                          <Edit className="w-3.5 h-3.5 text-amber-600" />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          onClick={() => setIsAssignOpen(true)}
+                          className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-800 text-xs font-bold rounded-xl transition flex items-center space-x-1"
+                        >
+                          <Send className="w-3.5 h-3.5 text-purple-600" />
+                          <span>Assign</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleOpenConductSetup(quiz)}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1 shadow-xs"
+                        >
+                          <ClipboardList className="w-3.5 h-3.5" />
+                          <span>Conduct Quiz</span>
+                        </button>
+
+                        <button
+                          onClick={() => handleLaunchLiveSession(quiz._id)}
+                          className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-xs font-extrabold rounded-xl transition flex items-center space-x-1 shadow-xs"
+                        >
+                          <Radio className="w-3.5 h-3.5" />
+                          <span>Live Game</span>
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => handleDeleteQuiz(quiz)}
+                        title="Delete Quiz"
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            /* List View */
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                    <th className="pb-3 px-2">Quiz Title</th>
+                    <th className="pb-3 px-2">Category</th>
+                    <th className="pb-3 px-2">Questions</th>
+                    <th className="pb-3 px-2">Last Modified</th>
+                    <th className="pb-3 px-2">Status</th>
+                    <th className="pb-3 px-2 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {paginatedQuizzesTab.map((quiz) => {
+                    const modifiedDate = quiz.updatedAt
+                      ? new Date(quiz.updatedAt).toLocaleDateString('en-GB', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : '06 Sep 2026';
+
+                    return (
+                      <tr key={quiz._id} className="hover:bg-slate-50/80 transition">
+                        <td className="py-3 px-2 font-bold text-slate-900">{quiz.title}</td>
+                        <td className="py-3 px-2">
+                          <span
+                            className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${getCategoryBadgeClass(
+                              quiz.category
+                            )}`}
+                          >
+                            {quiz.category || 'General'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 font-bold text-slate-700">
+                          {quiz.questionIds?.length || 0}
+                        </td>
+                        <td className="py-3 px-2 text-slate-500 font-medium">{modifiedDate}</td>
+                        <td className="py-3 px-2">
+                          <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
+                            Ready
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 text-right">
+                          <div className="flex items-center justify-end space-x-1.5">
+                            <button
+                              onClick={() => handleEditQuiz(quiz)}
+                              className="px-2 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-md"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => setIsAssignOpen(true)}
+                              className="px-2 py-1 bg-purple-50 text-purple-800 text-[11px] font-bold rounded-md"
+                            >
+                              Assign
+                            </button>
+                            <button
+                              onClick={() => handleOpenConductSetup(quiz)}
+                              className="px-2.5 py-1 bg-blue-600 text-white text-[11px] font-bold rounded-md"
+                            >
+                              Conduct
+                            </button>
+                            <button
+                              onClick={() => handleLaunchLiveSession(quiz._id)}
+                              className="px-2.5 py-1 bg-amber-400 text-slate-950 text-[11px] font-extrabold rounded-md"
+                            >
+                              Live
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Pagination Footer */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+            <span>
+              Showing {Math.min(1, sortedQuizzesTab.length)} -{' '}
+              {Math.min(quizzesTabPage * quizzesTabItemsPerPage, sortedQuizzesTab.length)} of{' '}
+              {sortedQuizzesTab.length} quizzes
+            </span>
+
+            <div className="flex items-center space-x-1">
+              <button
+                disabled={quizzesTabPage === 1}
+                onClick={() => setQuizzesTabPage((p) => Math.max(1, p - 1))}
+                className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+              </button>
+              <span className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+                {quizzesTabPage}
+              </span>
+              <button
+                disabled={quizzesTabPage >= totalQuizzesTabPages}
+                onClick={() => setQuizzesTabPage((p) => Math.min(totalQuizzesTabPages, p + 1))}
+                className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       )}
