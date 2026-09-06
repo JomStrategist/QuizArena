@@ -18,7 +18,7 @@ export const AssignQuizModal: React.FC<AssignQuizModalProps> = ({
   quizzes,
   onAssignmentCreated,
 }) => {
-  const [selectedQuizId, setSelectedQuizId] = useState(quizzes[0]?._id || '');
+  const [selectedQuizId, setSelectedQuizId] = useState(quizzes?.[0]?._id || '');
   const [emailsText, setEmailsText] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [maxAttempts, setMaxAttempts] = useState(1);

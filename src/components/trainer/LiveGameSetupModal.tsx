@@ -101,11 +101,13 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
 
   // Filtered quizzes for selection
   const filteredQuizzes = useMemo(() => {
-    return quizzes.filter((q) => {
+    return (quizzes || []).filter((q) => {
+      if (!q) return false;
+      const search = (searchQuery || '').toLowerCase();
       const matchesSearch =
-        !searchQuery ||
-        q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (q.description && q.description.toLowerCase().includes(searchQuery.toLowerCase()));
+        !search ||
+        (q.title || '').toLowerCase().includes(search) ||
+        (q.description || '').toLowerCase().includes(search);
 
       const matchesCategory = selectedCategory === 'ALL' || q.category === selectedCategory;
 

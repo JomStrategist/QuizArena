@@ -233,15 +233,17 @@ export const QuestionBankView: React.FC = () => {
   };
 
   // Unique lists for filter dropdowns
-  const categoriesList = Array.from(new Set(questions.map((q) => q.category).filter(Boolean)));
+  const categoriesList = Array.from(new Set((questions || []).map((q) => q?.category).filter(Boolean)));
 
   // Client-side Filter & Search Logic
-  const filteredQuestions = questions.filter((q) => {
+  const filteredQuestions = (questions || []).filter((q) => {
+    if (!q) return false;
+    const searchTerm = (search || '').toLowerCase();
     const matchesSearch =
-      !search ||
-      q.questionText.toLowerCase().includes(search.toLowerCase()) ||
-      (q.category && q.category.toLowerCase().includes(search.toLowerCase())) ||
-      (q.options && q.options.some((opt) => opt.toLowerCase().includes(search.toLowerCase())));
+      !searchTerm ||
+      (q.questionText || '').toLowerCase().includes(searchTerm) ||
+      (q.category || '').toLowerCase().includes(searchTerm) ||
+      (Array.isArray(q.options) && q.options.some((opt) => (opt || '').toLowerCase().includes(searchTerm)));
 
     const matchesCategory = !selectedCategory || q.category === selectedCategory;
     const matchesType = !selectedType || (q.questionType || 'MCQ') === selectedType;

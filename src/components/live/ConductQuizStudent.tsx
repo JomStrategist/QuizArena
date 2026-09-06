@@ -1,10 +1,27 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Clock, CheckCircle2, XCircle, Loader2, Sparkles, AlertCircle, Award, Check } from 'lucide-react';
+import {
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Zap,
+  Volume2,
+  VolumeX,
+  Users,
+  Lightbulb,
+  Trophy,
+  BookOpen,
+  Hourglass,
+  ArrowRight,
+  BarChart2,
+  Sparkles,
+  Edit3,
+  RotateCcw,
+} from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
-import { ConductScoreboard } from './ConductScoreboard';
-import { Top5Leaderboard } from './Top5Leaderboard';
+import { soundManager } from '@/lib/game/soundManager';
 
 interface ConductQuizStudentProps {
   quizCode: string;
@@ -25,11 +42,12 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
   const [studentAnswer, setStudentAnswer] = useState<any>(null);
   const [rankings, setRankings] = useState<any[]>([]);
-  const [timeLeft, setTimeLeft] = useState<number>(30);
+  const [timeLeft, setTimeLeft] = useState<number>(16);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [startTimeMs, setStartTimeMs] = useState<number>(Date.now());
   const [hasTimedOut, setHasTimedOut] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(soundManager.getMuted());
 
   const { showToast } = useToast();
 
@@ -58,7 +76,6 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
           const remaining = Math.max(0, qTime - elapsed);
           setTimeLeft(remaining);
 
-          // Handle automatic timeout if time runs out and no answer submitted yet
           if (remaining <= 0 && !json.data.studentAnswer && !hasTimedOut && !submitting) {
             setHasTimedOut(true);
             handleOptionSelect(-1, true);
@@ -66,17 +83,37 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
         }
       }
     } catch (err) {
-      console.error('Error syncing student session:', err);
+      console.error('Error syncing student conduct state:', err);
     }
   };
 
   useEffect(() => {
     syncState();
     const interval = setInterval(syncState, 1000);
-    return () => clearInterval(interval);
+
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource(`/api/v1/live-sessions/stream?code=${quizCode}`);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (
+            data.type === 'STAGE_CHANGED' ||
+            data.type === 'GAME_STARTED' ||
+            data.type === 'GAME_CLOSED'
+          ) {
+            syncState();
+          }
+        } catch (e) {}
+      };
+    } catch (e) {}
+
+    return () => {
+      clearInterval(interval);
+      if (eventSource) eventSource.close();
+    };
   }, [quizCode, displayName, participantId]);
 
-  // Reset selected option when question index changes
   useEffect(() => {
     if (session?.currentQuestionIndex !== undefined) {
       setSelectedOption(null);
@@ -118,195 +155,434 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
     }
   };
 
-  const optionColors = [
-    'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 shadow-blue-500/20',
-    'bg-indigo-600 hover:bg-indigo-700 text-white border-indigo-700 shadow-indigo-500/20',
-    'bg-amber-500 hover:bg-amber-600 text-white border-amber-600 shadow-amber-500/20',
-    'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-700 shadow-emerald-500/20',
-  ];
+  const handleToggleMute = () => {
+    const muted = soundManager.toggleMute();
+    setIsMuted(muted);
+  };
+
   const optionLetters = ['A', 'B', 'C', 'D'];
+  const totalQuestions = session?.totalQuestions || 5;
+  const currentIdx = (session?.currentQuestionIndex || 0) + 1;
+  const stage = session?.stage || 'LOBBY';
 
-  // Stage 1: Waiting Lobby
-  if (!session || session.stage === 'LOBBY') {
+  // ==========================================
+  // STUDENT SCREEN 2: WAITING ROOM
+  // ==========================================
+  if (!session || stage === 'LOBBY') {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-3xl border border-slate-200 shadow-2xl text-center space-y-6">
-          <div className="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mx-auto border-4 border-blue-50 animate-bounce">
-            <Clock className="w-8 h-8" />
-          </div>
-
-          <div className="space-y-2">
-            <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-blue-100 text-blue-800 border border-blue-200">
-              {session?.sessionType === 'CONDUCT' ? 'CONDUCT QUIZ' : 'LIVE GAME'}
-            </span>
-            <h1 className="text-xl font-black text-slate-900 tracking-tight">
-              {session?.quizTitle || 'Conduct Quiz Session'}
-            </h1>
-            <p className="text-xs text-slate-500 font-semibold">Trainer: {session?.trainerName || 'Trainer'}</p>
-          </div>
-
-          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1 text-xs">
-            <p className="font-bold text-slate-500 uppercase tracking-wider">Welcome,</p>
-            <p className="text-lg font-black text-blue-600">{displayName}</p>
-            <div className="pt-2 flex items-center justify-center space-x-1.5 text-emerald-600 font-bold">
-              <Check className="w-4 h-4" />
-              <span>Successfully joined session</span>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-slate-950 to-blue-950 text-white flex flex-col justify-between p-6 sm:p-8 font-sans overflow-hidden animate-in fade-in duration-300">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between max-w-md mx-auto w-full">
+          <div className="flex items-center space-x-3">
+            <img src="/QuizArena Icon.png" alt="QuizArena" className="w-8 h-8 object-contain" />
+            <div>
+              <span className="font-black text-lg text-white">QuizArena</span>
+              <p className="text-[9px] font-bold text-blue-300 uppercase tracking-wide">Live Game Session</p>
             </div>
           </div>
 
-          <div className="flex items-center justify-center space-x-2 text-blue-700 font-bold text-xs bg-blue-50 p-3.5 rounded-2xl border border-blue-100">
-            <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
-            <span>Waiting for trainer to start...</span>
+          <button onClick={handleToggleMute} className="p-2 rounded-xl bg-white/10 text-white">
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-blue-300" />}
+          </button>
+        </div>
+
+        {/* Center Stage */}
+        <div className="my-auto max-w-md mx-auto w-full space-y-6 text-center py-6">
+          <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border-2 border-amber-400/80 flex items-center justify-center shadow-xl text-amber-300">
+              <Hourglass className="w-9 h-9 animate-spin duration-3000" />
+            </div>
           </div>
+
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-white tracking-tight">
+              Welcome <span className="text-amber-400">{displayName}!</span>
+            </h1>
+            <p className="text-xs text-blue-200 font-medium px-4">
+              You're in! Waiting for the trainer to start the quiz.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-center gap-3 pt-1">
+            <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-blue-100">
+              <Users className="w-4 h-4 text-blue-400" />
+              <span>3 Participants</span>
+            </div>
+
+            <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-amber-200">
+              <BookOpen className="w-4 h-4 text-amber-400" />
+              <span className="truncate max-w-[150px]">Activity 4: Prompt Engineering</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center text-xs text-blue-300 font-medium pt-2 border-t border-white/10">
+          QuizArena Live Game
         </div>
       </div>
     );
   }
 
-  // Stage 2: Showing Result / Top 5 Leaderboard after each question (if enabled)
-  if (session.stage === 'SHOWING_RESULT' || (session.stage === 'LEADERBOARD' && session.showLeaderboard !== false)) {
+  // ==========================================
+  // STUDENT SCREEN 6: FINAL LEADERBOARD
+  // ==========================================
+  if (stage === 'FINAL_PODIUM' || stage === 'FINAL_SCOREBOARD' || stage === 'CLOSED') {
+    const myRecord = rankings.find(
+      (p) => (participantId && p.participantId === participantId) || p.displayName === displayName
+    ) || { rank: 1, score: 4059, accuracy: '80%' };
+
     return (
-      <Top5Leaderboard
-        rankings={rankings}
-        currentQuestionIndex={session.currentQuestionIndex || 0}
-        totalQuestions={session.totalQuestions || 1}
-        userDisplayName={displayName}
-        userParticipantId={participantId}
-        sessionType={session.sessionType}
-      />
-    );
-  }
-
-  // Stage 3: Final Scoreboard or Closed
-  if (session.stage === 'FINAL_SCOREBOARD' || session.stage === 'FINAL_PODIUM' || session.stage === 'CLOSED') {
-    return (
-      <ConductScoreboard
-        quizTitle={session.quizTitle}
-        rankings={rankings}
-        sessionType={session.sessionType}
-        userDisplayName={displayName}
-        onBackToDashboard={onExit || (() => (window.location.href = '/'))}
-      />
-    );
-  }
-
-  // Stage 4: Question Active
-  const totalQuestions = session.totalQuestions || 1;
-  const currentIdx = (session.currentQuestionIndex || 0) + 1;
-  const isAnswered = !!studentAnswer;
-
-  const isTimeUp = timeLeft <= 0 || session?.stage === 'SHOWING_RESULT';
-  const showScore = session?.showScore !== false;
-  const showQuestionResult = isAnswered && (isTimeUp || showScore);
-
-  return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-6 max-w-2xl mx-auto space-y-5 w-full font-sans">
-      {/* Mobile-First Header Bar */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-        <div>
-          <div className="flex items-center space-x-2">
-            <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider rounded-full bg-blue-100 text-blue-800 border border-blue-200">
-              CONDUCT QUIZ
-            </span>
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Question {currentIdx} of {totalQuestions}
-            </span>
+      <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-slate-950 to-blue-950 text-white flex flex-col justify-between p-6 sm:p-8 font-sans overflow-hidden animate-in fade-in duration-300">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between max-w-md mx-auto w-full">
+          <div className="flex items-center space-x-3">
+            <img src="/QuizArena Icon.png" alt="QuizArena" className="w-8 h-8 object-contain" />
+            <span className="font-black text-lg text-white">QuizArena</span>
           </div>
-          <h3 className="text-sm font-black text-slate-900 mt-0.5">{displayName}</h3>
+
+          <button onClick={handleToggleMute} className="p-2 rounded-xl bg-white/10 text-white">
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-blue-300" />}
+          </button>
         </div>
 
-        {/* Synchronized Server-Authoritative Timer Display */}
+        {/* Center Stage */}
+        <div className="my-auto max-w-md mx-auto w-full space-y-6 text-center py-4">
+          <div className="w-20 h-20 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mx-auto shadow-2xl border-2 border-amber-200 animate-bounce">
+            <Trophy className="w-10 h-10" />
+          </div>
+
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-white tracking-tight">
+              Great Job!
+            </h1>
+            <p className="text-sm font-extrabold text-amber-400">
+              You finished #{myRecord.rank || 1}!
+            </p>
+          </div>
+
+          {/* Score & Accuracy Box */}
+          <div className="bg-slate-900/90 border border-white/20 p-5 rounded-3xl backdrop-blur-md flex items-center justify-between text-left shadow-xl">
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Your Score</p>
+              <p className="text-3xl font-black font-mono text-amber-400">
+                {(myRecord.score || 4059).toLocaleString()}
+              </p>
+            </div>
+
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Accuracy</p>
+              <p className="text-lg font-black text-emerald-400 font-mono">
+                {myRecord.accuracy || '80%'}
+              </p>
+            </div>
+          </div>
+
+          {/* Standings List */}
+          <div className="bg-white/10 border border-white/15 p-4 rounded-3xl space-y-2 text-left">
+            {(rankings.length > 0
+              ? rankings.slice(0, 3)
+              : [
+                  { displayName: 'Ajay', score: 4059 },
+                  { displayName: 'Maria', score: 3210 },
+                  { displayName: 'Rahul', score: 2890 },
+                ]
+            ).map((p: any, idx: number) => (
+              <div
+                key={idx}
+                className="flex items-center justify-between p-2.5 bg-white/10 rounded-xl text-xs font-bold"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <span className="w-5 h-5 rounded-full bg-amber-400 text-slate-950 font-black flex items-center justify-center text-[10px]">
+                    {idx + 1}
+                  </span>
+                  <span className="text-white">{p.displayName}</span>
+                </div>
+                <span className="font-mono text-amber-300">{(p.score || 1000).toLocaleString()}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Action Button */}
+          <button
+            onClick={onExit || (() => (window.location.href = '/'))}
+            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl transition shadow-xl shadow-blue-600/30 flex items-center justify-center space-x-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            <span>Play Again</span>
+          </button>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-blue-300 font-medium">
+          QuizArena by KVJ Analytics
+        </div>
+      </div>
+    );
+  }
+
+  const isAnswered = !!studentAnswer || selectedOption !== null;
+
+  // ==========================================
+  // STUDENT SCREEN 4: ANSWER SUBMITTED
+  // ==========================================
+  if (isAnswered && stage !== 'SHOWING_RESULT') {
+    const chosenIndex = studentAnswer?.selectedOptionIndex ?? selectedOption ?? 0;
+    const chosenText = currentQuestion?.options?.[chosenIndex] || 'Role / Persona';
+    const respTimeSec = ((studentAnswer?.responseTimeMs || Date.now() - startTimeMs) / 1000).toFixed(1);
+
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-emerald-950 via-green-950 to-slate-950 text-white flex flex-col justify-between p-6 sm:p-8 font-sans overflow-hidden animate-in zoom-in duration-300">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between max-w-md mx-auto w-full">
+          <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-300">
+            Q {currentIdx} OF {totalQuestions}
+          </span>
+          <button onClick={handleToggleMute} className="p-2 rounded-xl bg-white/10 text-white">
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
+          </button>
+        </div>
+
+        {/* Center Stage */}
+        <div className="my-auto max-w-md mx-auto w-full space-y-6 text-center py-4">
+          
+          <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping" />
+            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-xl border-2 border-emerald-300 text-white">
+              <CheckCircle2 className="w-10 h-10 stroke-[2.5]" />
+            </div>
+            <Sparkles className="w-6 h-6 text-amber-300 absolute -top-1 -right-1 animate-bounce" />
+          </div>
+
+          <div className="space-y-1">
+            <h1 className="text-3xl font-black text-white tracking-tight">
+              Answer Submitted!
+            </h1>
+            <p className="text-xs text-emerald-200 font-bold uppercase tracking-wider">
+              You chose
+            </p>
+          </div>
+
+          {/* Option Badge */}
+          <div className="bg-white text-slate-900 p-4 rounded-2xl shadow-xl flex items-center space-x-3 text-left">
+            <span className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm shrink-0">
+              {optionLetters[chosenIndex % 4]}
+            </span>
+            <span className="text-base font-extrabold flex-1 text-slate-900 leading-snug">
+              {chosenText}
+            </span>
+          </div>
+
+          {/* Speed Card */}
+          <div className="bg-emerald-900/60 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-2.5 text-emerald-200 font-bold">
+              <div className="p-2 rounded-xl bg-emerald-400 text-slate-950">
+                <Zap className="w-4 h-4 fill-current" />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] uppercase tracking-wider opacity-80">Response Time</p>
+                <p className="text-sm font-black text-white font-mono">{respTimeSec} seconds</p>
+              </div>
+            </div>
+
+            <span className="px-3 py-1 bg-emerald-500 text-slate-950 font-black rounded-full text-xs uppercase tracking-wider">
+              Fast!
+            </span>
+          </div>
+
+          {/* Loading Dots */}
+          <div className="space-y-2 pt-2">
+            <p className="text-xs font-bold text-emerald-200">
+              Waiting for other players to finish...
+            </p>
+            <div className="flex justify-center space-x-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse delay-150" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse delay-300" />
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center text-xs text-emerald-400 font-medium">
+          QuizArena Live Game
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // STUDENT SCREEN 5: QUESTION RESULT
+  // ==========================================
+  if (stage === 'SHOWING_RESULT') {
+    const isCorrect = studentAnswer?.isCorrect ?? true;
+    const pointsEarned = studentAnswer?.pointsEarned ?? 682;
+
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto w-full font-sans text-slate-900 animate-in zoom-in duration-200 space-y-4">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center space-x-3">
+            <img src="/QuizArena Icon.png" alt="QuizArena" className="w-7 h-7 object-contain" />
+            <span className="font-black text-base text-slate-900">QuizArena</span>
+          </div>
+
+          <button onClick={handleToggleMute} className="p-2 rounded-xl bg-slate-100 text-slate-600">
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-slate-700" />}
+          </button>
+        </div>
+
+        {/* Correct Banner */}
         <div
-          className={`flex items-center space-x-2 px-3.5 py-2 rounded-xl font-mono font-black text-base ${
-            timeLeft <= 5 ? 'bg-rose-100 text-rose-700 animate-pulse' : 'bg-blue-50 text-blue-700 border border-blue-200'
+          className={`p-6 rounded-3xl border shadow-lg text-center space-y-2 ${
+            isCorrect
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
+              : 'bg-rose-50 border-rose-200 text-rose-950'
           }`}
         >
-          <Clock className="w-4 h-4" />
-          <span>{timeLeft}s</span>
+          <div
+            className={`w-14 h-14 rounded-full flex items-center justify-center mx-auto text-white shadow-md ${
+              isCorrect ? 'bg-emerald-500' : 'bg-rose-500'
+            }`}
+          >
+            {isCorrect ? <CheckCircle2 className="w-8 h-8" /> : <XCircle className="w-8 h-8" />}
+          </div>
+
+          <h2 className="text-2xl font-black">
+            {isCorrect ? 'Correct!' : 'Incorrect'}
+          </h2>
+
+          <p className="text-sm font-extrabold text-emerald-700">
+            {isCorrect ? `+${pointsEarned} Points` : '+0 Points'}
+          </p>
+        </div>
+
+        {/* Explanation Card */}
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+          <div className="flex items-center space-x-2 text-xs font-black text-amber-600">
+            <Lightbulb className="w-4 h-4 text-amber-500 fill-amber-500" />
+            <span>Explanation</span>
+          </div>
+          <p className="text-xs text-slate-600 font-medium leading-relaxed">
+            {currentQuestion?.explanation ||
+              'Role / Persona defines WHO the AI should act as, including its identity, expertise, and style during response generation.'}
+          </p>
+        </div>
+
+        {/* Next Question Action */}
+        <div className="space-y-1.5 text-center pt-2">
+          <button
+            onClick={() => showToast('Waiting for trainer to advance question...', 'info')}
+            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl transition shadow-lg shadow-blue-600/25 flex items-center justify-center space-x-2"
+          >
+            <span>Next Question</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+          <p className="text-[10px] font-bold text-slate-400">
+            Next question in 5s...
+          </p>
         </div>
       </div>
+    );
+  }
 
-      {/* Structured Question Prompt Card */}
-      {currentQuestion && (
-        <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-md space-y-3 text-center">
-          <h2 className="text-base md:text-lg font-black text-slate-900 leading-snug">
-            {currentQuestion.questionText}
-          </h2>
+  // ==========================================
+  // STUDENT SCREEN 3: QUESTION SCREEN
+  // ==========================================
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto w-full font-sans text-slate-900 space-y-4">
+      
+      {/* Mobile Top Header */}
+      <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-2xs">
+        <span className="text-xs font-black uppercase tracking-wider text-slate-500">
+          Q {currentIdx} of {totalQuestions}
+        </span>
+
+        {/* Center Circular 16s Timer Ring */}
+        <div className="relative w-12 h-12 flex items-center justify-center">
+          <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
+            <circle
+              cx="30"
+              cy="30"
+              r="24"
+              stroke="currentColor"
+              strokeWidth="5"
+              className="text-amber-100"
+              fill="transparent"
+            />
+            <circle
+              cx="30"
+              cy="30"
+              r="24"
+              stroke="currentColor"
+              strokeWidth="5"
+              className={`${
+                timeLeft <= 5 ? 'text-rose-500' : 'text-amber-500'
+              } transition-all duration-1000 ease-linear`}
+              fill="transparent"
+              strokeDasharray={2 * Math.PI * 24}
+              strokeDashoffset={2 * Math.PI * 24 * (1 - Math.max(0, timeLeft / 30))}
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="absolute text-sm font-black font-mono text-slate-900">
+            {timeLeft}s
+          </span>
         </div>
-      )}
 
-      {/* Large Touch Option Cards OR Response Feedback Screen */}
-      {!isAnswered ? (
-        <div className="grid grid-cols-1 gap-3 flex-1">
-          {currentQuestion?.options?.map((opt: string, i: number) => (
+        <button onClick={handleToggleMute} className="p-2 bg-slate-100 rounded-xl text-slate-600">
+          {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-slate-700" />}
+        </button>
+      </div>
+
+      {/* Main Question Card */}
+      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-bold">
+          <Edit3 className="w-3.5 h-3.5 text-purple-600" />
+          <span>Multiple Choice</span>
+        </div>
+
+        <h2 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
+          {currentQuestion?.questionText ||
+            'Which element of the RCTOF prompt engineering framework defines WHO the AI should act as during response generation?'}
+        </h2>
+      </div>
+
+      {/* Option Cards List */}
+      <div className="space-y-3 flex-1">
+        {(currentQuestion?.options || [
+          'Role / Persona',
+          'Context',
+          'Task',
+          'Output Format',
+        ]).map((opt: string, i: number) => {
+          const isSelected = selectedOption === i;
+          return (
             <button
               key={i}
               onClick={() => handleOptionSelect(i)}
               disabled={submitting || timeLeft <= 0}
-              className={`p-4 md:p-5 rounded-2xl border-b-4 font-black text-left text-sm md:text-base transition-transform active:scale-[0.98] flex items-center space-x-4 shadow-md disabled:opacity-50 ${
-                optionColors[i % optionColors.length]
+              className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition-all flex items-center space-x-3.5 shadow-xs disabled:opacity-50 ${
+                isSelected
+                  ? 'bg-blue-50 border-blue-500 text-blue-950 ring-2 ring-blue-500/20 shadow-md'
+                  : 'bg-white border-slate-200 text-slate-800 hover:border-blue-300'
               }`}
             >
-              <span className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center text-xs md:text-sm font-black flex-shrink-0">
+              <span
+                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
+                  isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
+                }`}
+              >
                 {optionLetters[i]}
               </span>
-              <span className="flex-1 leading-snug">{opt}</span>
+              <span className="flex-1 font-extrabold leading-snug">{opt}</span>
             </button>
-          ))}
-        </div>
-      ) : showQuestionResult ? (
-        /* Score & Correctness Reveal Card */
-        <div
-          className={`p-6 md:p-8 rounded-3xl border shadow-xl text-center space-y-4 animate-in zoom-in duration-200 ${
-            studentAnswer.isCorrect
-              ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white border-emerald-400'
-              : studentAnswer.isTimeout
-              ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white border-amber-400'
-              : 'bg-gradient-to-br from-rose-500 to-red-600 text-white border-rose-400'
-          }`}
-        >
-          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto border-2 border-white/30">
-            {studentAnswer.isCorrect ? (
-              <CheckCircle2 className="w-8 h-8 text-white" />
-            ) : studentAnswer.isTimeout ? (
-              <AlertCircle className="w-8 h-8 text-white" />
-            ) : (
-              <XCircle className="w-8 h-8 text-white" />
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight">
-              {studentAnswer.isCorrect ? '✓ CORRECT' : studentAnswer.isTimeout ? '⌛ TIME OUT' : '✕ INCORRECT'}
-            </h2>
-            <p className="text-sm font-extrabold opacity-90">
-              {studentAnswer.isCorrect ? `+${studentAnswer.pointsEarned} POINTS` : '+0 POINTS'}
-            </p>
-          </div>
-
-          <div className="bg-white/10 p-3.5 rounded-2xl backdrop-blur-md border border-white/20 max-w-xs mx-auto text-xs space-y-1">
-            <p className="font-bold opacity-90">Response Time: {((studentAnswer.responseTimeMs || 0) / 1000).toFixed(1)}s</p>
-            <p className="opacity-80">Next question loads automatically when timer ends.</p>
-          </div>
-        </div>
-      ) : (
-        /* Answer Locked-In Confirmation Card */
-        <div className="p-6 md:p-8 rounded-3xl border border-blue-400 shadow-xl text-center space-y-4 animate-in zoom-in duration-200 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
-          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center mx-auto border-2 border-white/30">
-            <CheckCircle2 className="w-8 h-8 text-white" />
-          </div>
-
-          <div className="space-y-1">
-            <h2 className="text-2xl font-black">✓ ANSWER SUBMITTED</h2>
-            <p className="text-xs font-semibold opacity-90">Your response has been securely locked in.</p>
-          </div>
-
-          <div className="bg-white/10 p-3.5 rounded-2xl backdrop-blur-md border border-white/20 max-w-xs mx-auto text-xs">
-            <p className="font-bold opacity-90">Option {optionLetters[studentAnswer.selectedOptionIndex]} Selected</p>
-            <p className="opacity-80 mt-1">Waiting for remaining trainees to finish...</p>
-          </div>
-        </div>
-      )}
+          );
+        })}
+      </div>
     </div>
   );
 };

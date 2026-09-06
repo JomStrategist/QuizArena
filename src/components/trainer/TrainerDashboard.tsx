@@ -223,13 +223,32 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   };
 
   // Categories list
-  const categoriesList = Array.from(new Set(quizzes.map((q) => q.category).filter(Boolean)));
+  const categoriesList = Array.from(new Set((quizzes || []).map((q) => q?.category).filter(Boolean)));
+
+  // Safe Date Formatter helper
+  const formatDateSafe = (dateVal: any, fallback = '06 Sep 2026') => {
+    if (!dateVal) return fallback;
+    try {
+      const d = new Date(dateVal);
+      if (isNaN(d.getTime())) return fallback;
+      return d.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      });
+    } catch (e) {
+      return fallback;
+    }
+  };
 
   // Filter quizzes for overview
-  const filteredQuizzes = quizzes.filter((q) => {
-    const matchesSearch =
-      q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (q.category && q.category.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredQuizzes = (quizzes || []).filter((q) => {
+    if (!q) return false;
+    const titleText = (q.title || '').toLowerCase();
+    const categoryText = (q.category || '').toLowerCase();
+    const search = (searchQuery || '').toLowerCase();
+
+    const matchesSearch = titleText.includes(search) || categoryText.includes(search);
     const matchesCategory = selectedCategory === 'ALL' || q.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -241,12 +260,14 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   );
 
   // Filter & Sort quizzes for Quizzes Tab
-  const filteredQuizzesTab = quizzes.filter((q) => {
+  const filteredQuizzesTab = (quizzes || []).filter((q) => {
+    if (!q) return false;
+    const search = (quizzesTabSearch || '').toLowerCase();
     const matchesSearch =
-      !quizzesTabSearch ||
-      q.title.toLowerCase().includes(quizzesTabSearch.toLowerCase()) ||
-      (q.category && q.category.toLowerCase().includes(quizzesTabSearch.toLowerCase())) ||
-      (q.description && q.description.toLowerCase().includes(quizzesTabSearch.toLowerCase()));
+      !search ||
+      (q.title || '').toLowerCase().includes(search) ||
+      (q.category || '').toLowerCase().includes(search) ||
+      (q.description || '').toLowerCase().includes(search);
 
     const matchesCategory = quizzesTabCategory === 'ALL' || q.category === quizzesTabCategory;
     const matchesStatus = quizzesTabStatus === 'ALL' || (q.status || 'READY') === quizzesTabStatus;
@@ -255,7 +276,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   });
 
   const sortedQuizzesTab = [...filteredQuizzesTab].sort((a, b) => {
-    if (quizzesTabSortBy === 'TITLE') return a.title.localeCompare(b.title);
+    if (quizzesTabSortBy === 'TITLE') return (a.title || '').localeCompare(b.title || '');
     if (quizzesTabSortBy === 'QUESTIONS') return (b.questionIds?.length || 0) - (a.questionIds?.length || 0);
     return new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime();
   });
@@ -266,7 +287,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     quizzesTabPage * quizzesTabItemsPerPage
   );
 
-  const totalQuestionsCount = quizzes.reduce((acc, q) => acc + (q.questionIds?.length || 0), 0);
+  const totalQuestionsCount = (quizzes || []).reduce((acc, q) => acc + (q?.questionIds?.length || 0), 0);
 
   // Category badge colors mapping
   const getCategoryBadgeClass = (category: string) => {
@@ -1311,13 +1332,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             /* Grid View matching reference design */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {paginatedQuizzesTab.map((quiz, index) => {
-                const modifiedDate = quiz.updatedAt
-                  ? new Date(quiz.updatedAt).toLocaleDateString('en-GB', {
-                      day: '2-digit',
-                      month: 'short',
-                      year: 'numeric',
-                    })
-                  : '06 Sep 2026';
+                const modifiedDate = formatDateSafe(quiz.updatedAt);
 
                 return (
                   <div
@@ -1442,13 +1457,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {paginatedQuizzesTab.map((quiz) => {
-                    const modifiedDate = quiz.updatedAt
-                      ? new Date(quiz.updatedAt).toLocaleDateString('en-GB', {
-                          day: '2-digit',
-                          month: 'short',
-                          year: 'numeric',
-                        })
-                      : '06 Sep 2026';
+                    const modifiedDate = formatDateSafe(quiz.updatedAt);
 
                     return (
                       <tr key={quiz._id} className="hover:bg-slate-50/80 transition">
@@ -1559,11 +1568,11 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   <div>
                     <p className="text-sm font-bold text-slate-900">{a.title}</p>
                     <p className="text-xs text-slate-500">
-                      Assigned to {a.studentEmails.length} student(s) • Due: {new Date(a.dueDate).toLocaleDateString()}
+                      Assigned to {a.studentEmails?.length || 0} student(s) • Due: {formatDateSafe(a.dueDate)}
                     </p>
                   </div>
                   <span className="px-2.5 py-1 text-xs font-bold bg-blue-100 text-blue-800 rounded-full">
-                    {a.studentEmails.length} Assigned
+                    {a.studentEmails?.length || 0} Assigned
                   </span>
                 </div>
               ))}
@@ -1588,7 +1597,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-mono font-bold text-blue-600">CODE: {res.quizCode}</span>
                       <span className="text-[10px] text-slate-400 font-bold">
-                        {new Date(res.createdAt).toLocaleDateString()}
+                        {formatDateSafe(res.createdAt)}
                       </span>
                     </div>
                     <h4 className="text-xs font-black text-slate-900 mt-1 line-clamp-1">{res.quizTitle}</h4>
