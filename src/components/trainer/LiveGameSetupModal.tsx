@@ -115,8 +115,31 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
 
   if (!isOpen) return null;
 
-  const totalQuestions = selectedQuiz?.questionIds?.length || selectedQuiz?.questions?.length || 0;
-  const estimatedDurationMinutes = Math.max(1, Math.ceil((totalQuestions * questionTime) / 60));
+  // Calculate Question Time Limits & Duration dynamically from Question model
+  const questionsList = selectedQuiz?.questions || [];
+  const totalQuestions = selectedQuiz?.questionIds?.length || questionsList.length || 0;
+
+  const totalQuizSeconds = useMemo(() => {
+    if (questionsList.length > 0) {
+      return questionsList.reduce((acc, q) => acc + (q.timeLimit || 20), 0);
+    }
+    return totalQuestions * 20;
+  }, [questionsList, totalQuestions]);
+
+  const timePerQuestionLabel = useMemo(() => {
+    if (questionsList.length > 0) {
+      const times = questionsList.map((q) => q.timeLimit || 20);
+      const minTime = Math.min(...times);
+      const maxTime = Math.max(...times);
+      if (minTime === maxTime) {
+        return `${minTime} seconds (Question Default)`;
+      }
+      return `${minTime}s - ${maxTime}s (Question Specific)`;
+    }
+    return 'From Questions (Auto)';
+  }, [questionsList]);
+
+  const estimatedDurationMinutes = Math.max(1, Math.ceil(totalQuizSeconds / 60));
   const totalPoints = totalQuestions * pointsPerQuestion;
 
   const handleLaunch = () => {
@@ -130,8 +153,11 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
       return;
     }
 
+    // Default question time (20s) passed for fallback while backend uses each question's actual timeLimit
+    const fallbackTime = questionsList.length > 0 ? (questionsList[0].timeLimit || 20) : 20;
+
     onLaunchLiveGame(selectedQuiz._id, {
-      questionTime,
+      questionTime: fallbackTime,
       maxParticipants,
       speedScoring,
       showCorrectAnswer,
@@ -418,39 +444,14 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
                   <div>
                     <h3 className="text-lg font-black text-slate-900">Game Settings</h3>
                     <p className="text-xs text-slate-500 font-medium">
-                      Configure how the live game will be conducted.
+                      Configure how the live game will be conducted. Time limits are automatically fetched from each question.
                     </p>
                   </div>
                 </div>
 
-                {/* ROW 1: 3 DROPDOWN CONFIG CARDS */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {/* Card 1: Question Time Limit */}
-                  <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2 hover:border-blue-300 transition">
-                    <div className="flex items-center space-x-2.5">
-                      <div className="p-2 bg-purple-100 text-purple-700 rounded-xl">
-                        <Clock className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-900">Question Time Limit</p>
-                        <p className="text-[10px] text-slate-500 font-medium">Time for each question</p>
-                      </div>
-                    </div>
-                    <select
-                      value={questionTime}
-                      onChange={(e) => setQuestionTime(Number(e.target.value))}
-                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                    >
-                      <option value={10}>10 Seconds</option>
-                      <option value={15}>15 Seconds</option>
-                      <option value={20}>20 Seconds (Default)</option>
-                      <option value={30}>30 Seconds</option>
-                      <option value={45}>45 Seconds</option>
-                      <option value={60}>60 Seconds</option>
-                    </select>
-                  </div>
-
-                  {/* Card 2: Maximum Participants */}
+                {/* ROW 1: 2 DROPDOWN CONFIG CARDS (QUESTION TIME LIMIT REMOVED AS REQUESTED) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Card 1: Maximum Participants */}
                   <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2 hover:border-blue-300 transition">
                     <div className="flex items-center space-x-2.5">
                       <div className="p-2 bg-amber-100 text-amber-700 rounded-xl">
@@ -474,7 +475,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
                     </select>
                   </div>
 
-                  {/* Card 3: Points per Question */}
+                  {/* Card 2: Points per Question */}
                   <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2 hover:border-blue-300 transition">
                     <div className="flex items-center space-x-2.5">
                       <div className="p-2 bg-pink-100 text-pink-700 rounded-xl">
@@ -649,7 +650,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
                     <Clock className="w-4 h-4 text-amber-500" />
                     <span>Time per Question</span>
                   </span>
-                  <span className="text-slate-900 font-black">{questionTime} seconds</span>
+                  <span className="text-slate-900 font-black text-[11px]">{timePerQuestionLabel}</span>
                 </div>
 
                 <div className="flex items-center justify-between text-slate-700">
@@ -701,7 +702,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
           </button>
 
           <p className="text-[11px] text-slate-500 font-semibold text-center flex items-center space-x-1">
-            <span>💡 You can change these settings later from the live game control panel.</span>
+            <span>💡 Question time limits are dynamically read from each question.</span>
           </p>
 
           <div className="flex items-center space-x-2 w-full sm:w-auto">
@@ -732,4 +733,5 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
     </div>
   );
 };
+
 
