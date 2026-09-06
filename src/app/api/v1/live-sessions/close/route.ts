@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
 import { LiveSessionResultModel } from '@/models/LiveSessionResult';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +31,8 @@ export async function POST(req: NextRequest) {
     session.stage = 'CLOSED';
     session.closedAt = new Date();
     await session.save();
+
+    emitSessionEvent(session.quizCode, 'GAME_CLOSED', { quizCode: session.quizCode });
 
     // Compile & store historical result record
     const participantsList = Object.values(session.participants || {}).sort(

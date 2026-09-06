@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,6 +43,8 @@ export async function POST(req: NextRequest) {
       session.markModified('pauseStartTimestamp');
       await session.save();
 
+      emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'PAUSED' });
+
       return NextResponse.json({
         success: true,
         data: session,
@@ -71,6 +74,8 @@ export async function POST(req: NextRequest) {
       session.markModified('stage');
       session.markModified('pauseStartTimestamp');
       await session.save();
+
+      emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: session.stage });
 
       return NextResponse.json({
         success: true,

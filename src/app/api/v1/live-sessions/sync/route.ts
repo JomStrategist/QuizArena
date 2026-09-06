@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
 
 export async function GET(req: NextRequest) {
   try {
@@ -31,7 +32,12 @@ export async function GET(req: NextRequest) {
 
     const questions = session.quizSnapshot?.questions || [];
     const totalQuestions = questions.length;
-    const questionTime = session.questionTime || 30;
+    const qIdx = session.currentQuestionIndex || 0;
+    const currentQ = questions[qIdx] || null;
+
+    // QUESTION-SPECIFIC TIME LIMIT ENFORCEMENT
+    // Each question has its own configured time limit (e.g. 30s, 15s, 60s, etc.)
+    const questionTime = currentQ?.timeLimit || session.questionTime || 20;
     const now = Date.now();
 
     // Synchronized State Machine Auto Progression
@@ -44,19 +50,21 @@ export async function GET(req: NextRequest) {
           session.markModified('stage');
           session.markModified('questionStartTimestamp');
           await session.save();
+          emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'QUESTION_ACTIVE', questionIndex: qIdx });
         }
       } else if (session.stage === 'QUESTION_ACTIVE' && session.questionStartTimestamp) {
         const elapsedSeconds = (now - session.questionStartTimestamp) / 1000;
-        if (elapsedSeconds >= questionTime + 0.5) {
+        if (elapsedSeconds >= questionTime) {
           session.stage = 'SHOWING_RESULT';
           session.stageStartTimestamp = Date.now();
           session.markModified('stage');
           session.markModified('stageStartTimestamp');
           await session.save();
+          emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'SHOWING_RESULT', questionIndex: qIdx });
         }
       } else if (session.stage === 'SHOWING_RESULT' && session.stageStartTimestamp) {
         const elapsedResult = (now - session.stageStartTimestamp) / 1000;
-        const resultDelay = 4; // 4 seconds score/answer reveal
+        const resultDelay = 3; // 3 seconds result reveal
         if (elapsedResult >= resultDelay) {
           const showLeaderboard = session.showLeaderboard !== false;
           if (showLeaderboard) {
@@ -65,6 +73,7 @@ export async function GET(req: NextRequest) {
             session.markModified('stage');
             session.markModified('stageStartTimestamp');
             await session.save();
+            emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'LEADERBOARD', questionIndex: qIdx });
           } else {
             // Skip leaderboard and advance to next question or end
             if (session.currentQuestionIndex < totalQuestions - 1) {
@@ -75,12 +84,14 @@ export async function GET(req: NextRequest) {
               session.markModified('stage');
               session.markModified('questionStartTimestamp');
               await session.save();
+              emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'QUESTION_ACTIVE', questionIndex: session.currentQuestionIndex });
             } else {
               session.stage = session.finalPodium !== false ? 'FINAL_PODIUM' : 'FINAL_SCOREBOARD';
               session.closedAt = new Date();
               session.markModified('stage');
               session.markModified('closedAt');
               await session.save();
+              emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: session.stage });
             }
           }
         }
@@ -96,25 +107,45 @@ export async function GET(req: NextRequest) {
             session.markModified('stage');
             session.markModified('questionStartTimestamp');
             await session.save();
+            emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'QUESTION_ACTIVE', questionIndex: session.currentQuestionIndex });
           } else {
             session.stage = session.finalPodium !== false ? 'FINAL_PODIUM' : 'FINAL_SCOREBOARD';
             session.closedAt = new Date();
             session.markModified('stage');
             session.markModified('closedAt');
             await session.save();
+            emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: session.stage });
           }
         }
       }
     }
 
     // Build question stats for current question
-    const qIdx = session.currentQuestionIndex;
-    const currentQ = questions[qIdx] || null;
     const answersForQ = (session.answers && session.answers[qIdx]) || {};
 
     const participantList = Object.values(session.participants || {}).sort(
       (a: any, b: any) => (b.score || 0) - (a.score || 0)
     );
+
+    // Compute stats for rankings (accuracy %, avg response time, etc.)
+    const totalAnsweredAcrossGame = Object.keys(session.answers || {}).length;
+    participantList.forEach((p: any, idx: number) => {
+      p.rank = idx + 1;
+      const totalAttempted = (p.correctAnswers || 0) + (p.wrongAnswers || 0) + (p.unansweredCount || 0);
+      p.accuracy = totalAttempted > 0 ? Math.round(((p.correctAnswers || 0) / totalAttempted) * 100) : 0;
+      
+      // Calculate avg response time across answered questions
+      let totalMs = 0;
+      let countAns = 0;
+      Object.values(session.answers || {}).forEach((qAnswers: any) => {
+        const userAns = qAnswers[p.participantId || p.displayName];
+        if (userAns && userAns.responseTimeMs) {
+          totalMs += userAns.responseTimeMs;
+          countAns++;
+        }
+      });
+      p.avgResponseTimeMs = countAns > 0 ? Math.round(totalMs / countAns) : 0;
+    });
 
     const answeredCount = Object.keys(answersForQ).length;
     let correctCount = 0;
@@ -155,7 +186,7 @@ export async function GET(req: NextRequest) {
           quizTitle: session.quizTitle,
           trainerName: session.trainerName,
           sessionType: session.sessionType,
-          questionTime,
+          questionTime, // Question-specific time limit
           maxParticipants: session.maxParticipants || 200,
           speedScoring: session.speedScoring !== false,
           showCorrectAnswer: session.showCorrectAnswer !== false,

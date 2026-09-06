@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
 
 export async function POST(req: NextRequest) {
   try {
@@ -31,6 +32,11 @@ export async function POST(req: NextRequest) {
     session.stageStartTimestamp = Date.now();
     session.currentQuestionIndex = 0;
     await session.save();
+
+    emitSessionEvent(session.quizCode, 'GAME_STARTED', {
+      quizCode: session.quizCode,
+      stage: 'STARTING',
+    });
 
     return NextResponse.json({
       success: true,

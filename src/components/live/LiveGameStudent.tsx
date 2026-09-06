@@ -6,19 +6,18 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  Sparkles,
   AlertCircle,
-  Award,
   TrendingUp,
   TrendingDown,
   Minus,
-  Trophy,
-  Crown,
   Zap,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
 import { Top5Leaderboard } from './Top5Leaderboard';
 import { LivePodiumFinale } from './LivePodiumFinale';
+import { soundManager } from '@/lib/game/soundManager';
 
 interface LiveGameStudentProps {
   quizCode: string;
@@ -42,6 +41,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [startTimeMs, setStartTimeMs] = useState<number>(Date.now());
   const [hasTimedOut, setHasTimedOut] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(soundManager.getMuted());
 
   const { showToast } = useToast();
 
@@ -62,7 +62,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
         setRankings(json.data.rankings || []);
 
         const qStart = sess.questionStartTimestamp;
-        const qTime = sess.questionTime || 20;
+        const qTime = sess.questionTime || 20; // Question-specific time limit
         const sTime = json.data.serverTime || Date.now();
 
         if (qStart && sess.stage === 'QUESTION_ACTIVE') {
@@ -70,7 +70,6 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           const remaining = Math.max(0, qTime - elapsed);
           setTimeLeft(remaining);
 
-          // Handle timeout if time runs out and no answer submitted
           if (remaining <= 0 && !json.data.studentAnswer && !hasTimedOut && !submitting) {
             setHasTimedOut(true);
             handleOptionSelect(-1, true);
@@ -85,10 +84,31 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   useEffect(() => {
     syncState();
     const interval = setInterval(syncState, 1000);
-    return () => clearInterval(interval);
+
+    // SSE Real-Time Event Stream Connection
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource(`/api/v1/live-sessions/stream?code=${quizCode}`);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'STAGE_CHANGED' || data.type === 'GAME_STARTED' || data.type === 'GAME_CLOSED') {
+            syncState();
+            if (data.type === 'GAME_STARTED') {
+              soundManager.playStartBeep(true);
+            }
+          }
+        } catch (e) {}
+      };
+    } catch (e) {}
+
+    return () => {
+      clearInterval(interval);
+      if (eventSource) eventSource.close();
+    };
   }, [quizCode, displayName, participantId]);
 
-  // Reset selected option when question index changes
+  // Reset state when question index changes
   useEffect(() => {
     if (session?.currentQuestionIndex !== undefined) {
       setSelectedOption(null);
@@ -96,6 +116,19 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
       setStartTimeMs(Date.now());
     }
   }, [session?.currentQuestionIndex]);
+
+  // Play audio when result is revealed
+  useEffect(() => {
+    if (session?.stage === 'SHOWING_RESULT' && studentAnswer) {
+      if (studentAnswer.isCorrect) {
+        soundManager.playCorrectSound();
+      } else if (studentAnswer.isTimeout) {
+        soundManager.playTimeoutSound();
+      } else {
+        soundManager.playWrongSound();
+      }
+    }
+  }, [session?.stage, studentAnswer]);
 
   const handleOptionSelect = async (index: number, isTimeout: boolean = false) => {
     if (submitting || studentAnswer) return;
@@ -130,6 +163,11 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
     }
   };
 
+  const handleToggleMute = () => {
+    const muted = soundManager.toggleMute();
+    setIsMuted(muted);
+  };
+
   const optionColors = [
     'bg-rose-500 hover:bg-rose-600 text-white border-rose-600 shadow-rose-500/20 ring-rose-300',
     'bg-blue-600 hover:bg-blue-700 text-white border-blue-700 shadow-blue-500/20 ring-blue-300',
@@ -138,7 +176,6 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   ];
   const optionLetters = ['A', 'B', 'C', 'D'];
 
-  // Current user's rank info
   const myRankRecord = rankings.find(
     (p) => (participantId && p.participantId === participantId) || p.displayName === displayName
   );
@@ -150,6 +187,16 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
         <div className="max-w-md w-full bg-white p-8 rounded-3xl border border-slate-200 shadow-2xl text-center space-y-6">
+          <div className="flex justify-end">
+            <button
+              onClick={handleToggleMute}
+              className="p-2 bg-slate-100 rounded-xl text-slate-600 hover:bg-slate-200 transition"
+              title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
+            </button>
+          </div>
+
           <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 flex items-center justify-center mx-auto shadow-lg shadow-amber-500/20 animate-bounce">
             <Zap className="w-8 h-8 fill-current" />
           </div>
@@ -161,7 +208,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
             <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               {session?.quizTitle || 'Live Game Session'}
             </h1>
-            <p className="text-xs text-slate-500 font-semibold">Trainer: {session?.trainerName || 'Trainer'}</p>
+            <p className="text-xs text-slate-500 font-semibold">Trainer: {session?.trainerName || 'KVJ Trainer'}</p>
           </div>
 
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-1 text-xs">
@@ -227,13 +274,13 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   // 5. Final Podium & Results Screen
   if (session.stage === 'FINAL_PODIUM' || session.stage === 'FINAL_SCOREBOARD' || session.stage === 'CLOSED') {
     return (
-      <div className="space-y-6">
-        <LivePodiumFinale
-          quizTitle={session.quizTitle}
-          rankings={rankings}
-          onBackToDashboard={onExit || (() => (window.location.href = '/'))}
-        />
-      </div>
+      <LivePodiumFinale
+        quizTitle={session.quizTitle}
+        rankings={rankings}
+        userDisplayName={displayName}
+        userParticipantId={participantId}
+        onBackToDashboard={onExit || (() => (window.location.href = '/'))}
+      />
     );
   }
 
@@ -258,14 +305,24 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           <h3 className="text-sm font-black text-slate-900 mt-1">{displayName}</h3>
         </div>
 
-        {/* Visual Timer */}
-        <div
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl font-mono font-black text-lg ${
-            timeLeft <= 5 ? 'bg-rose-100 text-rose-700 animate-pulse' : 'bg-slate-100 text-slate-800'
-          }`}
-        >
-          <Clock className="w-5 h-5" />
-          <span>{timeLeft}s</span>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleToggleMute}
+            className="p-2 bg-slate-100 rounded-xl text-slate-600 hover:bg-slate-200 transition"
+            title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-emerald-600" />}
+          </button>
+
+          {/* Visual Timer */}
+          <div
+            className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl font-mono font-black text-base ${
+              timeLeft <= 5 ? 'bg-rose-100 text-rose-700 animate-pulse' : 'bg-slate-100 text-slate-800'
+            }`}
+          >
+            <Clock className="w-4 h-4" />
+            <span>{timeLeft}s</span>
+          </div>
         </div>
       </div>
 

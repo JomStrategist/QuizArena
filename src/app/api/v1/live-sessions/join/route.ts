@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
 
 export async function POST(req: NextRequest) {
   try {
@@ -91,6 +92,13 @@ export async function POST(req: NextRequest) {
     session.participants = participants;
     session.markModified('participants');
     await session.save();
+
+    // Broadcast PARTICIPANT_JOINED event
+    emitSessionEvent(session.quizCode, 'PARTICIPANT_JOINED', {
+      participantId,
+      displayName: name,
+      totalParticipants: Object.keys(participants).length,
+    });
 
     return NextResponse.json({
       success: true,

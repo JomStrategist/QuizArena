@@ -122,6 +122,8 @@ export interface ILiveParticipant {
   correctAnswers: number;
   wrongAnswers: number;
   unansweredCount: number;
+  accuracy?: number;
+  avgResponseTimeMs?: number;
   lastResponseTimeMs?: number;
   lastPointsEarned?: number;
   lastIsCorrect?: boolean;

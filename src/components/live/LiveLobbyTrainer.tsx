@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
-import { Play, Users, Radio, Sparkles, Copy, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Play, Users, Copy, Check, Radio, Sparkles, QrCode } from 'lucide-react';
 import { ILiveParticipant } from '@/types';
 import { useToast } from '../ui/ToastNotification';
+import { QRCodeImage } from '@/lib/game/qrGenerator';
 
 interface LiveLobbyTrainerProps {
   quizCode: string;
@@ -20,8 +21,15 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   participants,
   onStartGame,
 }) => {
-  const [copied, setCopied] = React.useState(false);
+  const [copied, setCopied] = useState(false);
+  const [joinUrl, setJoinUrl] = useState('');
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setJoinUrl(`${window.location.origin}/quiz/join?code=${quizCode}`);
+    }
+  }, [quizCode]);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(quizCode);
@@ -30,80 +38,140 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const badgeText = sessionType === 'CONDUCT' ? 'CONDUCT QUIZ LOBBY' : 'LIVE QUIZ LOBBY';
-  const badgeStyle = sessionType === 'CONDUCT'
-    ? 'text-blue-700 bg-blue-50 border-blue-200'
-    : 'text-amber-800 bg-amber-50 border-amber-300';
+  const participantCount = participants.length;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-6 md:p-10 space-y-8 font-sans">
-      {/* Top Banner & Title */}
-      <div className="flex items-center justify-between">
+      {/* Top Bar Header */}
+      <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
         <div className="flex items-center space-x-3">
-          <span className="w-3 h-3 rounded-full bg-emerald-500 animate-ping" />
-          <span className={`text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border ${badgeStyle}`}>
-            {badgeText}
+          <a href="/" className="flex items-center space-x-2">
+            <img src="/QuizArena Icon.png" alt="QuizArena Logo" className="w-9 h-9 object-contain" />
+            <span className="font-black text-2xl tracking-tight text-slate-900">
+              Quiz<span className="text-blue-600">Arena</span>
+            </span>
+          </a>
+          <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 flex items-center space-x-1.5 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+            <span>LIVE GAME LOBBY</span>
           </span>
         </div>
-        <h1 className="text-lg font-black text-slate-800">{quizTitle}</h1>
-      </div>
 
-      {/* Main Display Box (Projector / TV View) */}
-      <div className="max-w-4xl mx-auto w-full bg-white rounded-3xl border border-slate-200/90 shadow-2xl p-8 md:p-12 text-center space-y-8">
-        <div className="space-y-2">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">JOIN AT QUIZARENA PRO</p>
-          <p className="text-xs text-slate-500 font-medium">Enter Join Code on Mobile Device:</p>
-        </div>
-
-        {/* Big Code Box */}
-        <div
-          onClick={handleCopyCode}
-          className="inline-flex items-center space-x-4 bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white px-10 py-6 rounded-3xl shadow-2xl shadow-blue-600/30 cursor-pointer hover:scale-[1.02] transition-transform group"
-        >
-          <span className="text-5xl md:text-7xl font-black tracking-widest font-mono">{quizCode}</span>
-          <div className="p-2 bg-white/10 rounded-xl group-hover:bg-white/20 transition">
-            {copied ? <Check className="w-6 h-6 text-emerald-300" /> : <Copy className="w-6 h-6 text-blue-100" />}
+        <div className="flex items-center space-x-4">
+          <h2 className="text-base font-extrabold text-slate-800 hidden sm:block">{quizTitle}</h2>
+          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-xl border border-slate-200 text-xs">
+            <span className="font-bold text-slate-400">BY</span>
+            <img src="/KVJ analytics Logo.png" alt="KVJ Analytics" className="h-5 object-contain" />
           </div>
         </div>
+      </div>
 
-        {/* Participant Counter */}
-        <div className="flex items-center justify-center space-x-2 pt-2">
-          <Users className="w-6 h-6 text-blue-600" />
-          <span className="text-2xl font-black text-slate-900">{participants.length}</span>
-          <span className="text-sm font-bold text-slate-500">Players Joined</span>
-        </div>
+      {/* Main Projector Center Display Grid */}
+      <div className="max-w-5xl mx-auto w-full bg-white rounded-3xl border border-slate-200 shadow-2xl p-8 md:p-12 space-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          {/* Left Column: Large QR Code */}
+          <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-3xl border border-slate-200 space-y-4 text-center">
+            <div className="flex items-center space-x-2 text-xs font-black text-slate-600 uppercase tracking-widest">
+              <QrCode className="w-4 h-4 text-blue-600" />
+              <span>SCAN TO JOIN</span>
+            </div>
 
-        {/* Start Game Trigger */}
-        <div>
-          <button
-            onClick={onStartGame}
-            disabled={participants.length === 0}
-            className="px-10 py-4 bg-amber-400 hover:bg-amber-300 disabled:opacity-50 text-slate-950 font-black text-xl rounded-2xl shadow-xl shadow-amber-400/30 transition transform hover:scale-105 active:scale-95 flex items-center space-x-3 mx-auto"
-          >
-            <Play className="w-6 h-6 fill-current" />
-            <span>START QUIZ NOW</span>
-          </button>
-          {participants.length === 0 && (
-            <p className="text-xs text-slate-400 mt-2 font-medium">Waiting for players to enter code...</p>
-          )}
+            <QRCodeImage value={joinUrl || `https://quizarena.app/quiz/join?code=${quizCode}`} size={210} />
+
+            <p className="text-xs text-slate-500 font-semibold max-w-xs">
+              Point mobile camera at QR code to open QuizArena join screen automatically
+            </p>
+          </div>
+
+          {/* Right Column: 6-Digit Join Code & Launcher */}
+          <div className="flex flex-col items-center md:items-start space-y-6 text-center md:text-left">
+            <div className="space-y-1">
+              <span className="text-xs font-black uppercase tracking-widest text-slate-400">
+                OR ENTER CODE ON MOBILE
+              </span>
+              <p className="text-xs font-bold text-slate-600">No student login or app download required</p>
+            </div>
+
+            {/* Huge 6-Digit Code Badge */}
+            <div
+              onClick={handleCopyCode}
+              title="Click to copy join code"
+              className="w-full bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-700 text-white p-6 rounded-3xl shadow-xl shadow-blue-600/25 flex items-center justify-between cursor-pointer hover:scale-[1.02] transition-transform group"
+            >
+              <div>
+                <span className="text-xs font-black uppercase tracking-widest text-blue-200 block">GAME JOIN CODE</span>
+                <span className="text-5xl lg:text-6xl font-black tracking-widest font-mono">{quizCode}</span>
+              </div>
+              <div className="p-3 bg-white/10 rounded-2xl group-hover:bg-white/20 transition">
+                {copied ? <Check className="w-6 h-6 text-emerald-300" /> : <Copy className="w-6 h-6 text-blue-100" />}
+              </div>
+            </div>
+
+            {/* Live Participant Count */}
+            <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-black">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-900 uppercase tracking-wider">LOBBY PARTICIPANTS</p>
+                  <p className="text-xs text-slate-500 font-medium">Ready for real-time training</p>
+                </div>
+              </div>
+              <div className="text-right">
+                <span className="text-3xl font-black text-slate-900 font-mono">{participantCount}</span>
+                <span className="text-xs font-bold text-slate-500 ml-1">PLAYERS</span>
+              </div>
+            </div>
+
+            {/* Start Quiz Launcher Button */}
+            <div className="w-full">
+              <button
+                onClick={onStartGame}
+                disabled={participantCount === 0}
+                className="w-full py-5 bg-gradient-to-r from-amber-400 via-amber-500 to-orange-400 hover:from-amber-300 hover:to-orange-300 disabled:opacity-50 text-slate-950 font-black text-xl rounded-2xl shadow-xl shadow-amber-400/30 transition transform hover:scale-[1.01] active:scale-95 flex items-center justify-center space-x-3 uppercase tracking-wider"
+              >
+                <Play className="w-6 h-6 fill-current" />
+                <span>START QUIZ NOW</span>
+              </button>
+              {participantCount === 0 && (
+                <p className="text-xs text-slate-400 text-center mt-2 font-semibold">
+                  Waiting for students to join using code or QR...
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Participants Avatar Wall */}
-      <div className="max-w-5xl mx-auto w-full bg-white/80 p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
-        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-          Joined Participants ({participants.length})
-        </h3>
-        <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
-          {participants.map((p, idx) => (
-            <div
-              key={idx}
-              className="px-3.5 py-1.5 bg-blue-50 text-blue-900 border border-blue-100 rounded-xl text-xs font-bold flex items-center space-x-1.5 animate-in zoom-in duration-200"
-            >
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
-              <span>{p.displayName}</span>
+      <div className="max-w-5xl mx-auto w-full bg-white/90 p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider flex items-center space-x-2">
+            <Users className="w-4 h-4 text-blue-600" />
+            <span>Joined Participants ({participantCount})</span>
+          </h3>
+          <span className="text-xs font-bold text-slate-500">Live updating</span>
+        </div>
+
+        <div className="flex flex-wrap gap-2.5 max-h-44 overflow-y-auto pt-1">
+          {participants.length === 0 ? (
+            <div className="w-full py-8 text-center text-slate-400 text-xs font-semibold">
+              No students joined yet. Share code <strong className="text-slate-700">{quizCode}</strong> or scan QR code.
             </div>
-          ))}
+          ) : (
+            participants.map((p, idx) => (
+              <div
+                key={p.participantId || idx}
+                className="px-4 py-2 bg-slate-50 border border-slate-200 hover:border-blue-300 text-slate-900 rounded-xl text-xs font-extrabold flex items-center space-x-2.5 transition-transform animate-in zoom-in-50 duration-300 shadow-2xs"
+              >
+                <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center font-black text-[10px] uppercase">
+                  {p.displayName.charAt(0)}
+                </div>
+                <span>{p.displayName}</span>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

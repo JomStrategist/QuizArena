@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
 import { calculateQuestionScore } from '@/lib/game/scoringEngine';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,10 +38,9 @@ export async function POST(req: NextRequest) {
 
     const participants = session.participants || {};
 
-    // Determine target participant key (prefer participantId)
+    // Target participant key
     let pKey = participantId;
     if (!pKey || !participants[pKey]) {
-      // Fallback lookup by displayName
       const foundKey = Object.keys(participants).find(
         (k) => participants[k].displayName === displayName
       );
@@ -75,12 +75,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const timeLimit = session.questionTime || question.timeLimit || 30;
+    // Question-specific configured time limit
+    const timeLimit = question.timeLimit || session.questionTime || 20;
 
-    // Server-side deadline validation (allow 3 second buffer for latency)
+    // Server-authoritative response time and deadline validation
+    const serverNow = Date.now();
+    let actualResponseTimeMs = responseTimeMs;
     if (session.questionStartTimestamp) {
-      const elapsedMs = Date.now() - session.questionStartTimestamp;
-      if (elapsedMs > (timeLimit + 3) * 1000) {
+      const serverElapsedMs = Math.max(0, serverNow - session.questionStartTimestamp);
+      // Use server elapsed time as authoritative if client time deviates significantly
+      actualResponseTimeMs = Math.min(serverElapsedMs, Math.max(100, responseTimeMs));
+
+      if (serverElapsedMs > (timeLimit + 2) * 1000) {
         return NextResponse.json(
           {
             success: false,
@@ -98,7 +104,7 @@ export async function POST(req: NextRequest) {
       answers[qIdx] = {};
     }
 
-    // Prevent duplicate submission for same question by this participant
+    // Prevent duplicate submission for same question
     if (answers[qIdx][pKey]) {
       const existing = answers[qIdx][pKey];
       return NextResponse.json({
@@ -118,8 +124,8 @@ export async function POST(req: NextRequest) {
         pointsEarned = calculateQuestionScore({
           isCorrect: true,
           maxPoints: maxPts,
-          timeLimitSeconds: timeLimit,
-          responseTimeMs,
+          timeLimitSeconds: timeLimit, // Question-specific time limit
+          responseTimeMs: actualResponseTimeMs,
         });
       } else {
         pointsEarned = maxPts;
@@ -134,8 +140,8 @@ export async function POST(req: NextRequest) {
       isCorrect,
       isTimeout,
       pointsEarned,
-      responseTimeMs,
-      timestamp: Date.now(),
+      responseTimeMs: actualResponseTimeMs,
+      timestamp: serverNow,
     };
 
     answers[qIdx][pKey] = responseRecord;
@@ -153,7 +159,7 @@ export async function POST(req: NextRequest) {
     }
     targetParticipant.lastPointsEarned = pointsEarned;
     targetParticipant.lastIsCorrect = isCorrect;
-    targetParticipant.lastResponseTimeMs = responseTimeMs;
+    targetParticipant.lastResponseTimeMs = actualResponseTimeMs;
     participants[pKey] = targetParticipant;
 
     // Recalculate participant ranks and compute rank delta
@@ -172,6 +178,14 @@ export async function POST(req: NextRequest) {
     session.participants = participants;
     session.markModified('participants');
     await session.save();
+
+    // Broadcast ANSWER_SUBMITTED event
+    emitSessionEvent(session.quizCode, 'ANSWER_SUBMITTED', {
+      participantId: pKey,
+      questionIndex: qIdx,
+      answeredCount: Object.keys(answers[qIdx]).length,
+      totalParticipants: Object.keys(participants).length,
+    });
 
     return NextResponse.json({
       success: true,
