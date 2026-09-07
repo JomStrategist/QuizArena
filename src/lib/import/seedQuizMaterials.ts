@@ -185,7 +185,7 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
   // -------------------------------------------------------------
   const activity2QuestionsData = [
     {
-      questionText: 'Activity 1 — Sort the 12 Solutions into Categories: Traditional ML, Deep Learning, NLP, and Computer Vision',
+      questionText: 'Activity 1 — Sort the Solutions',
       questionType: 'DRAG_AND_DROP',
       options: [
         'Customer churn prediction',
@@ -221,12 +221,12 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
         '10': 'cv',
         '11': 'cv',
       },
-      explanation: 'Categorize solutions based on problem domain (human language, visual images) vs tabular structure vs neural network architecture.',
+      explanation: 'Drag each of the 12 cards into the category that best describes it. You can also click a card, then click a category.',
       category: 'AI Architectures',
       difficulty: 'MEDIUM',
     },
     {
-      questionText: 'Activity 2 — Choose the AI Combination: Categorize each of the 6 real-life cases into its best AI technology combination.',
+      questionText: 'Activity 2 — Choose the AI Combination',
       questionType: 'DRAG_AND_DROP',
       options: [
         'Case 1: A customer-service voice assistant must understand spoken words and use a neural network trained on voice recordings.',
@@ -250,7 +250,7 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
         '4': 'cv_dl',
         '5': 'tml',
       },
-      explanation: 'Speech/language + neural network = NLP + Deep Learning. Camera images + neural network = Computer Vision + Deep Learning. Structured tabular data = Traditional ML. Language text + classification = NLP + Machine Learning.',
+      explanation: 'Now choose the best combination for each real-life case. Some cases use one concept; others combine a problem area with a learning approach.',
       category: 'AI Architectures',
       difficulty: 'MEDIUM',
     },

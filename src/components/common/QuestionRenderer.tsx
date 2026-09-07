@@ -213,7 +213,15 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             DRAG & DROP CATEGORIZATION
           </span>
           <h2 className="text-xl md:text-2xl font-black">{renderQuestionText(question.questionText)}</h2>
-          <p className="text-xs opacity-75 mt-1">Assign each card to its correct category.</p>
+          <p className={`text-xs sm:text-sm opacity-85 mt-2 font-medium leading-relaxed ${mode === 'projector' ? 'text-slate-300' : 'text-slate-600'}`}>
+            {question.explanation || (
+              items.length === 12
+                ? "Drag each of the 12 cards into the category that best describes it. You can also click a card, then click a category."
+                : items.length === 6
+                ? "Now choose the best combination for each real-life case. Some cases use one concept; others combine a problem area with a learning approach."
+                : "Assign each card to its correct category."
+            )}
+          </p>
         </div>
 
         {/* Categories Grid */}
