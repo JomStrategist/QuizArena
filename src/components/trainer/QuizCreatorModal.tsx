@@ -826,17 +826,16 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     <div>
                       <label className="block text-xs font-extrabold text-slate-700 mb-1">Time Limit</label>
-                      <select
-                        value={currentQuestion.timeLimit || 20}
-                        onChange={(e) => updateCurrentQuestion({ timeLimit: Number(e.target.value) })}
-                        className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                      >
-                        <option value={10}>10 seconds</option>
-                        <option value={15}>15 seconds</option>
-                        <option value={20}>20 seconds</option>
-                        <option value={30}>30 seconds</option>
-                        <option value={60}>60 seconds</option>
-                      </select>
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          type="number"
+                          min={5}
+                          value={currentQuestion.timeLimit || 20}
+                          onChange={(e) => updateCurrentQuestion({ timeLimit: Number(e.target.value) })}
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                        />
+                        <span className="text-xs font-bold text-slate-500 shrink-0">sec</span>
+                      </div>
                     </div>
 
                     <div>
