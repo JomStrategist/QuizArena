@@ -286,406 +286,375 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
   // -------------------------------------------------------------
   const activity3QuestionsData = [
     {
-      questionText: 'E-Commerce Product Launch & Content Automation',
-      questionType: 'SOLUTION_CHALLENGE',
-      options: ['A fast-growing e-commerce retail brand needs to launch 50 new products next week. They require 200 tailored social media captions (Instagram, LinkedIn, X) and 50 rich product descriptions adhering to strict brand voice guidelines. Human marketers must review and approve all content before publishing.'],
-      explanation: 'The primary requirement is generating creative marketing content from product data with mandatory editorial approval. Generative AI with a Human Approval Gate is the optimal solution architecture.',
-      category: 'Marketing & Retail',
+      questionText: 'Scenario 1: Marketing Content',
+      questionType: 'SCENARIO_QUESTIONS',
+      options: ['Generative AI', 'AI Copilot', 'AI Agent', 'Automation', 'Machine Learning'],
+      explanation: 'Generative AI creates new original text copy with a mandatory human approval gate before publishing.',
+      category: 'AI Solution Architecture',
       topic: 'Marketing Content',
-      difficulty: 'EASY',
-      solutionChallengeData: {
-        icon: '✍️',
-        dept: 'Marketing & Retail',
-        answer: 'Generative AI',
-        objective: 'Automate bulk marketing content creation while ensuring 100% human editorial oversight.',
-        constraints: 'No unreviewed content may be published directly to live social channels.',
-        whyApproach: 'The core task is generating creative, varied marketing copy from raw product specs. Generative AI creates new content directly from prompt inputs, which human marketers can edit and approve.',
-        capabilities: [
-          { id: 'cap_1_1', text: 'Generate creative text content', isCorrect: true, description: 'Produces captions & descriptions' },
-          { id: 'cap_1_2', text: 'Apply brand voice & tone guidelines', isCorrect: true, description: 'Ensures consistent messaging' },
-          { id: 'cap_1_3', text: 'Parse product specs & attributes', isCorrect: true, description: 'Extracts features from data' },
-          { id: 'cap_1_4', text: 'Create multiple copy variations', isCorrect: true, description: 'Tailors posts for different platforms' },
-          { id: 'cap_1_5', text: 'Human marketer review interface', isCorrect: true, description: 'Enables editorial oversight' },
-          { id: 'cap_1_6', text: 'Access live CRM payment records', isCorrect: false, description: 'Not relevant to content drafting' },
-          { id: 'cap_1_7', text: 'Directly publish without human review', isCorrect: false, description: 'Violates the business constraint' },
-          { id: 'cap_1_8', text: 'Modify product catalog pricing', isCorrect: false, description: 'Irrelevant and dangerous capability' },
-          { id: 'cap_1_9', text: 'Auto-reply to customer complaints', isCorrect: false, description: 'Belongs to customer support, not launch copy' },
-        ],
-        workflow: [
-          { id: 'wf_1_1', text: 'Import raw product specification data', isCorrect: true, correctOrder: 1 },
-          { id: 'wf_1_2', text: 'Generate product descriptions & post drafts', isCorrect: true, correctOrder: 2 },
-          { id: 'wf_1_3', text: 'Create alternative variations for platforms', isCorrect: true, correctOrder: 3 },
-          { id: 'wf_1_4', text: 'Route drafts to human marketer for review & editing', isCorrect: true, correctOrder: 4 },
-          { id: 'wf_1_5', text: 'Approve final copy & schedule for publishing', isCorrect: true, correctOrder: 5 },
-          { id: 'wf_1_6', text: 'Update CRM customer purchase records', isCorrect: false },
-          { id: 'wf_1_7', text: 'Issue financial invoices to suppliers', isCorrect: false },
-          { id: 'wf_1_8', text: 'Bypass human review and post directly to social media', isCorrect: false },
-        ],
-        autonomy: [
-          { id: 'auto_1_1', title: 'Human Approval Gate (Human-in-the-Loop)', isCorrect: true, description: 'AI generates content drafts; human marketer reviews, edits, and gives final approval before publication.' },
-          { id: 'auto_1_2', title: 'Exception-Based Human Oversight', isCorrect: false, description: 'AI publishes standard posts automatically and only asks humans for flagged items — violates the 100% review rule.' },
-          { id: 'auto_1_3', title: 'Full AI Autonomy', isCorrect: false, description: 'AI publishes content directly without human review — violates compliance and brand safety guidelines.' },
-        ],
-        controlTitle: 'Step 4: Determine Human Control & Governance',
-        riskQuestion: {
-          title: 'Question 5: Risk & Quality Assurance',
-          text: 'What is the primary business risk if the marketing team removes the human review gate from this Generative AI workflow?',
-          options: [
-            { id: 'risk_1_1', text: 'Hallucinations in product specifications or pricing errors published to customers.', isCorrect: true },
-            { id: 'risk_1_2', text: 'The AI model running out of storage space on social media servers.', isCorrect: false },
-            { id: 'risk_1_3', text: 'Database queries taking longer to execute during peak sales hours.', isCorrect: false },
-            { id: 'risk_1_4', text: 'Social media algorithms blocking all automated posts.', isCorrect: false },
-          ],
-          explanation: 'Without human review, Generative AI models can hallucinate false product specifications, misstate return policies, or produce off-brand messaging that causes reputational and legal harm.',
-        },
-        why: 'The primary requirement is generating creative marketing content from product data with mandatory editorial approval. Generative AI with a Human Approval Gate is the optimal solution architecture.',
-      },
+      difficulty: 'MEDIUM',
+      scenarioQuestionsData: {
+        scenarioTitle: 'Marketing Content',
+        scenarioText: 'A product team needs 20 social media captions and 5 product descriptions for a new launch. A human will review everything before publishing.',
+        instructions: 'Read the scenario carefully and complete the 4 steps below.',
+        backgroundContext: 'The objective is to automate bulk content creation while ensuring 100% human editorial oversight.',
+        subQuestions: [
+          {
+            id: 'sub_1_1',
+            questionType: 'MCQ',
+            questionText: 'Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.',
+            options: [
+              'AI Copilot (Assists a person with their work)',
+              'AI Agent (Performs multi-step tasks using tools)',
+              'Automation (Follows predefined rules and steps)',
+              'Generative AI (Creates new content)',
+              'Machine Learning (Learns from data to make predictions)'
+            ],
+            correctOptionIndex: 3,
+            points: 250,
+            explanation: 'Generative AI directly creates new, original copy from product specification inputs.'
+          },
+          {
+            id: 'sub_1_2',
+            questionType: 'MULTIPLE_SELECT',
+            questionText: 'Step 2: Select required capabilities & system components (Select all correct options)',
+            options: [
+              'Generate creative social media text copy',
+              'Create multi-platform product descriptions',
+              'Enforce brand tone and style guidelines',
+              'Human review & approval gate before publishing',
+              'Train deep learning image neural network'
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'The system requires content generation, tone enforcement, product description creation, and an editorial review gate.'
+          },
+          {
+            id: 'sub_1_3',
+            questionType: 'CORRECT_SEQUENCE',
+            questionText: 'Step 3: Arrange the workflow in exact logical sequence',
+            options: [
+              'Input product brief and key features',
+              'Generate initial draft copy with AI',
+              'Human editor reviews and refines content',
+              'Publish approved copy to marketing channels'
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'Workflow sequence: Input brief -> AI draft generation -> Human editorial review -> Publish.'
+          },
+          {
+            id: 'sub_1_4',
+            questionType: 'MCQ',
+            questionText: 'Step 4: Human Control & Risk Management',
+            options: [
+              'Human Approval Gate (Human marketer reviews, edits, and gives final approval before publication)',
+              'Exception-Based Oversight (AI publishes standard posts automatically)',
+              'Full AI Autonomy (AI publishes content directly without human review)'
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: 'A Human Approval Gate ensures brand compliance and prevents unreviewed hallucinations from being published.'
+          }
+        ]
+      }
     },
     {
-      questionText: 'Executive Sales Performance Assistant',
-      questionType: 'SOLUTION_CHALLENGE',
-      options: ['Every Monday morning, a VP of Sales needs an intelligent summary of weekly CRM data across 5 regional sales teams. The VP requires identification of revenue anomalies, sales pipeline bottlenecks, top-performing reps, and 3 strategic investigation questions for the weekly management call.'],
-      explanation: 'The AI works alongside the sales manager. It analyzes information and provides suggestions, while the manager remains responsible for the decision.',
-      category: 'Sales Operations',
+      questionText: 'Scenario 2: Sales Manager Assistant',
+      questionType: 'SCENARIO_QUESTIONS',
+      options: ['AI Copilot', 'AI Agent', 'Automation', 'Generative AI', 'Machine Learning'],
+      explanation: 'An AI Copilot empowers the executive with automated spreadsheet analysis while the human retains full decision authority.',
+      category: 'AI Solution Architecture',
       topic: 'Sales Manager Assistant',
-      difficulty: 'EASY',
-      solutionChallengeData: {
-        icon: '📊',
-        dept: 'Sales Operations',
-        answer: 'AI Copilot',
-        objective: 'Transform raw weekly CRM tables into actionable executive insights and meeting discussion points.',
-        constraints: 'The VP remains fully accountable for all operational decisions; the system must assist, not make sales strategy calls.',
-        whyApproach: 'The AI acts as an interactive co-pilot alongside the sales executive. It analyzes complex data and suggests questions, while the executive maintains full decision-making responsibility.',
-        capabilities: [
-          { id: 'cap_2_1', text: 'Analyze weekly CRM sales datasets', isCorrect: true, description: 'Parses revenue & pipeline metrics' },
-          { id: 'cap_2_2', text: 'Summarize key regional performance trends', isCorrect: true, description: 'Creates executive summaries' },
-          { id: 'cap_2_3', text: 'Identify statistical anomalies & pipeline drops', isCorrect: true, description: 'Flags unusual variances' },
-          { id: 'cap_2_4', text: 'Suggest strategic questions for sales calls', isCorrect: true, description: 'Prepares manager for meetings' },
-          { id: 'cap_2_5', text: 'Interactive Q&A for deep-dive queries', isCorrect: true, description: 'Allows executive to drill down' },
-          { id: 'cap_2_6', text: 'Automatically send warnings to underperforming reps', isCorrect: false, description: 'Oversteps executive authority' },
-          { id: 'cap_2_7', text: 'Change sales commission structures in payroll', isCorrect: false, description: 'Irrelevant and unauthorized HR action' },
-          { id: 'cap_2_8', text: 'Place product reorders with manufacturers', isCorrect: false, description: 'Supply chain task, not sales analysis' },
-          { id: 'cap_2_9', text: 'Reassign sales territories automatically', isCorrect: false, description: 'Requires human strategic planning' },
-        ],
-        workflow: [
-          { id: 'wf_2_1', text: 'Ingest weekly sales CRM spreadsheet data', isCorrect: true, correctOrder: 1 },
-          { id: 'wf_2_2', text: 'Analyze regional performance & calculate variances', isCorrect: true, correctOrder: 2 },
-          { id: 'wf_2_3', text: 'Detect revenue anomalies & pipeline bottlenecks', isCorrect: true, correctOrder: 3 },
-          { id: 'wf_2_4', text: 'Generate executive summary & 3 inquiry questions', isCorrect: true, correctOrder: 4 },
-          { id: 'wf_2_5', text: 'Sales VP reviews insights & conducts team call', isCorrect: true, correctOrder: 5 },
-          { id: 'wf_2_6', text: 'Automatically fire underperforming sales reps', isCorrect: false },
-          { id: 'wf_2_7', text: 'Send mass marketing emails to leads', isCorrect: false },
-          { id: 'wf_2_8', text: 'Alter product pricing in the ecommerce database', isCorrect: false },
-        ],
-        autonomy: [
-          { id: 'auto_2_1', title: 'Decision Support (AI Copilot)', isCorrect: true, description: 'The AI provides analysis and recommendations; the Sales VP retains full decision authority.' },
-          { id: 'auto_2_2', title: 'Automated Rule Execution', isCorrect: false, description: 'The system automatically adjusts quotas and sends alerts without manager review.' },
-          { id: 'auto_2_3', title: 'Autonomous Management', isCorrect: false, description: 'The AI makes strategic decisions for regional teams without human involvement.' },
-        ],
-        controlTitle: 'Step 4: Determine Decision Authority & Governance',
-        riskQuestion: {
-          title: 'Question 5: Executive Decision Governance',
-          text: 'Why is an AI Copilot preferred over a fully autonomous AI Agent for executive sales reporting?',
-          options: [
-            { id: 'risk_2_1', text: 'Executive decisions require strategic context, market nuances, and human accountability that AI cannot assume.', isCorrect: true },
-            { id: 'risk_2_2', text: 'AI Copilots cost significantly less to host on cloud servers than AI Agents.', isCorrect: false },
-            { id: 'risk_2_3', text: 'AI Agents are incapable of reading spreadsheet data or generating text summaries.', isCorrect: false },
-            { id: 'risk_2_4', text: 'CRM systems do not allow API connections from autonomous software agents.', isCorrect: false },
-          ],
-          explanation: 'Strategic management decisions require contextual judgment, relationship awareness, and organizational accountability. An AI Copilot empowers decision-makers rather than replacing human accountability.',
-        },
-        why: 'The goal is supporting a sales manager with data analysis and discussion points. An AI Copilot provides intelligent decision support while keeping the human leader in command.',
-      },
+      difficulty: 'MEDIUM',
+      scenarioQuestionsData: {
+        scenarioTitle: 'Sales Manager Assistant',
+        scenarioText: 'Every Monday, a sales manager wants AI to summarize the weekly sales spreadsheet, highlight unusual changes, and suggest questions the manager should investigate.',
+        instructions: 'Read the scenario carefully and complete the 4 steps below.',
+        backgroundContext: 'The VP remains fully accountable for all operational decisions; the system must assist, not make sales calls.',
+        subQuestions: [
+          {
+            id: 'sub_2_1',
+            questionType: 'MCQ',
+            questionText: 'Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.',
+            options: [
+              'AI Copilot (Assists a person with their work)',
+              'AI Agent (Performs multi-step tasks using tools)',
+              'Automation (Follows predefined rules and steps)',
+              'Generative AI (Creates new content)',
+              'Machine Learning (Learns from data to make predictions)'
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: 'The AI acts as an interactive Copilot alongside the sales executive to summarize data and suggest questions.'
+          },
+          {
+            id: 'sub_2_2',
+            questionType: 'MULTIPLE_SELECT',
+            questionText: 'Step 2: Select required capabilities & system components (Select all correct options)',
+            options: [
+              'Ingest weekly sales spreadsheet data',
+              'Summarize key metric shifts and revenue trends',
+              'Highlight unusual statistical variance or anomalies',
+              'Suggest investigation questions for management review',
+              'Automatically terminate underperforming sales reps'
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'The Copilot must ingest spreadsheet data, calculate variances, highlight anomalies, and generate meeting discussion points.'
+          },
+          {
+            id: 'sub_2_3',
+            questionType: 'CORRECT_SEQUENCE',
+            questionText: 'Step 3: Arrange the workflow in exact logical sequence',
+            options: [
+              'Receive weekly sales spreadsheet',
+              'AI analyzes data & extracts performance trends',
+              'Generate summary report & discussion prompts',
+              'Sales manager reviews insights and conducts team meeting'
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'Workflow sequence: Ingest spreadsheet -> AI trend analysis -> Summary & question generation -> Executive decision review.'
+          },
+          {
+            id: 'sub_2_4',
+            questionType: 'MCQ',
+            questionText: 'Step 4: Human Control & Risk Management',
+            options: [
+              'Copilot Decision Support (Sales manager retains 100% decision authority while AI provides insights)',
+              'Automated Rule Execution (System automatically adjusts quotas and alerts without review)',
+              'Autonomous Management (AI makes strategic decisions for teams without human involvement)'
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: 'Strategic management decisions require contextual human judgment and organizational accountability.'
+          }
+        ]
+      }
     },
     {
-      questionText: 'Omnichannel Customer Support & Escalation Agent',
-      questionType: 'SOLUTION_CHALLENGE',
-      options: ['A telecom provider receives over 10,000 support tickets daily. The company needs an automated system that reads customer tickets, queries billing databases, searches knowledge base articles, updates ticket statuses, issues routine credits under $20, and seamlessly escalates complex disputes to human senior agents.'],
-      explanation: 'The AI must complete several connected steps and use business tools to act. That makes an AI Agent the best fit.',
-      category: 'Customer Service',
+      questionText: 'Scenario 3: Customer Support Task',
+      questionType: 'SCENARIO_QUESTIONS',
+      options: ['AI Agent', 'AI Copilot', 'Automation', 'Generative AI', 'Machine Learning'],
+      explanation: 'An AI Agent combines multi-step reasoning, external tool execution (CRM, billing, knowledge base), and escalation guardrails.',
+      category: 'AI Solution Architecture',
       topic: 'Customer Support Task',
       difficulty: 'MEDIUM',
-      solutionChallengeData: {
-        icon: '🤖',
-        dept: 'Customer Service',
-        answer: 'AI Agent',
-        objective: 'Automate multi-step customer support handling with autonomous tool usage and intelligent human escalation.',
-        constraints: 'Complex edge cases and billing disputes exceeding $20 must be escalated to human agents.',
-        whyApproach: 'The task requires multi-step reasoning, autonomous tool usage (CRM, billing, knowledge base), and decision-making with escalation rules. This is the definition of an AI Agent.',
-        capabilities: [
-          { id: 'cap_3_1', text: 'Understand customer ticket intent via NLP', isCorrect: true, description: 'Classifies customer requests' },
-          { id: 'cap_3_2', text: 'Query customer account & billing history API', isCorrect: true, description: 'Retrieves account status' },
-          { id: 'cap_3_3', text: 'Search internal Knowledge Base (RAG)', isCorrect: true, description: 'Finds official resolution steps' },
-          { id: 'cap_3_4', text: 'Execute routine refund credit up to $20', isCorrect: true, description: 'Takes action via API' },
-          { id: 'cap_3_5', text: 'Escalate complex cases to human support team', isCorrect: true, description: 'Hands off difficult tickets' },
-          { id: 'cap_3_6', text: 'Generate social media marketing campaigns', isCorrect: false, description: 'Irrelevant to customer support' },
-          { id: 'cap_3_7', text: 'Delete customer account data permanently', isCorrect: false, description: 'Dangerous unauthorized action' },
-          { id: 'cap_3_8', text: 'Change overall company pricing plans', isCorrect: false, description: 'Executive level decision, not support' },
-          { id: 'cap_3_9', text: 'Approve unlimited refund amounts without limits', isCorrect: false, description: 'Violates financial control policy' },
-        ],
-        workflow: [
-          { id: 'wf_3_1', text: 'Receive customer ticket & analyze intent', isCorrect: true, correctOrder: 1 },
-          { id: 'wf_3_2', text: 'Retrieve customer account & billing history', isCorrect: true, correctOrder: 2 },
-          { id: 'wf_3_3', text: 'Search Knowledge Base for official solution', isCorrect: true, correctOrder: 3 },
-          { id: 'wf_3_4', text: 'Resolve routine issue or apply credit (if <$20)', isCorrect: true, correctOrder: 4 },
-          { id: 'wf_3_5', text: 'Escalate complex ticket to human agent with context', isCorrect: true, correctOrder: 5 },
-          { id: 'wf_3_6', text: 'Close all incoming tickets without reading them', isCorrect: false },
-          { id: 'wf_3_7', text: 'Draft marketing press releases', isCorrect: false },
-          { id: 'wf_3_8', text: 'Change customer subscription rate globally', isCorrect: false },
-        ],
-        autonomy: [
-          { id: 'auto_3_1', title: 'Hybrid Exception-Based Autonomy', isCorrect: true, description: 'AI Agent handles routine tickets end-to-end autonomously and escalates complex or high-value cases to human agents.' },
-          { id: 'auto_3_2', title: 'Full Autonomous Authority', isCorrect: false, description: 'AI Agent resolves all tickets including high-dollar disputes without any human oversight — high financial risk.' },
-          { id: 'auto_3_3', title: '100% Manual Approval', isCorrect: false, description: 'Human must approve every routine response — negates the benefit of support automation.' },
-        ],
-        controlTitle: 'Step 4: Establish Agent Guardrails & Escalation Rules',
-        riskQuestion: {
-          title: 'Question 5: Agent Security & Financial Control',
-          text: 'Which safeguard is essential when deploying an AI Agent authorized to issue financial refunds?',
-          options: [
-            { id: 'risk_3_1', text: 'Strict monetary cap limits per transaction and anomaly detection for repeated refund requests.', isCorrect: true },
-            { id: 'risk_3_2', text: 'Disabling all logging to speed up response times for customer inquiries.', isCorrect: false },
-            { id: 'risk_3_3', text: 'Allowing the agent to override manager approval limits during weekend hours.', isCorrect: false },
-            { id: 'risk_3_4', text: 'Using random number generators to decide refund approval amounts.', isCorrect: false },
-          ],
-          explanation: 'Autonomous agents with API action capabilities must be bounded by strict financial caps, rate limits, and audit logs to prevent fraud, runaway actions, or system exploits.',
-        },
-        why: 'The system executes multi-step workflows using external tools and APIs, making autonomous decisions within set guardrails. This makes AI Agent the ideal architecture.',
-      },
+      scenarioQuestionsData: {
+        scenarioTitle: 'Customer Support Task',
+        scenarioText: 'A support system receives a customer request. AI should read it, check the customer\'s account, find the answer in the knowledge base, update the ticket, and escalate complex cases.',
+        instructions: 'Read the scenario carefully and complete the 4 steps below.',
+        backgroundContext: 'Complex edge cases and billing disputes exceeding $20 must be escalated to human agents.',
+        subQuestions: [
+          {
+            id: 'sub_3_1',
+            questionType: 'MCQ',
+            questionText: 'Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.',
+            options: [
+              'AI Copilot (Assists a person with their work)',
+              'AI Agent (Performs multi-step tasks using tools)',
+              'Automation (Follows predefined rules and steps)',
+              'Generative AI (Creates new content)',
+              'Machine Learning (Learns from data to make predictions)'
+            ],
+            correctOptionIndex: 1,
+            points: 250,
+            explanation: 'The system uses tools autonomously (CRM, KB API) to execute multi-step tasks, which defines an AI Agent.'
+          },
+          {
+            id: 'sub_3_2',
+            questionType: 'MULTIPLE_SELECT',
+            questionText: 'Step 2: Select required capabilities & system components (Select all correct options)',
+            options: [
+              'Parse incoming customer support tickets',
+              'Query account database & knowledge base APIs',
+              'Execute automated ticket updates',
+              'Escalate complex edge cases to human support agents',
+              'Send arbitrary unapproved refunds'
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'The AI Agent parses ticket intent, queries CRM/KB APIs, updates tickets, and escalates complex edge cases.'
+          },
+          {
+            id: 'sub_3_3',
+            questionType: 'CORRECT_SEQUENCE',
+            questionText: 'Step 3: Arrange the workflow in exact logical sequence',
+            options: [
+              'Receive customer support request',
+              'AI agent reads request and queries CRM/Knowledge Base',
+              'Execute appropriate resolution action or update ticket',
+              'Escalate to human agent if confidence threshold is low'
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'Workflow sequence: Receive ticket -> Query APIs -> Execute resolution -> Escalate low-confidence edge cases.'
+          },
+          {
+            id: 'sub_3_4',
+            questionType: 'MCQ',
+            questionText: 'Step 4: Human Control & Risk Management',
+            options: [
+              'Human Escalation & Fallback (Agent operates within tool boundaries and escalates complex/high-value cases)',
+              'Full Autonomous Authority (Agent resolves all tickets including high-dollar disputes with zero oversight)',
+              '100% Manual Approval (Human must approve every routine response manually)'
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: 'Autonomous agents must be bounded by financial caps and clear human escalation rules to prevent financial risk.'
+          }
+        ]
+      }
     },
     {
-      questionText: 'Predictive Customer Churn Analytics',
-      questionType: 'SOLUTION_CHALLENGE',
-      options: ['A SaaS subscription platform with 50,000 active users wants to predict which subscribers are most likely to cancel their subscriptions within the next 30 days based on usage metrics, login frequency, support ticket volume, and billing history so account managers can intervene early.'],
-      explanation: 'Machine Learning learns patterns from historical data and uses them to predict which customers may cancel. The prediction supports a business decision; it does not make the decision itself.',
-      category: 'Customer Analytics',
+      questionText: 'Scenario 4: Customer Churn Prediction',
+      questionType: 'SCENARIO_QUESTIONS',
+      options: ['Machine Learning', 'AI Copilot', 'AI Agent', 'Automation', 'Generative AI'],
+      explanation: 'Machine Learning classification models analyze historical behavioral features to forecast future subscriber churn risk.',
+      category: 'AI Solution Architecture',
       topic: 'Customer Churn Prediction',
-      difficulty: 'EASY',
-      solutionChallengeData: {
-        icon: '📈',
-        dept: 'Customer Retention',
-        answer: 'Machine Learning',
-        objective: 'Identify patterns in historical subscriber data to accurately forecast future customer churn risk scores.',
-        constraints: 'Predictions must provide risk probabilities; account managers determine intervention strategies.',
-        whyApproach: 'Predicting future outcomes based on historical structured data patterns is a classic Machine Learning classification problem.',
-        capabilities: [
-          { id: 'cap_4_1', text: 'Extract historical subscriber usage features', isCorrect: true, description: 'Prepares structured training data' },
-          { id: 'cap_4_2', text: 'Train classification ML model on past churn data', isCorrect: true, description: 'Learns churn patterns' },
-          { id: 'cap_4_3', text: 'Evaluate model precision and recall metrics', isCorrect: true, description: 'Validates prediction accuracy' },
-          { id: 'cap_4_4', text: 'Score active subscribers for 30-day churn risk', isCorrect: true, description: 'Outputs probability scores' },
-          { id: 'cap_4_5', text: 'Export high-risk customer segment to account team', isCorrect: true, description: 'Triggers proactive outreach' },
-          { id: 'cap_4_6', text: 'Generate creative social media ad copy', isCorrect: false, description: 'Irrelevant to predictive modeling' },
-          { id: 'cap_4_7', text: 'Automatically cancel customer accounts', isCorrect: false, description: 'Opposite of retention goal!' },
-          { id: 'cap_4_8', text: 'Write blog posts about customer satisfaction', isCorrect: false, description: 'Marketing task, not predictive analytics' },
-          { id: 'cap_4_9', text: 'Chat conversationally with customers on phone calls', isCorrect: false, description: 'NLP chatbot task, not churn ML' },
-        ],
-        workflow: [
-          { id: 'wf_4_1', text: 'Collect 3 years of subscriber usage & billing data', isCorrect: true, correctOrder: 1 },
-          { id: 'wf_4_2', text: 'Clean dataset & engineer behavioral feature columns', isCorrect: true, correctOrder: 2 },
-          { id: 'wf_4_3', text: 'Train & validate Machine Learning churn model', isCorrect: true, correctOrder: 3 },
-          { id: 'wf_4_4', text: 'Generate monthly churn risk probability scores', isCorrect: true, correctOrder: 4 },
-          { id: 'wf_4_5', text: 'Account managers review high-risk list & contact users', isCorrect: true, correctOrder: 5 },
-          { id: 'wf_4_6', text: 'Send instant cancellation emails to predicted users', isCorrect: false },
-          { id: 'wf_4_7', text: 'Draft marketing press releases', isCorrect: false },
-          { id: 'wf_4_8', text: 'Delete customer payment history from database', isCorrect: false },
-        ],
-        autonomy: [
-          { id: 'auto_4_1', title: 'Human Decision on Model Predictions', isCorrect: true, description: 'The ML model scores churn probability; human account managers decide the best outreach and retention offer.' },
-          { id: 'auto_4_2', title: 'Automated Mass Account Penalties', isCorrect: false, description: 'The system automatically restricts accounts flagged as high churn risk.' },
-          { id: 'auto_4_3', title: 'Autonomous Account Termination', isCorrect: false, description: 'The system cancels subscriptions automatically based on prediction thresholds.' },
-        ],
-        controlTitle: 'Step 4: Define How Predictions Inform Action',
-        riskQuestion: {
-          title: 'Question 5: Model Maintenance & Concept Drift',
-          text: 'Why must Machine Learning churn prediction models be periodically retrained with recent customer data?',
-          options: [
-            { id: 'risk_4_1', text: 'Customer behavior, economic factors, and product features change over time, leading to model drift.', isCorrect: true },
-            { id: 'risk_4_2', text: 'Machine Learning models automatically delete themselves if not retrained every month.', isCorrect: false },
-            { id: 'risk_4_3', text: 'Retraining is required to change the background color of the sales dashboard.', isCorrect: false },
-            { id: 'risk_4_4', text: 'Historical data loses its mathematical properties after 30 days.', isCorrect: false },
-          ],
-          explanation: 'Model drift occurs when real-world environment and customer behavior shift over time. Regular retraining ensures the ML model maintains high accuracy and relevant risk indicators.',
-        },
-        why: 'Machine Learning learns statistical patterns from historical data to predict future events. The predictions guide human decision-making rather than taking direct autonomous actions.',
-      },
+      difficulty: 'MEDIUM',
+      scenarioQuestionsData: {
+        scenarioTitle: 'Customer Churn Prediction',
+        scenarioText: 'A company has 3 years of customer data and wants to predict which customers are most likely to cancel their subscription next month so the sales team can contact them early.',
+        instructions: 'Read the scenario carefully and complete the 4 steps below.',
+        backgroundContext: 'Predictions must provide risk probabilities; account managers determine intervention strategies.',
+        subQuestions: [
+          {
+            id: 'sub_4_1',
+            questionType: 'MCQ',
+            questionText: 'Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.',
+            options: [
+              'AI Copilot (Assists a person with their work)',
+              'AI Agent (Performs multi-step tasks using tools)',
+              'Automation (Follows predefined rules and steps)',
+              'Generative AI (Creates new content)',
+              'Machine Learning (Learns from data to make predictions)'
+            ],
+            correctOptionIndex: 4,
+            points: 250,
+            explanation: 'Predicting future subscriber behavior based on historical structured data patterns is a Machine Learning classification task.'
+          },
+          {
+            id: 'sub_4_2',
+            questionType: 'MULTIPLE_SELECT',
+            questionText: 'Step 2: Select required capabilities & system components (Select all correct options)',
+            options: [
+              'Aggregate historical customer usage & payment data',
+              'Train classification model to calculate churn risk scores',
+              'Flag high-risk accounts on sales dashboard',
+              'Periodically retrain model to prevent model drift',
+              'Generate fictional customer profiles'
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'The system requires data aggregation, model training, dashboard alert integration, and regular retraining to combat drift.'
+          },
+          {
+            id: 'sub_4_3',
+            questionType: 'CORRECT_SEQUENCE',
+            questionText: 'Step 3: Arrange the workflow in exact logical sequence',
+            options: [
+              'Extract historical subscriber behavioral data',
+              'Train predictive Machine Learning classification model',
+              'Output churn risk probability scores',
+              'Sales team proactively contacts high-risk customers'
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'Workflow sequence: Data extraction -> Model training -> Score generation -> Proactive sales team outreach.'
+          },
+          {
+            id: 'sub_4_4',
+            questionType: 'MCQ',
+            questionText: 'Step 4: Human Control & Risk Management',
+            options: [
+              'Model Drift & Regular Retraining (Regularly retrain model with current customer data to maintain predictive accuracy)',
+              'Automated Mass Account Penalties (System automatically restricts accounts flagged as high churn risk)',
+              'Autonomous Account Termination (System cancels subscriptions automatically based on prediction thresholds)'
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: 'ML models require regular retraining with fresh data to adapt to changing customer behavior patterns.'
+          }
+        ]
+      }
     },
     {
-      questionText: 'Enterprise Employee Leave Approval & HR Routing',
-      questionType: 'SOLUTION_CHALLENGE',
-      options: ['An enterprise company with 5,000 employees wants to automate the submission, rule validation, manager notification, leave balance deduction, and HRIS syncing for routine paid time off (PTO) requests according to explicit company HR policy rules.'],
-      explanation: 'The process follows predefined rules. No learning, prediction or content generation is required, so Automation is the simplest solution.',
-      category: 'HR Operations',
+      questionText: 'Scenario 5: Employee Leave Request',
+      questionType: 'SCENARIO_QUESTIONS',
+      options: ['Automation', 'AI Copilot', 'AI Agent', 'Generative AI', 'Machine Learning'],
+      explanation: 'Deterministic, rule-governed workflows with 100% policy compliance require Rule-Based Automation rather than probabilistic models.',
+      category: 'AI Solution Architecture',
       topic: 'Employee Leave Request',
-      difficulty: 'EASY',
-      solutionChallengeData: {
-        icon: '🔄',
-        dept: 'HR Operations',
-        answer: 'Automation',
-        objective: 'Execute a reliable, deterministic process following strict predefined business rules without error.',
-        constraints: 'Process must strictly follow company policy rules; incomplete or invalid requests must be rejected immediately.',
-        whyApproach: 'The leave request process follows explicit, fixed business rules with no requirement for statistical learning or creative text generation. Rule-Based Automation is the simplest, most reliable solution.',
-        capabilities: [
-          { id: 'cap_5_1', text: 'Trigger process on employee form submission', isCorrect: true, description: 'Initiates workflow' },
-          { id: 'cap_5_2', text: 'Validate required fields & leave balance rules', isCorrect: true, description: 'Enforces policy compliance' },
-          { id: 'cap_5_3', text: 'Route request to employee\'s direct manager', isCorrect: true, description: 'Sends approval task' },
-          { id: 'cap_5_4', text: 'Sync approved leave with HRIS & calendar API', isCorrect: true, description: 'Updates corporate systems' },
-          { id: 'cap_5_5', text: 'Send status notification to employee', isCorrect: true, description: 'Keeps employee informed' },
-          { id: 'cap_5_6', text: 'Predict employee turnover likelihood', isCorrect: false, description: 'ML task, not routine PTO routing' },
-          { id: 'cap_5_7', text: 'Generate creative vacation itinerary ideas', isCorrect: false, description: 'Irrelevant Generative AI task' },
-          { id: 'cap_5_8', text: 'Train neural network on employee resumes', isCorrect: false, description: 'Deep Learning task, not workflow automation' },
-          { id: 'cap_5_9', text: 'Allow employees to approve their own requests', isCorrect: false, description: 'Violates HR policy guardrails' },
-        ],
-        workflow: [
-          { id: 'wf_5_1', text: 'Employee submits digital leave request form', isCorrect: true, correctOrder: 1 },
-          { id: 'wf_5_2', text: 'Validate required data & check leave balance eligibility', isCorrect: true, correctOrder: 2 },
-          { id: 'wf_5_3', text: 'Route approval notification to manager', isCorrect: true, correctOrder: 3 },
-          { id: 'wf_5_4', text: 'Manager approves or rejects request', isCorrect: true, correctOrder: 4 },
-          { id: 'wf_5_5', text: 'Update HRIS balance, sync calendar & notify employee', isCorrect: true, correctOrder: 5 },
-          { id: 'wf_5_6', text: 'Train ML model to predict employee performance', isCorrect: false },
-          { id: 'wf_5_7', text: 'Generate AI promotional video for company', isCorrect: false },
-          { id: 'wf_5_8', text: 'Bypass manager approval and grant unearned leave', isCorrect: false },
-        ],
-        autonomy: [
-          { id: 'auto_5_1', title: 'Strict Business Rule Enforcement', isCorrect: true, description: 'If required information is missing or leave balance is insufficient, the system halts and notifies the employee to correct it.' },
-          { id: 'auto_5_2', title: 'AI Prediction Guessing', isCorrect: false, description: 'If data is missing, an AI model guesses the employee\'s intent and fills in random dates.' },
-          { id: 'auto_5_3', title: 'Automatic Unconditional Approval', isCorrect: false, description: 'If data is missing, the system approves the request automatically.' },
-        ],
-        controlTitle: 'Step 4: Define Policy Exception Handling',
-        riskQuestion: {
-          title: 'Question 5: Automation vs Machine Learning Choice',
-          text: 'Why is Rule-Based Automation superior to Machine Learning for standard employee leave approvals?',
-          options: [
-            { id: 'risk_5_1', text: 'Leave approvals follow deterministic corporate policy rules requiring 100% compliance, not probabilistic predictions.', isCorrect: true },
-            { id: 'risk_5_2', text: 'Rule-Based Automation is impossible to audit or inspect compared to neural networks.', isCorrect: false },
-            { id: 'risk_5_3', text: 'Machine Learning requires internet bandwidth that HR departments do not possess.', isCorrect: false },
-            { id: 'risk_5_4', text: 'Automation scripts can only process requests submitted on paper forms.', isCorrect: false },
-          ],
-          explanation: 'When business rules are deterministic, explicit, and regulated by policy, standard Rule-Based Automation is faster, cheaper, 100% predictable, and fully auditable compared to probabilistic AI.',
-        },
-        why: 'The workflow relies strictly on defined corporate rules and conditional logic. No learning or generation is needed, so Rule-Based Automation provides the cleanest, most reliable solution.',
-      },
-    },
-
-
-    // Part 2: Workflow Automation Challenges (Sequence)
-    {
-      questionText: 'Build the Automated Leave Request Workflow in the exact logical sequence:',
-      questionType: 'CORRECT_SEQUENCE',
-      options: [
-        'Form Submitted',
-        'Check Leave Details',
-        'Manager Approval',
-        'Send Approval / Rejection Notification',
-      ],
-      correctOrder: [0, 1, 2, 3],
-      explanation: 'Leave workflow sequence: Form Submitted -> Check Details -> Manager Approval -> Send Notification.',
-      category: 'Workflow Automation',
       difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'Build the Automated Sales Report Workflow in the exact logical sequence:',
-      questionType: 'CORRECT_SEQUENCE',
-      options: [
-        'Monthly Schedule',
-        'Get Sales Data',
-        'Prepare Sales Report',
-        'Send Report to Management',
-      ],
-      correctOrder: [0, 1, 2, 3],
-      explanation: 'Sales report workflow sequence: Schedule -> Fetch Data -> Prepare Report -> Deliver to Management.',
-      category: 'Workflow Automation',
-      difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'Build the Customer Complaint Automation Workflow in the exact logical sequence:',
-      questionType: 'CORRECT_SEQUENCE',
-      options: [
-        'Complaint Received',
-        'Capture Complaint Details',
-        'Check Complaint Priority',
-        'High Priority → Escalate to Manager',
-        'Normal Priority → Send Acknowledgement',
-        'Update Complaint Status',
-      ],
-      correctOrder: [0, 1, 2, 3, 4, 5],
-      explanation: 'Complaint workflow: Received -> Capture Details -> Priority Check -> Escalation/Acknowledgement Branches -> Update Status.',
-      category: 'Workflow Automation',
-      difficulty: 'HARD',
-    },
-
-    // Part 3: AI Governance Questions
-    {
-      questionText: 'A team wants to summarize customer support conversations containing names, emails, and phone numbers. What should the team do before using an AI tool?',
-      questionType: 'MCQ',
-      options: [
-        'Use a public AI tool directly because it is faster',
-        'Remove or anonymize sensitive personal information before using AI',
-        'Upload everything because the AI tool is only used internally',
-        'Ask employees to manually copy sensitive details into public AI prompt boxes',
-      ],
-      correctOptionIndex: 1,
-      explanation: 'Sensitive personal identifiable information (PII) must be anonymized before submitting data to AI services.',
-      category: 'AI Governance',
-      difficulty: 'EASY',
-    },
-    {
-      questionText: 'An employee uses AI to prepare a financial report. The AI generates an incorrect figure, and the employee submits it to management without checking. Who is responsible for ensuring accuracy?',
-      questionType: 'MCQ',
-      options: [
-        'The AI is responsible because it generated the number',
-        'The AI vendor company is responsible for the financial report',
-        'The employee/team using the AI must review and verify the output',
-        'Nobody is responsible because AI can hallucinate',
-      ],
-      correctOptionIndex: 2,
-      explanation: 'Accountability remains with the human professional using the AI tool.',
-      category: 'AI Governance',
-      difficulty: 'EASY',
-    },
-    {
-      questionText: 'Which AI use case requires the strongest governance and risk controls?',
-      questionType: 'MCQ',
-      options: [
-        'AI creates ideas for a company\'s social media posts',
-        'AI summarizes an internal team meeting',
-        'AI recommends whether a job applicant should be hired',
-        'AI creates a draft internal newsletter',
-      ],
-      correctOptionIndex: 2,
-      explanation: 'Employment, hiring, and financial credit decisions carry high ethical/legal impact and require stringent governance controls.',
-      category: 'AI Governance',
-      difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'Select all responsible actions to take when an AI chatbot gives inconsistent customer answers:',
-      questionType: 'MCQ',
-      options: [
-        'Monitor chatbot outputs & test with representative questions',
-        'Allow the chatbot to run completely unmonitored',
-        'Define clear escalation triggers to hand over complex cases to human agents',
-        'Investigate and correct recurring errors in the knowledge base',
-      ],
-      correctOptionIndex: 0,
-      explanation: 'Responsible AI deployments require output monitoring, safety testing, human handover rules, and root cause fixes.',
-      category: 'AI Governance',
-      difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'Order the governance steps for introducing an AI system for employee performance data:',
-      questionType: 'CORRECT_SEQUENCE',
-      options: [
-        'Define purpose and intended use',
-        'Identify data being used',
-        'Assess privacy, security, bias and risks',
-        'Establish human oversight and approval',
-        'Test the AI system',
-        'Monitor system after deployment',
-      ],
-      correctOrder: [0, 1, 2, 3, 4, 5],
-      explanation: 'Governance lifecycle: Purpose -> Data -> Risk Assessment -> Governance & Oversight -> Testing -> Ongoing Monitoring.',
-      category: 'AI Governance',
-      difficulty: 'HARD',
-    },
+      scenarioQuestionsData: {
+        scenarioTitle: 'Employee Leave Request',
+        scenarioText: 'Whenever an employee submits a leave request, the system should check whether the required information is complete and send the request to the employee\'s manager for approval.',
+        instructions: 'Read the scenario carefully and complete the 4 steps below.',
+        backgroundContext: 'Process must strictly follow company policy rules; incomplete or invalid requests must be rejected immediately.',
+        subQuestions: [
+          {
+            id: 'sub_5_1',
+            questionType: 'MCQ',
+            questionText: 'Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.',
+            options: [
+              'AI Copilot (Assists a person with their work)',
+              'AI Agent (Performs multi-step tasks using tools)',
+              'Automation (Follows predefined rules and steps)',
+              'Generative AI (Creates new content)',
+              'Machine Learning (Learns from data to make predictions)'
+            ],
+            correctOptionIndex: 2,
+            points: 250,
+            explanation: 'Leave approvals follow deterministic IF-THEN rules with 100% policy compliance, requiring Rule-Based Automation.'
+          },
+          {
+            id: 'sub_5_2',
+            questionType: 'MULTIPLE_SELECT',
+            questionText: 'Step 2: Select required capabilities & system components (Select all correct options)',
+            options: [
+              'Trigger process on employee form submission',
+              'Validate required fields and leave balance rules',
+              'Route approval request to direct manager',
+              'Sync approved leave with HRIS and calendar',
+              'Guess missing form details using AI'
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'The automated workflow triggers on form submit, validates balance/policy rules, routes approval tasks, and syncs HRIS/calendars.'
+          },
+          {
+            id: 'sub_5_3',
+            questionType: 'CORRECT_SEQUENCE',
+            questionText: 'Step 3: Arrange the workflow in exact logical sequence',
+            options: [
+              'Employee submits digital leave request form',
+              'Validate required data & check leave balance',
+              'Route approval notification to manager',
+              'Update HRIS balance, sync calendar & notify employee'
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: 'Workflow sequence: Form submission -> Policy validation -> Manager routing -> HRIS/calendar update & notification.'
+          },
+          {
+            id: 'sub_5_4',
+            questionType: 'MCQ',
+            questionText: 'Step 4: Human Control & Risk Management',
+            options: [
+              'Strict Policy Rule Compliance (Deterministic execution ensuring 100% compliance with corporate policy)',
+              'AI Prediction Guessing (AI guesses missing dates or intent if data is incomplete)',
+              'Automatic Unconditional Approval (System approves requests without manager validation)'
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: 'Deterministic policy workflows require 100% rule compliance and auditability rather than probabilistic AI guesses.'
+          }
+        ]
+      }
+    }
   ];
 
   const q3Docs = await QuestionModel.insertMany(

@@ -71,7 +71,7 @@ export interface IPromptBuilderData {
   pieces: { text: string; isCorrect: boolean }[];
 }
 
-export type SubQuestionType = 'MCQ' | 'TRUE_FALSE' | 'CORRECT_SEQUENCE';
+export type SubQuestionType = 'MCQ' | 'MULTIPLE_SELECT' | 'TRUE_FALSE' | 'CORRECT_SEQUENCE';
 
 export interface ISubQuestion {
   id: string;
@@ -79,6 +79,7 @@ export interface ISubQuestion {
   questionText: string;
   options: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
   correctOrder?: number[];
   categories?: { id: string; title: string }[];
   categoryAssignments?: Record<string, string>;

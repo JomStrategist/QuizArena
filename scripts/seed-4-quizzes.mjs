@@ -19,13 +19,18 @@ const QuestionSchema = new mongoose.Schema({
   questionType: { type: String, default: 'MCQ' },
   options: [String],
   correctOptionIndex: Number,
-  timeLimit: { type: Number, default: 20 },
+  timeLimit: { type: Number, default: 30 },
   points: { type: Number, default: 1000 },
   explanation: String,
   category: { type: String, default: 'AI & Analytics' },
   difficulty: { type: String, default: 'MEDIUM' },
   tags: [String],
-}, { timestamps: true });
+  promptBuilderData: { type: mongoose.Schema.Types.Mixed },
+  solutionChallengeData: { type: mongoose.Schema.Types.Mixed },
+  scenarioQuestionsData: { type: mongoose.Schema.Types.Mixed },
+  subQuestions: { type: mongoose.Schema.Types.Mixed },
+  sequenceData: { type: mongoose.Schema.Types.Mixed }
+}, { timestamps: true, strict: false });
 const Question = mongoose.models.Question || mongoose.model('Question', QuestionSchema);
 
 const QuizSchema = new mongoose.Schema({
@@ -229,66 +234,359 @@ const quiz3Data = {
   category: "AI Solution Architecture",
   questions: [
     {
-      q: "E-Commerce Product Launch & Content Automation: A brand needs 200 social captions and 50 product descriptions created from specs with human review before publishing. Which AI approach is best?",
-      opts: [
-        "Generative AI (Creates new original text copy from prompt inputs with a Human Approval Gate)",
-        "Traditional Machine Learning",
-        "Rule-Based Automation only",
-        "Computer Vision"
-      ],
-      ans: 0,
-      why: "Generative AI is optimal for generating creative copy from product specification inputs, while a human approval gate ensures brand voice compliance."
+      q: "Scenario 1: Marketing Content",
+      type: "SCENARIO_QUESTIONS",
+      opts: ["Generative AI", "AI Copilot", "AI Agent", "Automation", "Machine Learning"],
+      why: "Generative AI creates new original text copy with a mandatory human approval gate before publishing.",
+      scenarioQuestionsData: {
+        scenarioTitle: "Marketing Content",
+        scenarioText: "A product team needs 20 social media captions and 5 product descriptions for a new launch. A human will review everything before publishing.",
+        instructions: "Read the scenario carefully and complete the 4 steps below.",
+        backgroundContext: "The objective is to automate bulk content creation while ensuring 100% human editorial oversight.",
+        subQuestions: [
+          {
+            id: "sub_1_1",
+            questionType: "MCQ",
+            questionText: "Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.",
+            options: [
+              "AI Copilot (Assists a person with their work)",
+              "AI Agent (Performs multi-step tasks using tools)",
+              "Automation (Follows predefined rules and steps)",
+              "Generative AI (Creates new content)",
+              "Machine Learning (Learns from data to make predictions)"
+            ],
+            correctOptionIndex: 3,
+            points: 250,
+            explanation: "Generative AI directly creates new, original copy from product specification inputs."
+          },
+          {
+            id: "sub_1_2",
+            questionType: "MULTIPLE_SELECT",
+            questionText: "Step 2: Select required capabilities & system components (Select all correct options)",
+            options: [
+              "Generate creative social media text copy",
+              "Create multi-platform product descriptions",
+              "Enforce brand tone and style guidelines",
+              "Human review & approval gate before publishing",
+              "Train deep learning image neural network"
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: "The system requires content generation, tone enforcement, product description creation, and an editorial review gate."
+          },
+          {
+            id: "sub_1_3",
+            questionType: "CORRECT_SEQUENCE",
+            questionText: "Step 3: Arrange the workflow in exact logical sequence",
+            options: [
+              "Input product brief and key features",
+              "Generate initial draft copy with AI",
+              "Human editor reviews and refines content",
+              "Publish approved copy to marketing channels"
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: "Workflow sequence: Input brief -> AI draft generation -> Human editorial review -> Publish."
+          },
+          {
+            id: "sub_1_4",
+            questionType: "MCQ",
+            questionText: "Step 4: Human Control & Risk Management",
+            options: [
+              "Human Approval Gate (Human marketer reviews, edits, and gives final approval before publication)",
+              "Exception-Based Oversight (AI publishes standard posts automatically)",
+              "Full AI Autonomy (AI publishes content directly without human review)"
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: "A Human Approval Gate ensures brand compliance and prevents unreviewed hallucinations from being published."
+          }
+        ]
+      }
     },
     {
-      q: "Executive Sales Performance Assistant: Every Monday, a VP of Sales wants an AI tool to summarize CRM spreadsheet data, highlight anomalies, and suggest investigation questions for a management call. Which approach is best?",
-      opts: [
-        "AI Copilot (Assists human decision-makers with insights while manager retains full authority)",
-        "Autonomous AI Agent that fires underperforming reps",
-        "Deep Learning Image Classification",
-        "Rule-Based Automation"
-      ],
-      ans: 0,
-      why: "An AI Copilot empowers the executive with automated data analysis and strategic discussion prompts without stripping away human decision accountability."
+      q: "Scenario 2: Sales Manager Assistant",
+      type: "SCENARIO_QUESTIONS",
+      opts: ["AI Copilot", "AI Agent", "Automation", "Generative AI", "Machine Learning"],
+      why: "An AI Copilot empowers the executive with automated spreadsheet analysis while the human retains full decision authority.",
+      scenarioQuestionsData: {
+        scenarioTitle: "Sales Manager Assistant",
+        scenarioText: "Every Monday, a sales manager wants AI to summarize the weekly sales spreadsheet, highlight unusual changes, and suggest questions the manager should investigate.",
+        instructions: "Read the scenario carefully and complete the 4 steps below.",
+        backgroundContext: "The VP remains fully accountable for all operational decisions; the system must assist, not make sales calls.",
+        subQuestions: [
+          {
+            id: "sub_2_1",
+            questionType: "MCQ",
+            questionText: "Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.",
+            options: [
+              "AI Copilot (Assists a person with their work)",
+              "AI Agent (Performs multi-step tasks using tools)",
+              "Automation (Follows predefined rules and steps)",
+              "Generative AI (Creates new content)",
+              "Machine Learning (Learns from data to make predictions)"
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: "The AI acts as an interactive Copilot alongside the sales executive to summarize data and suggest questions."
+          },
+          {
+            id: "sub_2_2",
+            questionType: "MULTIPLE_SELECT",
+            questionText: "Step 2: Select required capabilities & system components (Select all correct options)",
+            options: [
+              "Ingest weekly sales spreadsheet data",
+              "Summarize key metric shifts and revenue trends",
+              "Highlight unusual statistical variance or anomalies",
+              "Suggest investigation questions for management review",
+              "Automatically terminate underperforming sales reps"
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: "The Copilot must ingest spreadsheet data, calculate variances, highlight anomalies, and generate meeting discussion points."
+          },
+          {
+            id: "sub_2_3",
+            questionType: "CORRECT_SEQUENCE",
+            questionText: "Step 3: Arrange the workflow in exact logical sequence",
+            options: [
+              "Receive weekly sales spreadsheet",
+              "AI analyzes data & extracts performance trends",
+              "Generate summary report & discussion prompts",
+              "Sales manager reviews insights and conducts team meeting"
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: "Workflow sequence: Ingest spreadsheet -> AI trend analysis -> Summary & question generation -> Executive decision review."
+          },
+          {
+            id: "sub_2_4",
+            questionType: "MCQ",
+            questionText: "Step 4: Human Control & Risk Management",
+            options: [
+              "Copilot Decision Support (Sales manager retains 100% decision authority while AI provides insights)",
+              "Automated Rule Execution (System automatically adjusts quotas and alerts without review)",
+              "Autonomous Management (AI makes strategic decisions for teams without human involvement)"
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: "Strategic management decisions require contextual human judgment and organizational accountability."
+          }
+        ]
+      }
     },
     {
-      q: "Omnichannel Customer Support Agent: A telecom provider wants an automated system that reads tickets, queries account history, searches a RAG knowledge base, issues credits <$20, and escalates complex disputes. Which approach is best?",
-      opts: [
-        "AI Agent (Performs multi-step tasks autonomously using tools/APIs with escalation rules)",
-        "Generative AI text builder only",
-        "Predictive Machine Learning model",
-        "Rule-Based Form Validation"
-      ],
-      ans: 0,
-      why: "AI Agents combine multi-step reasoning, external tool/API execution (CRM, billing, knowledge base), and decision-making bounded by guardrails."
+      q: "Scenario 3: Customer Support Task",
+      type: "SCENARIO_QUESTIONS",
+      opts: ["AI Agent", "AI Copilot", "Automation", "Generative AI", "Machine Learning"],
+      why: "An AI Agent combines multi-step reasoning, external tool execution (CRM, billing, knowledge base), and escalation guardrails.",
+      scenarioQuestionsData: {
+        scenarioTitle: "Customer Support Task",
+        scenarioText: "A support system receives a customer request. AI should read it, check the customer's account, find the answer in the knowledge base, update the ticket, and escalate complex cases.",
+        instructions: "Read the scenario carefully and complete the 4 steps below.",
+        backgroundContext: "Complex edge cases and billing disputes exceeding $20 must be escalated to human agents.",
+        subQuestions: [
+          {
+            id: "sub_3_1",
+            questionType: "MCQ",
+            questionText: "Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.",
+            options: [
+              "AI Copilot (Assists a person with their work)",
+              "AI Agent (Performs multi-step tasks using tools)",
+              "Automation (Follows predefined rules and steps)",
+              "Generative AI (Creates new content)",
+              "Machine Learning (Learns from data to make predictions)"
+            ],
+            correctOptionIndex: 1,
+            points: 250,
+            explanation: "The system uses tools autonomously (CRM, KB API) to execute multi-step tasks, which defines an AI Agent."
+          },
+          {
+            id: "sub_3_2",
+            questionType: "MULTIPLE_SELECT",
+            questionText: "Step 2: Select required capabilities & system components (Select all correct options)",
+            options: [
+              "Parse incoming customer support tickets",
+              "Query account database & knowledge base APIs",
+              "Execute automated ticket updates",
+              "Escalate complex edge cases to human support agents",
+              "Send arbitrary unapproved refunds"
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: "The AI Agent parses ticket intent, queries CRM/KB APIs, updates tickets, and escalates complex edge cases."
+          },
+          {
+            id: "sub_3_3",
+            questionType: "CORRECT_SEQUENCE",
+            questionText: "Step 3: Arrange the workflow in exact logical sequence",
+            options: [
+              "Receive customer support request",
+              "AI agent reads request and queries CRM/Knowledge Base",
+              "Execute appropriate resolution action or update ticket",
+              "Escalate to human agent if confidence threshold is low"
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: "Workflow sequence: Receive ticket -> Query APIs -> Execute resolution -> Escalate low-confidence edge cases."
+          },
+          {
+            id: "sub_3_4",
+            questionType: "MCQ",
+            questionText: "Step 4: Human Control & Risk Management",
+            options: [
+              "Human Escalation & Fallback (Agent operates within tool boundaries and escalates complex/high-value cases)",
+              "Full Autonomous Authority (Agent resolves all tickets including high-dollar disputes with zero oversight)",
+              "100% Manual Approval (Human must approve every routine response manually)"
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: "Autonomous agents must be bounded by financial caps and clear human escalation rules to prevent financial risk."
+          }
+        ]
+      }
     },
     {
-      q: "Predictive Customer Churn Analytics: A SaaS platform wants to predict which subscribers are most likely to cancel within 30 days based on usage, tickets, and billing history. Which approach is best?",
-      opts: [
-        "Machine Learning (Learns patterns from historical structured data to output churn risk scores)",
-        "Generative AI",
-        "Rule-Based Automation",
-        "Computer Vision"
-      ],
-      ans: 0,
-      why: "Machine Learning classification models analyze historical behavioral features to forecast future probability metrics like subscriber churn risk."
+      q: "Scenario 4: Customer Churn Prediction",
+      type: "SCENARIO_QUESTIONS",
+      opts: ["Machine Learning", "AI Copilot", "AI Agent", "Automation", "Generative AI"],
+      why: "Machine Learning classification models analyze historical behavioral features to forecast future subscriber churn risk.",
+      scenarioQuestionsData: {
+        scenarioTitle: "Customer Churn Prediction",
+        scenarioText: "A company has 3 years of customer data and wants to predict which customers are most likely to cancel their subscription next month so the sales team can contact them early.",
+        instructions: "Read the scenario carefully and complete the 4 steps below.",
+        backgroundContext: "Predictions must provide risk probabilities; account managers determine intervention strategies.",
+        subQuestions: [
+          {
+            id: "sub_4_1",
+            questionType: "MCQ",
+            questionText: "Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.",
+            options: [
+              "AI Copilot (Assists a person with their work)",
+              "AI Agent (Performs multi-step tasks using tools)",
+              "Automation (Follows predefined rules and steps)",
+              "Generative AI (Creates new content)",
+              "Machine Learning (Learns from data to make predictions)"
+            ],
+            correctOptionIndex: 4,
+            points: 250,
+            explanation: "Predicting future subscriber behavior based on historical structured data patterns is a Machine Learning classification task."
+          },
+          {
+            id: "sub_4_2",
+            questionType: "MULTIPLE_SELECT",
+            questionText: "Step 2: Select required capabilities & system components (Select all correct options)",
+            options: [
+              "Aggregate historical customer usage & payment data",
+              "Train classification model to calculate churn risk scores",
+              "Flag high-risk accounts on sales dashboard",
+              "Periodically retrain model to prevent model drift",
+              "Generate fictional customer profiles"
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: "The system requires data aggregation, model training, dashboard alert integration, and regular retraining to combat drift."
+          },
+          {
+            id: "sub_4_3",
+            questionType: "CORRECT_SEQUENCE",
+            questionText: "Step 3: Arrange the workflow in exact logical sequence",
+            options: [
+              "Extract historical subscriber behavioral data",
+              "Train predictive Machine Learning classification model",
+              "Output churn risk probability scores",
+              "Sales team proactively contacts high-risk customers"
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: "Workflow sequence: Data extraction -> Model training -> Score generation -> Proactive sales team outreach."
+          },
+          {
+            id: "sub_4_4",
+            questionType: "MCQ",
+            questionText: "Step 4: Human Control & Risk Management",
+            options: [
+              "Model Drift & Regular Retraining (Regularly retrain model with current customer data to maintain predictive accuracy)",
+              "Automated Mass Account Penalties (System automatically restricts accounts flagged as high churn risk)",
+              "Autonomous Account Termination (System cancels subscriptions automatically based on prediction thresholds)"
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: "ML models require regular retraining with fresh data to adapt to changing customer behavior patterns."
+          }
+        ]
+      }
     },
     {
-      q: "Enterprise Employee Leave Approval: A company wants to automate PTO submission, leave balance validation, manager notification, and HRIS sync following strict HR policy rules. Which approach is best?",
-      opts: [
-        "Rule-Based Automation (Follows deterministic IF-THEN corporate policy rules without probabilistic learning)",
-        "Generative AI",
-        "Deep Learning Neural Network",
-        "Predictive Machine Learning"
-      ],
-      ans: 0,
-      why: "Deterministic, rule-governed workflows with 100% policy compliance require Rule-Based Automation rather than probabilistic AI models."
-    }
-  ]
-};
-        "Unsupervised Audio Processing"
-      ],
-      ans: 0,
-      why: "Supervised machine learning algorithms evaluate risk probability based on historical feature vectors."
+      q: "Scenario 5: Employee Leave Request",
+      type: "SCENARIO_QUESTIONS",
+      opts: ["Automation", "AI Copilot", "AI Agent", "Generative AI", "Machine Learning"],
+      why: "Deterministic, rule-governed workflows with 100% policy compliance require Rule-Based Automation rather than probabilistic models.",
+      scenarioQuestionsData: {
+        scenarioTitle: "Employee Leave Request",
+        scenarioText: "Whenever an employee submits a leave request, the system should check whether the required information is complete and send the request to the employee's manager for approval.",
+        instructions: "Read the scenario carefully and complete the 4 steps below.",
+        backgroundContext: "Process must strictly follow company policy rules; incomplete or invalid requests must be rejected immediately.",
+        subQuestions: [
+          {
+            id: "sub_5_1",
+            questionType: "MCQ",
+            questionText: "Step 1: Choose the AI approach\nChoose carefully: one answer is the best fit. Selecting a wrong answer reduces marks.",
+            options: [
+              "AI Copilot (Assists a person with their work)",
+              "AI Agent (Performs multi-step tasks using tools)",
+              "Automation (Follows predefined rules and steps)",
+              "Generative AI (Creates new content)",
+              "Machine Learning (Learns from data to make predictions)"
+            ],
+            correctOptionIndex: 2,
+            points: 250,
+            explanation: "Leave approvals follow deterministic IF-THEN rules with 100% policy compliance, requiring Rule-Based Automation."
+          },
+          {
+            id: "sub_5_2",
+            questionType: "MULTIPLE_SELECT",
+            questionText: "Step 2: Select required capabilities & system components (Select all correct options)",
+            options: [
+              "Trigger process on employee form submission",
+              "Validate required fields and leave balance rules",
+              "Route approval request to direct manager",
+              "Sync approved leave with HRIS and calendar",
+              "Guess missing form details using AI"
+            ],
+            correctOptionIndices: [0, 1, 2, 3],
+            points: 250,
+            explanation: "The automated workflow triggers on form submit, validates balance/policy rules, routes approval tasks, and syncs HRIS/calendars."
+          },
+          {
+            id: "sub_5_3",
+            questionType: "CORRECT_SEQUENCE",
+            questionText: "Step 3: Arrange the workflow in exact logical sequence",
+            options: [
+              "Employee submits digital leave request form",
+              "Validate required data & check leave balance",
+              "Route approval notification to manager",
+              "Update HRIS balance, sync calendar & notify employee"
+            ],
+            correctOrder: [0, 1, 2, 3],
+            points: 250,
+            explanation: "Workflow sequence: Form submission -> Policy validation -> Manager routing -> HRIS/calendar update & notification."
+          },
+          {
+            id: "sub_5_4",
+            questionType: "MCQ",
+            questionText: "Step 4: Human Control & Risk Management",
+            options: [
+              "Strict Policy Rule Compliance (Deterministic execution ensuring 100% compliance with corporate policy)",
+              "AI Prediction Guessing (AI guesses missing dates or intent if data is incomplete)",
+              "Automatic Unconditional Approval (System approves requests without manager validation)"
+            ],
+            correctOptionIndex: 0,
+            points: 250,
+            explanation: "Deterministic policy workflows require 100% rule compliance and auditability rather than probabilistic AI guesses."
+          }
+        ]
+      }
     }
   ]
 };
@@ -296,48 +594,144 @@ const quiz3Data = {
 // Quiz 4: Activity 4 - Prompt Engineering Challenge
 const quiz4Data = {
   title: "Activity 4: Prompt Engineering Challenge",
-  description: "Master prompt design principles including Role definition, Context setting, Task instructions, Constraints, and Output formatting.",
+  description: "Master the RCTOF framework for effective Generative AI prompt construction.",
   category: "Prompt Engineering",
   questions: [
     {
-      q: "Which element of the RCTOF prompt engineering framework defines WHO the AI should act as during response generation?",
-      opts: ["Role / Persona", "Context", "Task", "Output Format"],
-      ans: 0,
-      why: "The Role specifies the persona, perspective, and domain expertise the AI model should adopt."
-    },
-    {
-      q: "Consider the prompt: 'Act as a Senior Data Analyst. Summarize Q3 sales data into 3 bullet points, ignoring draft entries. Do not exceed 100 words.' What element is 'Do not exceed 100 words'?",
-      opts: ["Constraint", "Role", "Context", "Task"],
-      ans: 0,
-      why: "Constraints set boundary parameters (length, tone, excluded words, negative constraints) for the AI generation."
-    },
-    {
-      q: "What technique involves providing 1-3 explicit input-output demonstration pairs within the prompt to guide the model?",
-      opts: ["Few-Shot Prompting", "Zero-Shot Prompting", "Chain of Thought Prompting", "Negative Prompting"],
-      ans: 0,
-      why: "Few-shot prompting includes concrete example demonstrations so the LLM learns the exact target formatting pattern."
-    },
-    {
-      q: "Why is 'Chain of Thought' (CoT) prompting effective for complex logical or mathematical problems?",
+      q: 'Exercise 1 — Build an Effective Prompt',
+      type: 'PROMPT_BUILDER',
       opts: [
-        "It forces the model to break down its reasoning step-by-step before arriving at the final answer",
-        "It makes the AI generate responses 10x faster",
-        "It bypasses token limits in LLMs",
-        "It automatically translates text into Python code"
+        'Act as a professional meeting summarization assistant.',
+        'The audience is busy managers who need a quick overview.',
+        'Summarize the meeting and identify key decisions, action items, and responsible people.',
+        'Present the answer with clear headings and bullet points.',
+        'Use only information from the supplied transcript and do not invent details.',
+        'Act as a meeting participant.',
+        'Focus mainly on rewriting the transcript into more formal language.',
+        'Present the summary as one continuous paragraph without headings or bullet points.',
+        'Include only the main topic discussed in the meeting.',
+        'Write the summary without mentioning any action items.',
       ],
-      ans: 0,
-      why: "Asking the model to 'think step by step' encourages intermediate reasoning steps, significantly reducing hallucination in multi-step problems."
+      promptBuilderData: {
+        scenarioTitle: 'Exercise 1 — Build an Effective Prompt',
+        scenarioText: 'A management team wants to use AI to turn a long business meeting transcript into a clear summary. The managers are busy and need the important decisions, action items, and responsibilities quickly. Build a prompt for an AI assistant that clearly defines who the AI should act as, who the response is for, what the AI should achieve, how the answer should be presented, and one clear limitation.',
+        instruction: 'Select the useful pieces, arrange them, and review the prompt you created.',
+        pieces: [
+          { text: 'Use only information from the supplied transcript and do not invent details.', isCorrect: true },
+          { text: 'Act as a professional meeting summarization assistant.', isCorrect: true },
+          { text: 'Write the summary without mentioning any action items.', isCorrect: false },
+          { text: 'Summarize the meeting and identify key decisions, action items, and responsible people.', isCorrect: true },
+          { text: 'Focus mainly on rewriting the transcript into more formal language.', isCorrect: false },
+          { text: 'The audience is busy managers who need a quick overview.', isCorrect: true },
+          { text: 'Act as a meeting participant.', isCorrect: false },
+          { text: 'Present the answer with clear headings and bullet points.', isCorrect: true },
+          { text: 'Present the summary as one continuous paragraph without headings or bullet points.', isCorrect: false },
+          { text: 'Include only the main topic discussed in the meeting.', isCorrect: false },
+        ],
+      },
+      why: 'RCTOF Framework: Role (Professional meeting summarization assistant) + Context (Busy managers needing quick overview) + Task (Summarize decisions, action items & responsibilities) + Format (Clear headings & bullet points) + Constraint (Use only supplied transcript).',
     },
     {
-      q: "Which prompt is the most structured and effective for generating a JSON API response?",
+      q: 'Exercise 2 — Improve a Weak Prompt',
+      type: 'PROMPT_BUILDER',
       opts: [
-        "Act as a backend engineer. Convert the user input into a JSON object containing keys: 'id', 'status', and 'summary'. Output ONLY valid JSON without markdown wrapping.",
-        "Give me JSON data for a user.",
-        "Write some code for an API.",
-        "Can you format a user nicely?"
+        'Act as a sales performance analyst.',
+        'The audience is a sales manager preparing for a management meeting.',
+        'Analyze the monthly sales data, identify the best and worst regions, and give three actionable recommendations.',
+        'Present the result with a short management summary followed by bullet points.',
+        'Use only the supplied sales data and do not invent figures.',
+        'Act as a software developer.',
+        'The audience is a group of database administrators.',
+        'Write Python code to analyze the data.',
+        'Create a social media campaign.',
+        'Use technical language and include every available detail.',
       ],
-      ans: 0,
-      why: "Clear role definition, explicit schema specifications, and strict negative constraints ('output ONLY valid JSON') ensure reliable structured outputs."
+      promptBuilderData: {
+        scenarioTitle: 'Exercise 2 — Improve a Weak Prompt',
+        scenarioText: 'Weak prompt: “Analyze this sales data and make a report.”\n\nBusiness requirement: The sales manager wants monthly sales performance, the best and worst regions, and three actionable recommendations for a management meeting. Improve the prompt by defining the role, context, goal, format and constraint.',
+        instruction: 'Select the useful pieces, arrange them, and review the prompt you created.',
+        pieces: [
+          { text: 'Act as a sales performance analyst.', isCorrect: true },
+          { text: 'The audience is a sales manager preparing for a management meeting.', isCorrect: true },
+          { text: 'Analyze the monthly sales data, identify the best and worst regions, and give three actionable recommendations.', isCorrect: true },
+          { text: 'Present the result with a short management summary followed by bullet points.', isCorrect: true },
+          { text: 'Use only the supplied sales data and do not invent figures.', isCorrect: true },
+          { text: 'Act as a software developer.', isCorrect: false },
+          { text: 'The audience is a group of database administrators.', isCorrect: false },
+          { text: 'Write Python code to analyze the data.', isCorrect: false },
+          { text: 'Create a social media campaign.', isCorrect: false },
+          { text: 'Use technical language and include every available detail.', isCorrect: false },
+        ],
+      },
+      why: 'RCTOF Framework: Role (Sales performance analyst) + Context (Sales manager preparing for meeting) + Task (Analyze monthly sales, best/worst regions, 3 recommendations) + Format (Short management summary + bullets) + Constraint (Use supplied data only).',
+    },
+    {
+      q: 'Exercise 3 — Build a Prompt for a New Situation',
+      type: 'PROMPT_BUILDER',
+      opts: [
+        'Act as a customer service manager.',
+        'The audience is a customer service team.',
+        'Create a short response explaining how to handle an angry customer professionally.',
+        'Use a numbered list with five practical steps.',
+        'Keep the response under 150 words and do not blame the customer.',
+        'Act as a graphic designer.',
+        'The audience is software engineers.',
+        'Write JavaScript code for a customer portal.',
+        'Use a long essay format.',
+        'Include unrelated product specifications.',
+      ],
+      promptBuilderData: {
+        scenarioTitle: 'Exercise 3 — Build a Prompt for a New Situation',
+        scenarioText: 'A customer service team needs an AI assistant to help employees handle angry customers professionally. Build an effective prompt using one clear role, context, goal, format and constraint.',
+        instruction: 'Select the useful pieces, arrange them, and review the prompt you created.',
+        pieces: [
+          { text: 'Act as a customer service manager.', isCorrect: true },
+          { text: 'The audience is a customer service team.', isCorrect: true },
+          { text: 'Create a short response explaining how to handle an angry customer professionally.', isCorrect: true },
+          { text: 'Use a numbered list with five practical steps.', isCorrect: true },
+          { text: 'Keep the response under 150 words and do not blame the customer.', isCorrect: true },
+          { text: 'Act as a graphic designer.', isCorrect: false },
+          { text: 'The audience is software engineers.', isCorrect: false },
+          { text: 'Write JavaScript code for a customer portal.', isCorrect: false },
+          { text: 'Use a long essay format.', isCorrect: false },
+          { text: 'Include unrelated product specifications.', isCorrect: false },
+        ],
+      },
+      why: 'RCTOF Framework: Role (Customer service manager) + Context (Customer service team) + Task (Handle angry customers professionally) + Format (Numbered list with 5 steps) + Constraint (Under 150 words & no customer blame).',
+    },
+    {
+      q: 'Exercise 4 — Build a Prompt from a Business Requirement',
+      type: 'PROMPT_BUILDER',
+      opts: [
+        'Act as an HR communication specialist.',
+        'The audience is employees who will receive a company policy update.',
+        'Create a clear prompt for AI to explain the policy change and what employees need to do.',
+        'Present the answer with a short summary followed by employee action points.',
+        'Use only the information provided in the policy and do not invent rules.',
+        'Act as a financial trader.',
+        'Write a detailed Python application.',
+        'Generate a social media advertisement.',
+        'Assume information that is not in the policy.',
+        'Use technical legal language throughout.',
+      ],
+      promptBuilderData: {
+        scenarioTitle: 'Exercise 4 — Build a Prompt from a Business Requirement',
+        scenarioText: 'A company is communicating a policy update to employees. Create an effective prompt that instructs AI to explain the change and clearly tell employees what they need to do. Use one role, context, goal, format and constraint.',
+        instruction: 'Select the useful pieces, arrange them, and review the prompt you created.',
+        pieces: [
+          { text: 'Act as an HR communication specialist.', isCorrect: true },
+          { text: 'The audience is employees who will receive a company policy update.', isCorrect: true },
+          { text: 'Create a clear prompt for AI to explain the policy change and what employees need to do.', isCorrect: true },
+          { text: 'Present the answer with a short summary followed by employee action points.', isCorrect: true },
+          { text: 'Use only the information provided in the policy and do not invent rules.', isCorrect: true },
+          { text: 'Act as a financial trader.', isCorrect: false },
+          { text: 'Write a detailed Python application.', isCorrect: false },
+          { text: 'Generate a social media advertisement.', isCorrect: false },
+          { text: 'Assume information that is not in the policy.', isCorrect: false },
+          { text: 'Use technical legal language throughout.', isCorrect: false },
+        ],
+      },
+      why: 'RCTOF Framework: Role (HR communication specialist) + Context (Employees receiving policy update) + Task (Explain policy change & action items) + Format (Short summary + employee action points) + Constraint (Use provided policy info only).',
     }
   ]
 };
@@ -371,6 +765,7 @@ async function seedQuizzes() {
       // Upsert questions
       const questionIds = [];
       for (const qItem of qData.questions) {
+        const qType = qItem.type || 'MCQ';
         let question = await Question.findOne({
           trainerId: trainer._id,
           questionText: qItem.q
@@ -380,20 +775,31 @@ async function seedQuizzes() {
           question = await Question.create({
             trainerId: trainer._id,
             questionText: qItem.q,
-            questionType: 'MCQ',
-            options: qItem.opts,
-            correctOptionIndex: qItem.ans,
-            timeLimit: 20,
+            questionType: qType,
+            options: qItem.opts || [],
+            correctOptionIndex: qItem.ans !== undefined ? qItem.ans : 0,
+            timeLimit: 30,
             points: 1000,
             explanation: qItem.why,
             category: qData.category,
             difficulty: 'MEDIUM',
             tags: [qData.category],
+            promptBuilderData: qItem.promptBuilderData,
+            solutionChallengeData: qItem.solutionChallengeData,
+            scenarioQuestionsData: qItem.scenarioQuestionsData,
+            subQuestions: qItem.subQuestions,
+            sequenceData: qItem.sequenceData,
           });
         } else {
-          question.options = qItem.opts;
-          question.correctOptionIndex = qItem.ans;
+          question.questionType = qType;
+          question.options = qItem.opts || [];
+          question.correctOptionIndex = qItem.ans !== undefined ? qItem.ans : 0;
           question.explanation = qItem.why;
+          if (qItem.promptBuilderData) question.promptBuilderData = qItem.promptBuilderData;
+          if (qItem.solutionChallengeData) question.solutionChallengeData = qItem.solutionChallengeData;
+          if (qItem.scenarioQuestionsData) question.scenarioQuestionsData = qItem.scenarioQuestionsData;
+          if (qItem.subQuestions) question.subQuestions = qItem.subQuestions;
+          if (qItem.sequenceData) question.sequenceData = qItem.sequenceData;
           await question.save();
         }
         questionIds.push(question._id);
@@ -410,7 +816,7 @@ async function seedQuizzes() {
           instructions: "Read each question carefully and select the best answer before the timer expires.",
           questionIds,
           status: 'READY',
-          defaultTimeLimit: 20,
+          defaultTimeLimit: 30,
           defaultPoints: 1000,
         });
         console.log(`Created Quiz: "${quiz.title}" with ${questionIds.length} questions.`);

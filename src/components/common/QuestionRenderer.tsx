@@ -94,19 +94,31 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // Per-sub-question sequence ordering (for CORRECT_SEQUENCE sub-Qs)
   const [subSeqMap, setSubSeqMap] = useState<Record<number, number[]>>({});
 
+  const questionId = question?._id ? String(question._id) : (question as any)?.id ? String((question as any).id) : question?.questionText || '';
+
   useEffect(() => {
-    if (question.options) {
+    if (question?.options) {
       setSequence(question.options.map((_, idx) => idx));
     }
     setSelectedPromptPieces([]);
     setScenarioSubAnswers({});
     setActiveSubQIdx(0);
     setSubSeqMap({});
-  }, [question]);
+  }, [questionId]);
 
   const handleSubQuestionSelect = (subIdx: number, optIdx: number) => {
     if (disabled) return;
     const updated = { ...scenarioSubAnswers, [subIdx]: { selectedOptionIndex: optIdx } };
+    setScenarioSubAnswers(updated);
+  };
+
+  const handleSubQuestionMultiSelect = (subIdx: number, optIdx: number) => {
+    if (disabled) return;
+    const current = scenarioSubAnswers[subIdx]?.selectedOptionIndices || [];
+    const updatedIndices = current.includes(optIdx)
+      ? current.filter((i: number) => i !== optIdx)
+      : [...current, optIdx];
+    const updated = { ...scenarioSubAnswers, [subIdx]: { selectedOptionIndices: updatedIndices } };
     setScenarioSubAnswers(updated);
   };
 
@@ -681,6 +693,21 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                   ? selectedPromptPieces.join('\n\n')
                   : 'Select and arrange pieces to preview your prompt here.'}
               </div>
+              {mode === 'player' && !disabled && !isAnswerSubmitted && selectedPromptPieces.length > 0 && onSelectSequence && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (question.options) {
+                      const idxs = selectedPromptPieces.map((text) => question.options!.indexOf(text)).filter((i) => i !== -1);
+                      onSelectSequence(idxs);
+                    }
+                  }}
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center space-x-2 mt-3"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Submit Prompt ✓</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -731,23 +758,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const scData = question.scenarioQuestionsData || {
       scenarioTitle: question.questionText || 'Executive Business Scenario',
       scenarioText: question.explanation || 'Review the business scenario details carefully before answering.',
-      backgroundContext: '',
-      instructions: '',
-      subQuestions: [
-        {
-          id: 'q1',
-          questionType: 'MCQ' as const,
-          questionText: 'What is the primary objective described in the scenario?',
-          options: ['Expand Market Reach', 'Reduce Operational Bottlenecks', 'Upgrade Legacy Hardware'],
-          correctOptionIndex: 1,
-          correctOrder: [0, 1, 2],
-          points: 250,
-          explanation: 'The scenario explicitly highlights reducing operational bottlenecks.',
-        },
-      ],
+      backgroundContext: (question as any).backgroundContext || '',
+      instructions: (question as any).instructions || '',
+      subQuestions: (question as any).subQuestions || [],
     };
 
-    const subQuestions = scData.subQuestions || [];
+    const subQuestions = scData.subQuestions && scData.subQuestions.length > 0
+      ? scData.subQuestions
+      : ((question as any).subQuestions || []);
     const totalSubQs = subQuestions.length;
     const answeredCount = Object.keys(scenarioSubAnswers).length;
     const isReviewMode = showCorrectAnswer || isAnswerSubmitted;
@@ -758,13 +776,22 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       const sqType = subQ.questionType || 'MCQ';
       const currentAnswer = scenarioSubAnswers[subIdx];
       const selectedOpt = currentAnswer?.selectedOptionIndex;
+      const selectedIndices: number[] = currentAnswer?.selectedOptionIndices || [];
       const selectedSeq = currentAnswer?.selectedSequence || subSeqMap[subIdx] || subQ.options.map((_: any, i: number) => i);
-      const isSubAnswered = currentAnswer !== undefined;
+      const isSubAnswered = currentAnswer !== undefined && (
+        sqType === 'MULTIPLE_SELECT'
+          ? Array.isArray(selectedIndices) && selectedIndices.length > 0
+          : true
+      );
       const isSubCorrect = isReviewMode && (
         sqType === 'CORRECT_SEQUENCE'
           ? Array.isArray(selectedSeq) && Array.isArray(subQ.correctOrder) &&
             selectedSeq.length === subQ.correctOrder.length &&
             selectedSeq.every((v: number, i: number) => v === subQ.correctOrder[i])
+          : sqType === 'MULTIPLE_SELECT'
+          ? Array.isArray(selectedIndices) && Array.isArray(subQ.correctOptionIndices) &&
+            selectedIndices.length === subQ.correctOptionIndices.length &&
+            selectedIndices.every((v: number) => subQ.correctOptionIndices.includes(v))
           : selectedOpt === subQ.correctOptionIndex
       );
 
@@ -774,6 +801,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
               Question {subIdx + 1} of {totalSubQs}
               {sqType === 'CORRECT_SEQUENCE' && ' • Sequence'}
+              {sqType === 'MULTIPLE_SELECT' && ' • Multiple Select'}
               {sqType === 'TRUE_FALSE' && ' • True / False'}
             </span>
             <div className="flex items-center gap-2">
@@ -812,6 +840,36 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                       'bg-slate-50 text-slate-800 border-slate-200 hover:border-blue-400'
                     }`}>
                     {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* MULTIPLE_SELECT */}
+          {sqType === 'MULTIPLE_SELECT' && (
+            <div className="grid grid-cols-1 gap-2.5">
+              {subQ.options.map((optText: string, optIdx: number) => {
+                const isSelected = selectedIndices.includes(optIdx);
+                const correctIndices: number[] = subQ.correctOptionIndices || [];
+                const isCorrectOpt = isReviewMode && correctIndices.includes(optIdx);
+                const isWrongOpt = isReviewMode && isSelected && !isCorrectOpt;
+                const letter = String.fromCharCode(65 + optIdx);
+                return (
+                  <button key={optIdx} type="button" disabled={disabled || isReviewMode}
+                    onClick={() => handleSubQuestionMultiSelect(subIdx, optIdx)}
+                    className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition flex items-start space-x-3 ${
+                      isCorrectOpt ? 'bg-emerald-500 text-white border-emerald-600 shadow-md' :
+                      isWrongOpt ? 'bg-rose-500 text-white border-rose-600 shadow-md' :
+                      isSelected ? 'bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-500' :
+                      'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300'
+                    }`}>
+                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 ${
+                      isSelected || isCorrectOpt || isWrongOpt ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}>{letter}</span>
+                    <span className="leading-snug pt-0.5">{optText}</span>
+                    {isCorrectOpt && <CheckCircle2 className="w-4 h-4 ml-auto shrink-0 text-white" />}
+                    {isWrongOpt && <XCircle className="w-4 h-4 ml-auto shrink-0 text-white" />}
                   </button>
                 );
               })}

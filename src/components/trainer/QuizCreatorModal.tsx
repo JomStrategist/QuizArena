@@ -1026,6 +1026,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                     onChange={(e) => updateSubQ(sqIdx, { questionType: e.target.value })}
                                     className="flex-1 min-w-0 px-2 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-400">
                                     <option value="MCQ">Multiple Choice (MCQ)</option>
+                                    <option value="MULTIPLE_SELECT">Multiple Select (Checkboxes)</option>
                                     <option value="TRUE_FALSE">True / False</option>
                                     <option value="CORRECT_SEQUENCE">Correct Sequence / Ordering</option>
                                   </select>
@@ -1101,6 +1102,49 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                         )}
                                       </div>
                                     ))}
+                                    <button type="button" onClick={() => addOpt(sqIdx)}
+                                      className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1">
+                                      <Plus className="w-3 h-3" /> Add Option
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* MULTIPLE_SELECT Options */}
+                                {sqType === 'MULTIPLE_SELECT' && (
+                                  <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Options — click checkboxes to mark all correct answers</p>
+                                    {sq.options.map((opt: string, optIdx: number) => {
+                                      const indices: number[] = sq.correctOptionIndices || [];
+                                      const isChecked = indices.includes(optIdx);
+                                      return (
+                                        <div key={optIdx} className="flex items-center gap-2">
+                                          <button type="button"
+                                            onClick={() => {
+                                              const updated = isChecked
+                                                ? indices.filter((i: number) => i !== optIdx)
+                                                : [...indices, optIdx];
+                                              updateSubQ(sqIdx, { correctOptionIndices: updated });
+                                            }}
+                                            className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition ${
+                                              isChecked
+                                                ? 'bg-emerald-500 border-emerald-500 text-white'
+                                                : 'border-slate-300 bg-white hover:border-emerald-400'
+                                            }`}>
+                                            {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                          </button>
+                                          <input type="text" value={opt}
+                                            onChange={(e) => updateOpt(sqIdx, optIdx, e.target.value)}
+                                            placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                                            className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                                          {sq.options.length > 2 && (
+                                            <button type="button" onClick={() => removeOpt(sqIdx, optIdx)}
+                                              className="p-1 text-slate-400 hover:text-rose-500 transition">
+                                              <Trash2 className="w-3 h-3" />
+                                            </button>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
                                     <button type="button" onClick={() => addOpt(sqIdx)}
                                       className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1">
                                       <Plus className="w-3 h-3" /> Add Option
