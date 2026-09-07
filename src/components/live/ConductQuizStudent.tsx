@@ -491,6 +491,8 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
       <QuestionRenderer
         question={currentQuestion}
         mode="player"
+        questionIndex={session?.currentQuestionIndex || 0}
+        totalQuestions={session?.totalQuestions || 5}
         selectedOptionIndex={selectedOption !== null ? selectedOption : studentAnswer?.selectedOptionIndex}
         onSelectOption={(idx) => handleOptionSelect(idx, false)}
         disabled={!isQuestionActive || submitting}

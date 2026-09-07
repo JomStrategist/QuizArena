@@ -17,6 +17,9 @@ import { IQuestion } from '@/types';
 interface QuestionRendererProps {
   question: Partial<IQuestion> | null;
   mode: 'player' | 'trainer' | 'projector';
+  questionIndex?: number;
+  totalQuestions?: number;
+  onNavigateQuestion?: (idx: number) => void;
   selectedOptionIndex?: number | null;
   onSelectOption?: (index: number) => void;
   onSelectSequence?: (sequence: number[]) => void;
@@ -32,6 +35,9 @@ interface QuestionRendererProps {
 export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   question,
   mode,
+  questionIndex = 0,
+  totalQuestions = 5,
+  onNavigateQuestion,
   selectedOptionIndex,
   onSelectOption,
   onSelectSequence,
@@ -574,7 +580,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           <div className="lg:col-span-4 bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-5 shadow-xl sticky top-4">
             <div className="space-y-2">
               <span className="px-3 py-1 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-full text-[11px] font-black uppercase tracking-wider inline-block">
-                {data.dept || 'BUSINESS CHALLENGE'}
+                Challenge {questionIndex + 1} of {totalQuestions} • {data.dept || 'Sales'}
               </span>
               <h2 className="text-xl md:text-2xl font-black flex items-center space-x-2">
                 <span>{data.icon}</span>
@@ -583,7 +589,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             </div>
 
             <div className="p-4 bg-slate-800/80 border-l-4 border-blue-500 rounded-2xl text-xs md:text-sm leading-relaxed space-y-1">
-              <span className="text-[10px] uppercase font-black tracking-wider text-blue-400 block">Business Challenge</span>
+              <span className="text-[10px] uppercase font-black tracking-wider text-blue-400 block">Business challenge</span>
               <p className="text-slate-200">{problemText}</p>
             </div>
 
@@ -595,6 +601,27 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-200 text-xs space-y-1.5 leading-relaxed">
               <span className="font-black block uppercase text-[10px] tracking-wider text-amber-400">How to complete the challenge</span>
               <p>Select all choices you believe belong in the solution. Correct choices earn marks. Missing a correct choice reduces marks. Selecting a non-relevant or incorrect choice also reduces marks.</p>
+            </div>
+
+            {/* Scenario Navigation Buttons (Q1 - Q5) */}
+            <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-slate-800">
+              {Array.from({ length: totalQuestions }).map((_, qIdx) => {
+                const isCurrent = questionIndex === qIdx;
+                return (
+                  <button
+                    key={qIdx}
+                    type="button"
+                    onClick={() => onNavigateQuestion?.(qIdx)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-black transition ${
+                      isCurrent
+                        ? 'bg-blue-600 text-white shadow-md ring-1 ring-blue-400'
+                        : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-700'
+                    }`}
+                  >
+                    Q{qIdx + 1}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
