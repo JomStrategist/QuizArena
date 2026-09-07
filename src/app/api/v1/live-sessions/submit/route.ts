@@ -14,10 +14,13 @@ export async function POST(req: NextRequest) {
       displayName,
       questionIndex,
       selectedOptionIndex,
+      selectedSequence,
+      selectedCategoryAssignments,
+      selectedPromptBlocks,
       responseTimeMs = 1000,
     } = body;
 
-    if (!quizCode || (!participantId && !displayName) || questionIndex === undefined || selectedOptionIndex === undefined) {
+    if (!quizCode || (!participantId && !displayName) || questionIndex === undefined) {
       return NextResponse.json(
         { success: false, error: { code: 'BAD_REQUEST', message: 'Missing required submission fields.' } },
         { status: 400 }
@@ -83,7 +86,6 @@ export async function POST(req: NextRequest) {
     let actualResponseTimeMs = responseTimeMs;
     if (session.questionStartTimestamp) {
       const serverElapsedMs = Math.max(0, serverNow - session.questionStartTimestamp);
-      // Use server elapsed time as authoritative if client time deviates significantly
       actualResponseTimeMs = Math.min(serverElapsedMs, Math.max(100, responseTimeMs));
 
       if (serverElapsedMs > (timeLimit + 2) * 1000) {
@@ -114,8 +116,39 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    const isCorrect = selectedOptionIndex >= 0 && selectedOptionIndex === question.correctOptionIndex;
-    const isTimeout = selectedOptionIndex === -1;
+    const qType = question.questionType || 'MCQ';
+    let isCorrect = false;
+    let isTimeout = selectedOptionIndex === -1 && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks;
+
+    if (!isTimeout) {
+      if (qType === 'MCQ' || qType === 'TRUE_FALSE') {
+        isCorrect = selectedOptionIndex >= 0 && selectedOptionIndex === question.correctOptionIndex;
+      } else if (qType === 'CORRECT_SEQUENCE') {
+        if (Array.isArray(selectedSequence) && Array.isArray(question.correctOrder)) {
+          isCorrect =
+            selectedSequence.length === question.correctOrder.length &&
+            selectedSequence.every((val: number, idx: number) => val === question.correctOrder[idx]);
+        }
+      } else if (qType === 'DRAG_AND_DROP') {
+        if (selectedCategoryAssignments && question.categoryAssignments) {
+          const totalKeys = Object.keys(question.categoryAssignments);
+          const correctCount = totalKeys.filter(
+            (k) => selectedCategoryAssignments[k] === question.categoryAssignments[k]
+          ).length;
+          isCorrect = correctCount === totalKeys.length;
+        }
+      } else if (qType === 'PROMPT_BUILDER') {
+        // Evaluate assembled prompt blocks
+        if (selectedPromptBlocks && question.promptBlocks) {
+          const roleOk = !question.promptBlocks.role || question.promptBlocks.role.includes(selectedPromptBlocks.role);
+          const contextOk = !question.promptBlocks.context || question.promptBlocks.context.includes(selectedPromptBlocks.context);
+          const taskOk = !question.promptBlocks.task || question.promptBlocks.task.includes(selectedPromptBlocks.task);
+          const outputOk = !question.promptBlocks.outputFormat || question.promptBlocks.outputFormat.includes(selectedPromptBlocks.outputFormat);
+          isCorrect = roleOk && contextOk && taskOk && outputOk;
+        }
+      }
+    }
+
     const maxPts = question.points || 1000;
 
     let pointsEarned = 0;
@@ -124,7 +157,7 @@ export async function POST(req: NextRequest) {
         pointsEarned = calculateQuestionScore({
           isCorrect: true,
           maxPoints: maxPts,
-          timeLimitSeconds: timeLimit, // Question-specific time limit
+          timeLimitSeconds: timeLimit,
           responseTimeMs: actualResponseTimeMs,
         });
       } else {
@@ -137,6 +170,9 @@ export async function POST(req: NextRequest) {
       displayName: targetParticipant.displayName || displayName,
       questionIndex: qIdx,
       selectedOptionIndex,
+      selectedSequence,
+      selectedCategoryAssignments,
+      selectedPromptBlocks,
       isCorrect,
       isTimeout,
       pointsEarned,
@@ -171,7 +207,7 @@ export async function POST(req: NextRequest) {
         const newRank = rankIdx + 1;
         participants[k].previousRank = oldRank;
         participants[k].rank = newRank;
-        participants[k].lastRankDelta = oldRank - newRank; // Positive means moved up, negative means fell down
+        participants[k].lastRankDelta = oldRank - newRank;
       }
     });
 

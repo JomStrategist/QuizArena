@@ -3,9 +3,13 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 export interface IQuestionDocument extends Document {
   trainerId: mongoose.Types.ObjectId;
   questionText: string;
-  questionType: 'MCQ' | 'TRUE_FALSE';
+  questionType: 'MCQ' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER';
   options: string[];
-  correctOptionIndex: number;
+  correctOptionIndex?: number;
+  correctOrder?: number[];
+  categories?: { id: string; title: string; description?: string }[];
+  categoryAssignments?: Record<string, string>;
+  promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
   timeLimit: number;
   points: number;
   explanation?: string;
@@ -22,10 +26,18 @@ const QuestionSchema = new Schema<IQuestionDocument>(
   {
     trainerId: { type: Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     questionText: { type: String, required: true, trim: true },
-    questionType: { type: String, enum: ['MCQ', 'TRUE_FALSE'], default: 'MCQ' },
+    questionType: {
+      type: String,
+      enum: ['MCQ', 'TRUE_FALSE', 'DRAG_AND_DROP', 'CORRECT_SEQUENCE', 'PROMPT_BUILDER'],
+      default: 'MCQ',
+    },
     options: { type: [String], required: true },
-    correctOptionIndex: { type: Number, required: true },
-    timeLimit: { type: Number, default: 20 }, // Default 20s
+    correctOptionIndex: { type: Number },
+    correctOrder: { type: [Number] },
+    categories: { type: Schema.Types.Mixed },
+    categoryAssignments: { type: Schema.Types.Mixed },
+    promptBlocks: { type: Schema.Types.Mixed },
+    timeLimit: { type: Number, default: 20 },
     points: { type: Number, default: 1000 },
     explanation: { type: String },
     category: { type: String, required: true, default: 'General', index: true },

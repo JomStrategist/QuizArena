@@ -10,7 +10,7 @@ export interface IUser {
   createdAt: string;
 }
 
-export type QuestionType = 'MCQ' | 'TRUE_FALSE';
+export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER';
 export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface IQuestion {
@@ -19,7 +19,11 @@ export interface IQuestion {
   questionText: string;
   questionType: QuestionType;
   options: string[];
-  correctOptionIndex: number;
+  correctOptionIndex?: number;
+  correctOrder?: number[];
+  categories?: { id: string; title: string; description?: string }[];
+  categoryAssignments?: Record<string, string>;
+  promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
   timeLimit: number; // Seconds
   points: number;
   explanation?: string;

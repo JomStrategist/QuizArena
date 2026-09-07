@@ -182,7 +182,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
       return;
     }
     const updatedOpts = currentQuestion.options.filter((_, idx) => idx !== indexToRemove);
-    let newCorrect = currentQuestion.correctOptionIndex;
+    let newCorrect = currentQuestion.correctOptionIndex ?? 0;
     if (indexToRemove === newCorrect) {
       newCorrect = 0;
     } else if (indexToRemove < newCorrect) {

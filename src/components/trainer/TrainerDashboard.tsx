@@ -171,6 +171,22 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     loadData();
   }, []);
 
+  const handleSeedMaterials = async () => {
+    try {
+      showToast('Seeding 4 HTML Quiz Materials...', 'info');
+      const res = await fetch('/api/v1/quizzes/seed', { method: 'POST' });
+      const json = await res.json();
+      if (json.success) {
+        showToast(json.message || 'Seeded 4 HTML Quiz Materials!', 'success');
+        loadData();
+      } else {
+        showToast(json.error?.message || 'Failed to seed quiz materials', 'error');
+      }
+    } catch (err) {
+      showToast('Error seeding materials', 'error');
+    }
+  };
+
   const handleLaunchLiveSession = async (
     quizId: string,
     settings?: {
@@ -534,6 +550,27 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     <h3 className="text-xs font-bold text-left leading-tight">Import Questions</h3>
                     <p className="text-[10px] text-purple-100 text-left line-clamp-2 mt-0.5 opacity-90">
                       Add from Excel or Word
+                    </p>
+                  </div>
+                  <div className="flex justify-end">
+                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:translate-x-1 transition-transform">
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+                </button>
+
+                {/* 3. Seed Quiz Materials */}
+                <button
+                  onClick={handleSeedMaterials}
+                  className="bg-gradient-to-b from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border border-emerald-400/30 flex flex-col justify-between h-36 group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
+                    <Sparkles className="w-4 h-4 group-hover:scale-125 transition-transform" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-left leading-tight">Seed HTML Quizzes</h3>
+                    <p className="text-[10px] text-emerald-100 text-left line-clamp-2 mt-0.5 opacity-90">
+                      Import 4 Workshop Quiz Materials
                     </p>
                   </div>
                   <div className="flex justify-end">
