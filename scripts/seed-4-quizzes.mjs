@@ -222,62 +222,69 @@ const quiz2Data = {
   ]
 };
 
-// Quiz 3: Activity 3 - AI Business Capabilities & Automation
+// Quiz 3: Activity 3 - AI Solution & Workflow Challenge
 const quiz3Data = {
-  title: "Activity 3: AI Business Capabilities & Automation",
-  description: "Evaluate AI capabilities across structured data, natural language processing, visual recognition, and decision automation.",
-  category: "Business AI Applications",
+  title: "Activity 3: AI Solution & Workflow Challenge",
+  description: "Evaluate AI solution architectures across structured data, NLP, computer vision, predictive analytics, and workflow decision automation.",
+  category: "AI Solution Architecture",
   questions: [
     {
-      q: "Which scenario represents an optimal application of Natural Language Processing (NLP) in enterprise customer service?",
+      q: "E-Commerce Product Launch & Content Automation: A brand needs 200 social captions and 50 product descriptions created from specs with human review before publishing. Which AI approach is best?",
       opts: [
-        "Automatically converting customer voice calls and emails into structured intent categories and sentiment scores",
-        "Calculating the monthly average invoice amount using SQL queries",
-        "Sorting scanned PDF invoices by file size",
-        "Sending automated birthday email templates to users based on a calendar date"
-      ],
-      ans: 0,
-      why: "NLP is specifically designed to parse unstructured human text and voice data to extract underlying intent and sentiment."
-    },
-    {
-      q: "When implementing an AI-driven predictive maintenance model in manufacturing, which input data type is most critical?",
-      opts: [
-        "Time-series sensor telemetry data (vibration, temperature, pressure)",
-        "Employee payroll spreadsheets",
-        "Company branding guidelines and logos",
-        "Static PDF user manuals"
-      ],
-      ans: 0,
-      why: "Predictive maintenance relies on real-time and historical time-series sensor data to detect early anomaly patterns before failure."
-    },
-    {
-      q: "What is the primary technical distinction between Traditional Machine Learning and Generative AI?",
-      opts: [
-        "Traditional ML focuses on classification/prediction from historical data; Generative AI creates new content (text, image, code)",
-        "Traditional ML requires internet access; Generative AI works offline without data",
-        "Traditional ML only works with numbers; Generative AI only works with audio",
-        "There is no technical difference between them"
-      ],
-      ans: 0,
-      why: "Traditional ML predicts or classifies existing data schemas, whereas Generative AI generates novel unstructured outputs based on foundation model training."
-    },
-    {
-      q: "An automated system flags transactions over $10,000 made outside the home country. Is this AI or Rule-Based Automation?",
-      opts: [
-        "Rule-Based Automation (fixed IF-THEN conditional logic)",
-        "Artificial Intelligence (Machine Learning model)",
-        "Deep Learning Neural Network",
+        "Generative AI (Creates new original text copy from prompt inputs with a Human Approval Gate)",
+        "Traditional Machine Learning",
+        "Rule-Based Automation only",
         "Computer Vision"
       ],
       ans: 0,
-      why: "Fixed threshold conditions (IF amount > $10,000 AND location != home) are deterministic rule-based automation, not AI."
+      why: "Generative AI is optimal for generating creative copy from product specification inputs, while a human approval gate ensures brand voice compliance."
     },
     {
-      q: "A loan approval platform uses historical repayment records, credit history, and employment stability to estimate default probability. This is an example of:",
+      q: "Executive Sales Performance Assistant: Every Monday, a VP of Sales wants an AI tool to summarize CRM spreadsheet data, highlight anomalies, and suggest investigation questions for a management call. Which approach is best?",
       opts: [
-        "Predictive Analytics / Machine Learning",
-        "Computer Vision",
+        "AI Copilot (Assists human decision-makers with insights while manager retains full authority)",
+        "Autonomous AI Agent that fires underperforming reps",
+        "Deep Learning Image Classification",
+        "Rule-Based Automation"
+      ],
+      ans: 0,
+      why: "An AI Copilot empowers the executive with automated data analysis and strategic discussion prompts without stripping away human decision accountability."
+    },
+    {
+      q: "Omnichannel Customer Support Agent: A telecom provider wants an automated system that reads tickets, queries account history, searches a RAG knowledge base, issues credits <$20, and escalates complex disputes. Which approach is best?",
+      opts: [
+        "AI Agent (Performs multi-step tasks autonomously using tools/APIs with escalation rules)",
+        "Generative AI text builder only",
+        "Predictive Machine Learning model",
+        "Rule-Based Form Validation"
+      ],
+      ans: 0,
+      why: "AI Agents combine multi-step reasoning, external tool/API execution (CRM, billing, knowledge base), and decision-making bounded by guardrails."
+    },
+    {
+      q: "Predictive Customer Churn Analytics: A SaaS platform wants to predict which subscribers are most likely to cancel within 30 days based on usage, tickets, and billing history. Which approach is best?",
+      opts: [
+        "Machine Learning (Learns patterns from historical structured data to output churn risk scores)",
         "Generative AI",
+        "Rule-Based Automation",
+        "Computer Vision"
+      ],
+      ans: 0,
+      why: "Machine Learning classification models analyze historical behavioral features to forecast future probability metrics like subscriber churn risk."
+    },
+    {
+      q: "Enterprise Employee Leave Approval: A company wants to automate PTO submission, leave balance validation, manager notification, and HRIS sync following strict HR policy rules. Which approach is best?",
+      opts: [
+        "Rule-Based Automation (Follows deterministic IF-THEN corporate policy rules without probabilistic learning)",
+        "Generative AI",
+        "Deep Learning Neural Network",
+        "Predictive Machine Learning"
+      ],
+      ans: 0,
+      why: "Deterministic, rule-governed workflows with 100% policy compliance require Rule-Based Automation rather than probabilistic AI models."
+    }
+  ]
+};
         "Unsupervised Audio Processing"
       ],
       ans: 0,
