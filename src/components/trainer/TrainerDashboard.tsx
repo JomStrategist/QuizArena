@@ -183,22 +183,6 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     loadData();
   }, []);
 
-  const handleSeedMaterials = async () => {
-    try {
-      showToast('Seeding 4 HTML Quiz Materials...', 'info');
-      const res = await fetch('/api/v1/quizzes/seed', { method: 'POST' });
-      const json = await res.json();
-      if (json.success) {
-        showToast(json.message || 'Seeded 4 HTML Quiz Materials!', 'success');
-        loadData();
-      } else {
-        showToast(json.error?.message || 'Failed to seed quiz materials', 'error');
-      }
-    } catch (err) {
-      showToast('Error seeding materials', 'error');
-    }
-  };
-
   const handleLaunchLiveSession = async (
     quizId: string,
     settings?: {
@@ -576,26 +560,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   </div>
                 </button>
 
-                {/* 3. Seed Quiz Materials */}
-                <button
-                  onClick={handleSeedMaterials}
-                  className="bg-gradient-to-b from-emerald-500 to-teal-600 text-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border border-emerald-400/30 flex flex-col justify-between h-36 group"
-                >
-                  <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
-                    <Sparkles className="w-4 h-4 group-hover:scale-125 transition-transform" />
-                  </div>
-                  <div>
-                    <h3 className="text-xs font-bold text-left leading-tight">Seed HTML Quizzes</h3>
-                    <p className="text-[10px] text-emerald-100 text-left line-clamp-2 mt-0.5 opacity-90">
-                      Import 4 Workshop Quiz Materials
-                    </p>
-                  </div>
-                  <div className="flex justify-end">
-                    <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center text-white group-hover:translate-x-1 transition-transform">
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-                </button>
+
 
                 {/* 3. Assign Quiz */}
                 <button
@@ -1318,14 +1283,6 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               {/* Action Buttons */}
               <div className="flex items-center space-x-2 shrink-0 w-full md:w-auto">
                 <button
-                  onClick={handleSeedMaterials}
-                  className="w-full md:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Seed HTML Quizzes</span>
-                </button>
-
-                <button
                   onClick={handleCreateNewQuiz}
                   className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1"
                 >
@@ -1384,17 +1341,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               <div>
                 <h3 className="text-base font-bold text-slate-800">No quizzes found</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-                  No quizzes match your filter criteria or your database is empty. You can seed the 4 HTML Quiz Materials instantly or create a new quiz.
+                  No quizzes match your filter criteria or your database is empty. You can create a new quiz.
                 </p>
               </div>
               <div className="flex items-center justify-center space-x-3 pt-2">
-                <button
-                  onClick={handleSeedMaterials}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center space-x-1.5"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Seed 4 HTML Quiz Materials</span>
-                </button>
                 <button
                   onClick={handleCreateNewQuiz}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center space-x-1.5"
