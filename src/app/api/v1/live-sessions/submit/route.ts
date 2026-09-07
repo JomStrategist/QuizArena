@@ -145,6 +145,14 @@ export async function POST(req: NextRequest) {
           const taskOk = !question.promptBlocks.task || question.promptBlocks.task.includes(selectedPromptBlocks.task);
           const outputOk = !question.promptBlocks.outputFormat || question.promptBlocks.outputFormat.includes(selectedPromptBlocks.outputFormat);
           isCorrect = roleOk && contextOk && taskOk && outputOk;
+        } else {
+          isCorrect = true;
+        }
+      } else if (qType === 'SCENARIO_QUESTIONS' || qType === 'SOLUTION_CHALLENGE') {
+        if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
+          isCorrect = selectedOptionIndex === question.correctOptionIndex;
+        } else {
+          isCorrect = true;
         }
       }
     }

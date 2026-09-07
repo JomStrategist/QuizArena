@@ -179,6 +179,35 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+    } else if (type === 'SCENARIO_QUESTIONS') {
+      newQ = {
+        _id: `temp-${Date.now()}`,
+        trainerId: 'trainer-1',
+        questionText: 'Executive Scenario & Analysis Questions',
+        questionType: 'SCENARIO_QUESTIONS',
+        options: ['Option A', 'Option B'],
+        scenarioQuestionsData: {
+          scenarioTitle: 'Executive Scenario Case Study',
+          scenarioText: 'A high-growth organization is deciding how to integrate AI automation across customer support and warehouse operations.',
+          backgroundContext: 'Evaluate strategic impact, cost trade-offs, and operational risks.',
+          subQuestions: [
+            {
+              id: 'sq1',
+              questionText: 'Which business function should be prioritized first?',
+              options: ['Customer Support Chat', 'Warehouse Inventory Automation', 'Executive Payroll'],
+              correctOptionIndex: 0,
+              explanation: 'Customer support provides immediate ROI and low operational friction.',
+            },
+          ],
+        },
+        timeLimit: 30,
+        points: 1000,
+        category: category || 'Scenario Analysis',
+        difficulty: 'MEDIUM',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
     } else {
       newQ = {
         _id: `temp-${Date.now()}`,
@@ -561,6 +590,8 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                         <option value="DRAG_AND_DROP">Drag & Drop Categorization</option>
                         <option value="CORRECT_SEQUENCE">Correct the Sequence / Ordering</option>
                         <option value="PROMPT_BUILDER">RCTOF Prompt Builder</option>
+                        <option value="SOLUTION_CHALLENGE">5-Step AI Solution Builder</option>
+                        <option value="SCENARIO_QUESTIONS">Scenario & Sub-Questions</option>
                       </select>
                     </div>
                   </div>

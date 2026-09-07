@@ -84,12 +84,25 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   const [solAutonomy, setSolAutonomy] = useState<number | null>(null);
   const [solEvaluated, setSolEvaluated] = useState<boolean>(false);
 
+  // State for Scenario Questions
+  const [scenarioSubAnswers, setScenarioSubAnswers] = useState<Record<number, number>>({});
+
   useEffect(() => {
     if (question.options) {
       setSequence(question.options.map((_, idx) => idx));
     }
     setSelectedPromptPieces([]);
+    setScenarioSubAnswers({});
   }, [question]);
+
+  const handleSubQuestionSelect = (subIdx: number, optIdx: number) => {
+    if (disabled) return;
+    const updated = { ...scenarioSubAnswers, [subIdx]: optIdx };
+    setScenarioSubAnswers(updated);
+    if (onSelectOption) {
+      onSelectOption(optIdx);
+    }
+  };
 
   const togglePromptPiece = (pieceText: string) => {
     if (disabled) return;
@@ -1138,6 +1151,138 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // TYPE 5: SCENARIO_QUESTIONS (Scenario & Sub-Questions Challenge)
+  // -------------------------------------------------------------
+  if (qType === 'SCENARIO_QUESTIONS') {
+    const scData = question.scenarioQuestionsData || {
+      scenarioTitle: question.questionText || 'Executive Business Scenario',
+      scenarioText: question.explanation || 'Review the business scenario details carefully before answering.',
+      backgroundContext: 'Consider all strategic objectives, operational constraints, and technology requirements.',
+      subQuestions: [
+        {
+          id: 'q1',
+          questionText: 'What is the primary objective described in the scenario?',
+          options: ['Option A: Expand Market Reach', 'Option B: Reduce Operational Bottlenecks', 'Option C: Upgrade Legacy Hardware'],
+          correctOptionIndex: 1,
+          explanation: 'The scenario explicitly highlights reducing operational bottlenecks.',
+        },
+      ],
+    };
+
+    const subQuestions = scData.subQuestions || [];
+    const answeredCount = Object.keys(scenarioSubAnswers).length;
+
+    return (
+      <div className="space-y-6 w-full font-sans text-slate-900 dark:text-slate-100">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Left Panel: Scenario Case Study */}
+          <div className="lg:col-span-5 bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-5 shadow-xl sticky top-4">
+            <div className="space-y-2">
+              <span className="px-3 py-1 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-full text-[11px] font-black uppercase tracking-wider inline-block">
+                SCENARIO-BASED CHALLENGE
+              </span>
+              <h2 className="text-xl md:text-2xl font-black text-white">{scData.scenarioTitle}</h2>
+            </div>
+
+            {/* Scenario Text */}
+            <div className="p-4 bg-slate-800/90 border-l-4 border-purple-500 rounded-2xl text-xs md:text-sm leading-relaxed space-y-1">
+              <span className="text-[10px] uppercase font-black tracking-wider text-purple-400 block">Scenario Details</span>
+              <div className="text-slate-200 whitespace-pre-wrap">{scData.scenarioText}</div>
+            </div>
+
+            {/* Background Context */}
+            {scData.backgroundContext && (
+              <div className="p-4 bg-slate-800/40 border border-slate-700/60 rounded-2xl text-xs text-slate-300 space-y-1">
+                <span className="font-bold text-slate-200 block text-[11px] uppercase tracking-wider">Key Context & Rules</span>
+                <p className="leading-relaxed">{scData.backgroundContext}</p>
+              </div>
+            )}
+
+            {/* Progress Badge */}
+            <div className="p-3 bg-purple-950/60 border border-purple-500/40 rounded-2xl text-xs font-bold text-purple-300 flex items-center justify-between">
+              <span>Sub-Questions Progress:</span>
+              <span className="font-black px-2 py-0.5 bg-purple-500/30 rounded-lg text-white">
+                {answeredCount} / {subQuestions.length} Answered
+              </span>
+            </div>
+          </div>
+
+          {/* Right Panel: Sub-Questions List */}
+          <div className="lg:col-span-7 space-y-5">
+            {subQuestions.map((subQ, subIdx) => {
+              const selectedOpt = scenarioSubAnswers[subIdx];
+              return (
+                <div key={subQ.id || subIdx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between border-b pb-3 border-slate-100">
+                    <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                      Question {subIdx + 1} of {subQuestions.length}
+                    </span>
+                    {selectedOpt !== undefined && (
+                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center space-x-1">
+                        <span>✓ Answered</span>
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-sm md:text-base font-extrabold text-slate-900 leading-snug">
+                    {subQ.questionText}
+                  </h3>
+
+                  <div className="grid grid-cols-1 gap-2.5 pt-1">
+                    {subQ.options.map((optText, optIdx) => {
+                      const isSelected = selectedOpt === optIdx;
+                      const letter = String.fromCharCode(65 + optIdx);
+                      return (
+                        <button
+                          key={optIdx}
+                          type="button"
+                          disabled={disabled}
+                          onClick={() => handleSubQuestionSelect(subIdx, optIdx)}
+                          className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition flex items-start space-x-3 ${
+                            isSelected
+                              ? 'bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-500'
+                              : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300'
+                          }`}
+                        >
+                          <span
+                            className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 ${
+                              isSelected ? 'bg-white text-blue-700' : 'bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {letter}
+                          </span>
+                          <span className="leading-snug pt-0.5">{optText}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Show Feedback if Evaluated */}
+                  {(showCorrectAnswer || isAnswerSubmitted) && (
+                    <div
+                      className={`p-3.5 rounded-2xl border text-xs leading-relaxed ${
+                        selectedOpt === subQ.correctOptionIndex
+                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
+                          : 'bg-rose-50 border-rose-300 text-rose-900'
+                      }`}
+                    >
+                      <div className="font-extrabold flex items-center space-x-1.5 mb-1">
+                        <span>{selectedOpt === subQ.correctOptionIndex ? '✓ Correct Answer' : '✗ Incorrect'}</span>
+                        <span>• Correct Option: {String.fromCharCode(65 + subQ.correctOptionIndex)}</span>
+                      </div>
+                      {subQ.explanation && <p className="opacity-90">{subQ.explanation}</p>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   }
