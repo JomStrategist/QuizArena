@@ -266,6 +266,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       { id: 'cv', title: 'Computer Vision' },
     ];
 
+    // Parse "Title||Description" format — falls back to full text as title if no separator
+    const parseItem = (text: string): { title: string; desc: string } => {
+      const sep = text.indexOf('||');
+      if (sep === -1) return { title: text, desc: '' };
+      return { title: text.slice(0, sep).trim(), desc: text.slice(sep + 2).trim() };
+    };
+
     const isDropdownCases = items.some((it) => /^Case \d+:/i.test(it)) || question.questionText?.includes('Choose the AI Combination');
     const unassignedCount = items.filter((_, idx) => !categoryAssignments[idx.toString()]).length;
 
@@ -383,25 +390,30 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                       ) : (
                         assignedIndices.map((idxStr) => {
                           const idx = parseInt(idxStr, 10);
-                          const itemText = items[idx];
+                          const { title: itemTitle, desc: itemDesc } = parseItem(items[idx]);
                           return (
                             <div
                               key={idxStr}
-                              className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs font-bold shadow-xs flex items-center justify-between"
+                              className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs shadow-xs"
                             >
-                              <span className="leading-snug">{itemText}</span>
-                              {mode === 'player' && !disabled && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleAssignCategory(idxStr, '');
-                                  }}
-                                  className="ml-2 text-[10px] text-rose-600 font-extrabold hover:underline shrink-0"
-                                >
-                                  Remove ✕
-                                </button>
-                              )}
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="space-y-0.5">
+                                  <p className="font-black leading-snug text-slate-900">{itemTitle}</p>
+                                  {itemDesc && <p className="text-[10px] text-slate-500 font-medium leading-snug">{itemDesc}</p>}
+                                </div>
+                                {mode === 'player' && !disabled && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleAssignCategory(idxStr, '');
+                                    }}
+                                    className="text-[10px] text-rose-600 font-extrabold hover:underline shrink-0 mt-0.5"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           );
                         })
@@ -414,13 +426,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
             {/* Available Items Cards Pool */}
             {mode === 'player' && !disabled && (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4 shadow-sm">
+              <div className="bg-slate-950 p-6 rounded-3xl border border-slate-800 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
                     Unassigned Solutions ({unassignedCount} Remaining)
                   </h4>
                   {activeItem !== null && (
-                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
+                    <span className="text-[11px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg">
                       1 card selected — Click a category box above to place
                     </span>
                   )}
@@ -432,6 +444,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     const currentCat = categoryAssignments[idxStr];
                     if (currentCat) return null;
                     const isSelected = activeItem === idxStr;
+                    const { title: itemTitle, desc: itemDesc } = parseItem(itemText);
 
                     return (
                       <div
@@ -440,14 +453,27 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                         className={`p-4 rounded-2xl border transition cursor-pointer space-y-3 ${
                           isSelected
                             ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500 shadow-md'
-                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70 hover:border-slate-300'
+                            : mode === 'projector'
+                            ? 'bg-slate-800 border-slate-700 text-white hover:border-indigo-400'
+                            : 'bg-slate-900 border-slate-700 text-white hover:border-blue-500'
                         }`}
                       >
-                        <p className="text-xs md:text-sm font-extrabold text-slate-900 leading-snug">
-                          {itemText}
-                        </p>
+                        <div className="space-y-1">
+                          <p className={`text-sm font-black leading-snug ${
+                            isSelected ? 'text-blue-900' : 'text-white'
+                          }`}>
+                            {itemTitle}
+                          </p>
+                          {itemDesc && (
+                            <p className={`text-xs font-medium leading-relaxed ${
+                              isSelected ? 'text-blue-700' : 'text-slate-300'
+                            }`}>
+                              {itemDesc}
+                            </p>
+                          )}
+                        </div>
 
-                        <div className="flex flex-wrap gap-1.5 pt-1">
+                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/10">
                           {categories.map((cat) => (
                             <button
                               key={cat.id}
@@ -457,7 +483,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                                 handleAssignCategory(idxStr, cat.id);
                                 if (activeItem === idxStr) setActiveItem(null);
                               }}
-                              className="px-2.5 py-1.5 bg-white hover:bg-blue-600 hover:text-white text-blue-700 border border-blue-200 rounded-xl text-[10px] font-black transition shadow-xs flex items-center space-x-1"
+                              className="px-2.5 py-1.5 bg-white/10 hover:bg-blue-600 hover:text-white text-slate-200 border border-white/20 rounded-xl text-[10px] font-black transition shadow-xs flex items-center space-x-1"
                             >
                               <span>+</span>
                               <span>{cat.title}</span>
