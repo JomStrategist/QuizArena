@@ -53,6 +53,7 @@ import { AssignQuizModal } from './AssignQuizModal';
 import { ConductQuizSetupModal } from './ConductQuizSetupModal';
 import { LiveGameSetupModal } from './LiveGameSetupModal';
 import { ConductQuizResultsView } from './ConductQuizResultsView';
+import { Activity3AdminModal } from './Activity3AdminModal';
 
 interface TrainerDashboardProps {
   user?: { name: string; email: string; role: string } | null;
@@ -99,6 +100,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
   const [isLiveSetupOpen, setIsLiveSetupOpen] = useState(false);
   const [selectedQuizForLive, setSelectedQuizForLive] = useState<IQuiz | null>(null);
+
+  const [isActivity3AdminOpen, setIsActivity3AdminOpen] = useState(false);
 
   const [viewingConductResultsCode, setViewingConductResultsCode] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -422,6 +425,15 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
         {/* Right: Notifications & User Profile */}
         <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setIsActivity3AdminOpen(true)}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-xs"
+            title="Manage Activity 3 Business Challenges"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Activity 3 Admin</span>
+          </button>
+
           <button className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 transition relative shadow-xs">
             <Bell className="w-4 h-4" />
             <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
@@ -1721,6 +1733,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         quizzes={quizzes}
         initialQuiz={selectedQuizForLive}
         onLaunchLiveGame={(quizId, settings) => handleLaunchLiveSession(quizId, settings)}
+      />
+      <Activity3AdminModal
+        isOpen={isActivity3AdminOpen}
+        onClose={() => setIsActivity3AdminOpen(false)}
       />
     </div>
   );

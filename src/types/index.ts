@@ -13,16 +13,56 @@ export interface IUser {
 export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER' | 'SOLUTION_CHALLENGE' | 'SCENARIO_QUESTIONS';
 export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
 
+export interface ISolutionChallengeCapability {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+  description?: string;
+}
+
+export interface ISolutionChallengeWorkflowStep {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+  correctOrder?: number;
+}
+
+export interface ISolutionChallengeAutonomy {
+  id: string;
+  title: string;
+  isCorrect: boolean;
+  description: string;
+}
+
+export interface ISolutionChallengeRiskQuestion {
+  title?: string;
+  text?: string;
+  options?: { id: string; text: string; isCorrect: boolean }[];
+  explanation?: string;
+}
+
 export interface ISolutionChallengeData {
   icon: string;
   dept: string;
   answer: string;
-  capabilities: { text: string; isCorrect: boolean }[];
-  workflow: { text: string; isCorrect: boolean }[];
-  autonomy: { title: string; isCorrect: boolean; description: string }[];
+  objective?: string;
+  constraints?: string;
+  whyApproach?: string;
+  capabilities: ISolutionChallengeCapability[];
+  workflow: ISolutionChallengeWorkflowStep[];
+  autonomy: ISolutionChallengeAutonomy[];
   controlTitle?: string;
   why: string;
+  riskQuestion?: ISolutionChallengeRiskQuestion;
+  approachMarks?: number;
+  capabilityMarks?: number;
+  workflowMarks?: number;
+  workflowSequenceBonus?: number;
+  humanControlMarks?: number;
+  capabilityPenalty?: number;
+  workflowPenalty?: number;
 }
+
 
 export interface IPromptBuilderData {
   scenarioTitle?: string;
