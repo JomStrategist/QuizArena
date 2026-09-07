@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Check,
@@ -24,6 +24,9 @@ import {
   ArrowUp,
   ArrowDown,
   HelpCircle as QuestionIcon,
+  Bold,
+  Italic,
+  Type,
 } from 'lucide-react';
 import { IQuestion, IQuiz, QuestionType } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -330,7 +333,12 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           const qRes = await fetch('/api/v1/questions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+              ...payload,
+              solutionChallengeData: q.solutionChallengeData,
+              promptBuilderData: q.promptBuilderData,
+              scenarioQuestionsData: q.scenarioQuestionsData,
+            }),
           });
           const qJson = await qRes.json();
           if (qJson.success) {
@@ -340,7 +348,12 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           await fetch(`/api/v1/questions?id=${q._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload),
+            body: JSON.stringify({
+              ...payload,
+              solutionChallengeData: q.solutionChallengeData,
+              promptBuilderData: q.promptBuilderData,
+              scenarioQuestionsData: q.scenarioQuestionsData,
+            }),
           });
           questionIds.push(q._id);
         }
@@ -618,13 +631,73 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                     <label className="block text-xs font-extrabold text-slate-700 mb-1">
                       Question Text <span className="text-rose-500">*</span>
                     </label>
+
+                    {/* Rich Text Toolbar */}
+                    <div className="flex items-center gap-1 mb-1.5 p-1.5 bg-slate-100 border border-slate-200 rounded-xl flex-wrap">
+                      {[
+                        { label: 'B', title: 'Bold', prefix: '**', suffix: '**', icon: <Bold className="w-3 h-3" /> },
+                        { label: 'I', title: 'Italic', prefix: '_', suffix: '_', icon: <Italic className="w-3 h-3" /> },
+                      ].map((fmt) => (
+                        <button
+                          key={fmt.label}
+                          type="button"
+                          title={fmt.title}
+                          onClick={() => {
+                            const el = document.getElementById('question-text-area') as HTMLTextAreaElement;
+                            if (!el) return;
+                            const start = el.selectionStart;
+                            const end = el.selectionEnd;
+                            const selected = el.value.slice(start, end) || fmt.title;
+                            const newVal = el.value.slice(0, start) + fmt.prefix + selected + fmt.suffix + el.value.slice(end);
+                            updateCurrentQuestion({ questionText: newVal });
+                            setTimeout(() => { el.focus(); el.setSelectionRange(start + fmt.prefix.length, end + fmt.prefix.length); }, 0);
+                          }}
+                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-700 hover:bg-blue-50 hover:border-blue-300 transition flex items-center gap-1"
+                        >
+                          {fmt.icon}
+                        </button>
+                      ))}
+                      <div className="w-px h-5 bg-slate-300 mx-0.5" />
+                      {[
+                        { label: 'H1', title: 'Heading 1', marker: '# ' },
+                        { label: 'H2', title: 'Heading 2', marker: '## ' },
+                        { label: 'Aa', title: 'Normal text', marker: '' },
+                      ].map((h) => (
+                        <button
+                          key={h.label}
+                          type="button"
+                          title={h.title}
+                          onClick={() => {
+                            const el = document.getElementById('question-text-area') as HTMLTextAreaElement;
+                            if (!el) return;
+                            const lines = el.value.split('\n');
+                            const pos = el.selectionStart;
+                            let charCount = 0;
+                            let lineIdx = 0;
+                            for (let i = 0; i < lines.length; i++) {
+                              if (charCount + lines[i].length >= pos) { lineIdx = i; break; }
+                              charCount += lines[i].length + 1;
+                            }
+                            lines[lineIdx] = lines[lineIdx].replace(/^#{1,2}\s*/, '');
+                            if (h.marker) lines[lineIdx] = h.marker + lines[lineIdx];
+                            updateCurrentQuestion({ questionText: lines.join('\n') });
+                          }}
+                          className="px-2 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-700 hover:bg-blue-50 hover:border-blue-300 transition"
+                        >
+                          {h.label}
+                        </button>
+                      ))}
+                      <span className="ml-auto text-[10px] text-slate-400 font-medium">**bold** _italic_ # H1 ## H2</span>
+                    </div>
+
                     <textarea
-                      rows={2}
+                      id="question-text-area"
+                      rows={3}
                       required
                       value={currentQuestion.questionText}
                       onChange={(e) => updateCurrentQuestion({ questionText: e.target.value })}
-                      placeholder="Enter question statement..."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      placeholder="Enter question statement... Use **bold**, _italic_, # H1, ## H2 for formatting"
+                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 font-mono"
                     />
                   </div>
 
@@ -821,6 +894,182 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       </button>
                     </div>
                   )}
+
+                  {/* 4. SCENARIO_QUESTIONS */}
+                  {currentQuestion.questionType === 'SCENARIO_QUESTIONS' && (() => {
+                    const sData = currentQuestion.scenarioQuestionsData || {
+                      scenarioTitle: '',
+                      scenarioText: '',
+                      backgroundContext: '',
+                      subQuestions: [],
+                    };
+                    const updateScenario = (patch: Partial<typeof sData>) => {
+                      updateCurrentQuestion({ scenarioQuestionsData: { ...sData, ...patch } });
+                    };
+                    const updateSubQ = (sqIdx: number, patch: Partial<typeof sData.subQuestions[0]>) => {
+                      const copy = [...sData.subQuestions];
+                      copy[sqIdx] = { ...copy[sqIdx], ...patch };
+                      updateScenario({ subQuestions: copy });
+                    };
+                    const addSubQ = () => {
+                      const copy = [...sData.subQuestions, {
+                        id: `sq${Date.now()}`,
+                        questionText: '',
+                        options: ['Option A', 'Option B', 'Option C', 'Option D'],
+                        correctOptionIndex: 0,
+                        explanation: '',
+                      }];
+                      updateScenario({ subQuestions: copy });
+                    };
+                    const removeSubQ = (sqIdx: number) => {
+                      updateScenario({ subQuestions: sData.subQuestions.filter((_, i) => i !== sqIdx) });
+                    };
+                    const updateSubQOption = (sqIdx: number, optIdx: number, val: string) => {
+                      const copy = [...sData.subQuestions[sqIdx].options];
+                      copy[optIdx] = val;
+                      updateSubQ(sqIdx, { options: copy });
+                    };
+                    const addSubQOption = (sqIdx: number) => {
+                      const copy = [...sData.subQuestions[sqIdx].options, `Option ${String.fromCharCode(65 + sData.subQuestions[sqIdx].options.length)}`];
+                      updateSubQ(sqIdx, { options: copy });
+                    };
+                    const removeSubQOption = (sqIdx: number, optIdx: number) => {
+                      if (sData.subQuestions[sqIdx].options.length <= 2) return;
+                      const copy = sData.subQuestions[sqIdx].options.filter((_, i) => i !== optIdx);
+                      const correct = sData.subQuestions[sqIdx].correctOptionIndex;
+                      updateSubQ(sqIdx, {
+                        options: copy,
+                        correctOptionIndex: optIdx === correct ? 0 : optIdx < correct ? correct - 1 : correct,
+                      });
+                    };
+
+                    return (
+                      <div className="space-y-4 p-4 bg-indigo-50/60 border border-indigo-200 rounded-2xl">
+                        <h4 className="text-xs font-black uppercase text-indigo-900">Scenario & Sub-Questions</h4>
+
+                        {/* Scenario fields */}
+                        <div className="space-y-3 p-3 bg-white border border-indigo-200 rounded-xl">
+                          <p className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">Scenario Details</p>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Scenario Title</label>
+                            <input
+                              type="text"
+                              value={sData.scenarioTitle}
+                              onChange={(e) => updateScenario({ scenarioTitle: e.target.value })}
+                              placeholder="e.g. Executive Scenario Case Study"
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Scenario Text</label>
+                            <textarea
+                              rows={3}
+                              value={sData.scenarioText}
+                              onChange={(e) => updateScenario({ scenarioText: e.target.value })}
+                              placeholder="Describe the full scenario here..."
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Background Context (Optional)</label>
+                            <textarea
+                              rows={2}
+                              value={sData.backgroundContext || ''}
+                              onChange={(e) => updateScenario({ backgroundContext: e.target.value })}
+                              placeholder="Additional context or constraints..."
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Sub-Questions */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">
+                              Sub-Questions ({sData.subQuestions.length})
+                            </p>
+                            <button
+                              type="button"
+                              onClick={addSubQ}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition"
+                            >
+                              <Plus className="w-3.5 h-3.5" /> Add Sub-Question
+                            </button>
+                          </div>
+
+                          {sData.subQuestions.length === 0 && (
+                            <p className="text-[11px] text-slate-400 italic text-center py-4 bg-white rounded-xl border border-dashed border-slate-300">
+                              No sub-questions yet — click "Add Sub-Question" above
+                            </p>
+                          )}
+
+                          {sData.subQuestions.map((sq, sqIdx) => (
+                            <div key={sq.id} className="p-3 bg-white border border-indigo-200 rounded-xl space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-lg text-[10px] font-black">Q{sqIdx + 1}</span>
+                                <button type="button" onClick={() => removeSubQ(sqIdx)} className="p-1 text-rose-500 hover:text-rose-700">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+
+                              <textarea
+                                rows={2}
+                                value={sq.questionText}
+                                onChange={(e) => updateSubQ(sqIdx, { questionText: e.target.value })}
+                                placeholder={`Sub-question ${sqIdx + 1} text...`}
+                                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none"
+                              />
+
+                              <div className="space-y-1.5">
+                                {sq.options.map((opt, optIdx) => (
+                                  <div key={optIdx} className="flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => updateSubQ(sqIdx, { correctOptionIndex: optIdx })}
+                                      className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition ${
+                                        sq.correctOptionIndex === optIdx
+                                          ? 'bg-emerald-500 border-emerald-500 text-white'
+                                          : 'border-slate-300 bg-white hover:border-emerald-400'
+                                      }`}
+                                    >
+                                      {sq.correctOptionIndex === optIdx && <Check className="w-3 h-3" />}
+                                    </button>
+                                    <input
+                                      type="text"
+                                      value={opt}
+                                      onChange={(e) => updateSubQOption(sqIdx, optIdx, e.target.value)}
+                                      placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                                      className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                                    />
+                                    {sq.options.length > 2 && (
+                                      <button type="button" onClick={() => removeSubQOption(sqIdx, optIdx)} className="p-1 text-slate-400 hover:text-rose-500">
+                                        <Trash2 className="w-3 h-3" />
+                                      </button>
+                                    )}
+                                  </div>
+                                ))}
+                                <button
+                                  type="button"
+                                  onClick={() => addSubQOption(sqIdx)}
+                                  className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1"
+                                >
+                                  <Plus className="w-3 h-3" /> Add Option
+                                </button>
+                              </div>
+
+                              <textarea
+                                rows={1}
+                                value={sq.explanation || ''}
+                                onChange={(e) => updateSubQ(sqIdx, { explanation: e.target.value })}
+                                placeholder="Explanation (shown after answer)..."
+                                className="w-full p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-slate-700 focus:outline-none resize-none"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Controls Row: Time Limit, Points, Category */}
                   <div className="grid grid-cols-3 gap-3 pt-2">

@@ -160,23 +160,70 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   const renderQuestionText = (text?: string) => {
     if (!text) return 'Sample Question';
-    const parts = text.split(/(WHO|WHAT|HOW|WHY|WHERE|WHEN)/gi);
-    return parts.map((part, idx) => {
-      if (['WHO', 'WHAT', 'HOW', 'WHY', 'WHERE', 'WHEN'].includes(part.toUpperCase())) {
-        return (
-          <span
-            key={idx}
-            className={
-              mode === 'projector'
-                ? 'text-amber-400 font-black underline decoration-amber-400 decoration-wavy'
-                : 'text-blue-600 font-black underline decoration-blue-400 decoration-wavy'
-            }
-          >
-            {part}
-          </span>
-        );
+
+    // Split by lines to handle headings
+    const lines = text.split('\n');
+    return lines.map((line, lineIdx) => {
+      // Detect heading level
+      const h1Match = line.match(/^#\s+(.*)/);
+      const h2Match = line.match(/^##\s+(.*)/);
+      const content = h1Match ? h1Match[1] : h2Match ? h2Match[1] : line;
+
+      // Parse inline formatting: **bold**, _italic_, and WHO/WHAT/HOW keywords
+      const parseInline = (str: string): React.ReactNode[] => {
+        const tokens: React.ReactNode[] = [];
+        let remaining = str;
+        let key = 0;
+        while (remaining.length > 0) {
+          // Bold
+          const boldIdx = remaining.indexOf('**');
+          const italicIdx = remaining.indexOf('_');
+          const kwMatch = remaining.match(/\b(WHO|WHAT|HOW|WHY|WHERE|WHEN)\b/i);
+          const kwIdx = kwMatch ? remaining.indexOf(kwMatch[0]) : Infinity;
+
+          const nextIdx = Math.min(
+            boldIdx >= 0 ? boldIdx : Infinity,
+            italicIdx >= 0 ? italicIdx : Infinity,
+            kwIdx
+          );
+
+          if (nextIdx === Infinity) { tokens.push(remaining); break; }
+
+          // Text before marker
+          if (nextIdx > 0) tokens.push(remaining.slice(0, nextIdx));
+          remaining = remaining.slice(nextIdx);
+
+          if (boldIdx >= 0 && nextIdx === boldIdx) {
+            const end = remaining.indexOf('**', 2);
+            if (end === -1) { tokens.push(remaining); break; }
+            tokens.push(<strong key={key++} className="font-black">{remaining.slice(2, end)}</strong>);
+            remaining = remaining.slice(end + 2);
+          } else if (italicIdx >= 0 && nextIdx === italicIdx) {
+            const end = remaining.indexOf('_', 1);
+            if (end === -1) { tokens.push(remaining); break; }
+            tokens.push(<em key={key++} className="italic">{remaining.slice(1, end)}</em>);
+            remaining = remaining.slice(end + 1);
+          } else if (kwMatch && nextIdx === kwIdx) {
+            tokens.push(
+              <span key={key++} className={mode === 'projector' ? 'text-amber-400 font-black underline decoration-amber-400 decoration-wavy' : 'text-blue-600 font-black underline decoration-blue-400 decoration-wavy'}>
+                {kwMatch[0]}
+              </span>
+            );
+            remaining = remaining.slice(kwMatch[0].length);
+          }
+        }
+        return tokens;
+      };
+
+      const inlineContent = parseInline(content);
+
+      if (h1Match) {
+        return <p key={lineIdx} className={`text-2xl md:text-3xl font-black leading-tight ${lineIdx > 0 ? 'mt-2' : ''}`}>{inlineContent}</p>;
+      } else if (h2Match) {
+        return <p key={lineIdx} className={`text-lg md:text-xl font-black leading-snug ${lineIdx > 0 ? 'mt-1.5' : ''}`}>{inlineContent}</p>;
+      } else {
+        return <span key={lineIdx}>{inlineContent}{lineIdx < lines.length - 1 && line !== '' && <br />}</span>;
       }
-      return part;
     });
   };
 
