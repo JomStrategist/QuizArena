@@ -744,37 +744,69 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                         Drag & Drop Items & Category Assignments
                       </h4>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         {currentQuestion.options.map((opt, optIdx) => {
                           const assignments = currentQuestion.categoryAssignments || {};
                           const currentCat = assignments[optIdx.toString()] || 'ml';
+                          const sepIdx = opt.indexOf('||');
+                          const itemTitle = sepIdx === -1 ? opt : opt.slice(0, sepIdx);
+                          const itemDesc = sepIdx === -1 ? '' : opt.slice(sepIdx + 2);
+
+                          const updateItem = (newTitle: string, newDesc: string) => {
+                            const copy = [...currentQuestion.options];
+                            copy[optIdx] = newDesc ? `${newTitle}||${newDesc}` : newTitle;
+                            updateCurrentQuestion({ options: copy });
+                          };
 
                           return (
-                            <div key={optIdx} className="p-3 bg-white border border-purple-200 rounded-xl flex items-center justify-between gap-3">
-                              <input
-                                type="text"
-                                value={opt}
-                                onChange={(e) => {
-                                  const copy = [...currentQuestion.options];
-                                  copy[optIdx] = e.target.value;
-                                  updateCurrentQuestion({ options: copy });
-                                }}
-                                className="flex-1 text-xs font-bold text-slate-900 bg-transparent focus:outline-none"
-                              />
+                            <div key={optIdx} className="p-3 bg-white border border-purple-200 rounded-xl space-y-2">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 space-y-1.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black uppercase text-purple-600 tracking-wider w-16 shrink-0">Title</span>
+                                    <input
+                                      type="text"
+                                      value={itemTitle}
+                                      onChange={(e) => updateItem(e.target.value, itemDesc)}
+                                      placeholder="e.g. Customer churn prediction"
+                                      className="flex-1 text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                                    />
+                                  </div>
+                                  <div className="flex items-start gap-2">
+                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider w-16 shrink-0 mt-1.5">Desc</span>
+                                    <textarea
+                                      value={itemDesc}
+                                      onChange={(e) => updateItem(itemTitle, e.target.value)}
+                                      placeholder="e.g. A telecom company predicts which customers may leave..."
+                                      rows={2}
+                                      className="flex-1 text-[11px] font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 resize-none leading-relaxed"
+                                    />
+                                  </div>
+                                </div>
 
-                              <select
-                                value={currentCat}
-                                onChange={(e) => {
-                                  const updatedMap = { ...assignments, [optIdx.toString()]: e.target.value };
-                                  updateCurrentQuestion({ categoryAssignments: updatedMap });
-                                }}
-                                className="px-2.5 py-1 bg-purple-100 text-purple-900 rounded-lg text-xs font-bold"
-                              >
-                                <option value="ml">Traditional ML</option>
-                                <option value="dl">Deep Learning</option>
-                                <option value="nlp">NLP</option>
-                                <option value="cv">Computer Vision</option>
-                              </select>
+                                <div className="flex flex-col items-center gap-2 shrink-0">
+                                  <select
+                                    value={currentCat}
+                                    onChange={(e) => {
+                                      const updatedMap = { ...assignments, [optIdx.toString()]: e.target.value };
+                                      updateCurrentQuestion({ categoryAssignments: updatedMap });
+                                    }}
+                                    className="px-2 py-1.5 bg-purple-100 text-purple-900 rounded-lg text-[10px] font-bold"
+                                  >
+                                    <option value="ml">Traditional ML</option>
+                                    <option value="dl">Deep Learning</option>
+                                    <option value="nlp">NLP</option>
+                                    <option value="cv">Computer Vision</option>
+                                  </select>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveOption(optIdx)}
+                                    className="p-1 text-rose-500 hover:text-rose-700"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </div>
                             </div>
                           );
                         })}
