@@ -95,6 +95,24 @@ export interface IScenarioQuestionsData {
 }
 
 
+export interface ISequenceItem {
+  id: string;
+  text: string;
+  description?: string;
+  icon?: string;
+  correctPosition: number;
+}
+
+export interface ISequenceQuestionData {
+  scenarioTitle?: string;
+  scenarioText?: string;
+  instruction?: string;
+  items: ISequenceItem[];
+  correctSequenceIds: string[];
+  allowPartialScoring?: boolean;
+  feedback?: string;
+}
+
 export interface IQuestion {
   _id: string;
   trainerId: string;
@@ -109,6 +127,7 @@ export interface IQuestion {
   solutionChallengeData?: ISolutionChallengeData;
   promptBuilderData?: IPromptBuilderData;
   scenarioQuestionsData?: IScenarioQuestionsData;
+  sequenceData?: ISequenceQuestionData;
   timeLimit: number; // Seconds
   points: number;
   explanation?: string;

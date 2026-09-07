@@ -13,6 +13,7 @@ export interface IQuestionDocument extends Document {
   solutionChallengeData?: any;
   promptBuilderData?: any;
   scenarioQuestionsData?: any;
+  sequenceData?: any;
   timeLimit: number;
   points: number;
   explanation?: string;
@@ -43,6 +44,7 @@ const QuestionSchema = new Schema<IQuestionDocument>(
     solutionChallengeData: { type: Schema.Types.Mixed },
     promptBuilderData: { type: Schema.Types.Mixed },
     scenarioQuestionsData: { type: Schema.Types.Mixed },
+    sequenceData: { type: Schema.Types.Mixed },
     timeLimit: { type: Number, default: 20 },
     points: { type: Number, default: 1000 },
     explanation: { type: String },

@@ -54,6 +54,7 @@ import { ConductQuizSetupModal } from './ConductQuizSetupModal';
 import { LiveGameSetupModal } from './LiveGameSetupModal';
 import { ConductQuizResultsView } from './ConductQuizResultsView';
 import { Activity3AdminModal } from './Activity3AdminModal';
+import { Activity4AdminModal } from './Activity4AdminModal';
 
 interface TrainerDashboardProps {
   user?: { name: string; email: string; role: string } | null;
@@ -102,6 +103,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [selectedQuizForLive, setSelectedQuizForLive] = useState<IQuiz | null>(null);
 
   const [isActivity3AdminOpen, setIsActivity3AdminOpen] = useState(false);
+  const [isActivity4AdminOpen, setIsActivity4AdminOpen] = useState(false);
 
   const [viewingConductResultsCode, setViewingConductResultsCode] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -432,6 +434,15 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span className="hidden md:inline">Activity 3 Admin</span>
+          </button>
+
+          <button
+            onClick={() => setIsActivity4AdminOpen(true)}
+            className="px-3.5 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-full text-xs font-bold transition flex items-center space-x-1.5 shadow-xs"
+            title="Manage Activity 4 Sequence Challenges"
+          >
+            <ListOrdered className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Activity 4 Admin</span>
           </button>
 
           <button className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 transition relative shadow-xs">
@@ -1737,6 +1748,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
       <Activity3AdminModal
         isOpen={isActivity3AdminOpen}
         onClose={() => setIsActivity3AdminOpen(false)}
+      />
+      <Activity4AdminModal
+        isOpen={isActivity4AdminOpen}
+        onClose={() => setIsActivity4AdminOpen(false)}
       />
     </div>
   );

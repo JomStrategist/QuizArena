@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { IQuestion } from '@/types';
 import { Activity3ChallengeView } from './Activity3ChallengeView';
+import { SequenceChallengeView } from './SequenceChallengeView';
 
 interface QuestionRendererProps {
   question: Partial<IQuestion> | null;
@@ -260,65 +261,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // TYPE 1: CORRECT_SEQUENCE (Re-order Steps)
   // -------------------------------------------------------------
   if (qType === 'CORRECT_SEQUENCE') {
-    const options = question.options || [];
-
     return (
-      <div className="space-y-6 w-full font-sans">
-        <div className={`p-6 rounded-3xl border shadow-sm ${mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
-          <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block mb-2">
-            CORRECT THE SEQUENCE
-          </span>
-          <h2 className="text-xl md:text-2xl font-black">{renderQuestionText(question.questionText)}</h2>
-          <p className="text-xs opacity-75 mt-1">Reorder the steps into the correct logical workflow order.</p>
-        </div>
-
-        <div className="space-y-3">
-          {sequence.map((optIdx, position) => {
-            const stepText = options[optIdx] || `Step ${optIdx + 1}`;
-
-            return (
-              <div
-                key={optIdx}
-                className={`p-4 rounded-2xl border flex items-center justify-between transition shadow-sm ${
-                  mode === 'projector'
-                    ? 'bg-slate-800 border-indigo-400/30 text-white'
-                    : 'bg-white border-slate-200 text-slate-900'
-                }`}
-              >
-                <div className="flex items-center space-x-3.5">
-                  <span className="w-8 h-8 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">
-                    {position + 1}
-                  </span>
-                  <span className="text-sm font-extrabold">{stepText}</span>
-                </div>
-
-                {mode === 'player' && !disabled && (
-                  <div className="flex items-center space-x-1">
-                    <button
-                      type="button"
-                      disabled={position === 0}
-                      onClick={() => handleMoveStep(position, position - 1)}
-                      className="p-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-xl text-slate-700 transition"
-                      title="Move Up"
-                    >
-                      <ArrowUp className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={position === sequence.length - 1}
-                      onClick={() => handleMoveStep(position, position + 1)}
-                      className="p-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-xl text-slate-700 transition"
-                      title="Move Down"
-                    >
-                      <ArrowDown className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      <SequenceChallengeView
+        question={question}
+        questionIndex={questionIndex}
+        totalQuestions={totalQuestions}
+        onNavigateQuestion={onNavigateQuestion}
+        disabled={disabled}
+      />
     );
   }
 
