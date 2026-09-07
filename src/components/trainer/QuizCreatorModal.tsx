@@ -213,9 +213,11 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           subQuestions: [
             {
               id: 'sq1',
+              questionType: 'MCQ',
               questionText: 'Which business function should be prioritized first?',
               options: ['Customer Support Chat', 'Warehouse Inventory Automation', 'Executive Payroll'],
               correctOptionIndex: 0,
+              points: 100,
               explanation: 'Customer support provides immediate ROI and low operational friction.',
             },
           ],
@@ -901,42 +903,55 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       scenarioTitle: '',
                       scenarioText: '',
                       backgroundContext: '',
-                      subQuestions: [],
+                      instructions: '',
+                      subQuestions: [] as any[],
                     };
                     const updateScenario = (patch: Partial<typeof sData>) => {
                       updateCurrentQuestion({ scenarioQuestionsData: { ...sData, ...patch } });
                     };
-                    const updateSubQ = (sqIdx: number, patch: Partial<typeof sData.subQuestions[0]>) => {
+                    const updateSubQ = (sqIdx: number, patch: any) => {
                       const copy = [...sData.subQuestions];
                       copy[sqIdx] = { ...copy[sqIdx], ...patch };
                       updateScenario({ subQuestions: copy });
                     };
                     const addSubQ = () => {
-                      const copy = [...sData.subQuestions, {
-                        id: `sq${Date.now()}`,
-                        questionText: '',
-                        options: ['Option A', 'Option B', 'Option C', 'Option D'],
-                        correctOptionIndex: 0,
-                        explanation: '',
-                      }];
-                      updateScenario({ subQuestions: copy });
+                      updateScenario({
+                        subQuestions: [...sData.subQuestions, {
+                          id: `sq${Date.now()}`,
+                          questionType: 'MCQ',
+                          questionText: '',
+                          options: ['Option A', 'Option B', 'Option C', 'Option D'],
+                          correctOptionIndex: 0,
+                          correctOrder: [0, 1, 2, 3],
+                          points: 250,
+                          explanation: '',
+                        }],
+                      });
                     };
                     const removeSubQ = (sqIdx: number) => {
-                      updateScenario({ subQuestions: sData.subQuestions.filter((_, i) => i !== sqIdx) });
+                      updateScenario({ subQuestions: sData.subQuestions.filter((_: any, i: number) => i !== sqIdx) });
                     };
-                    const updateSubQOption = (sqIdx: number, optIdx: number, val: string) => {
+                    const moveSubQ = (sqIdx: number, dir: -1 | 1) => {
+                      const copy = [...sData.subQuestions];
+                      const to = sqIdx + dir;
+                      if (to < 0 || to >= copy.length) return;
+                      [copy[sqIdx], copy[to]] = [copy[to], copy[sqIdx]];
+                      updateScenario({ subQuestions: copy });
+                    };
+                    const updateOpt = (sqIdx: number, optIdx: number, val: string) => {
                       const copy = [...sData.subQuestions[sqIdx].options];
                       copy[optIdx] = val;
                       updateSubQ(sqIdx, { options: copy });
                     };
-                    const addSubQOption = (sqIdx: number) => {
-                      const copy = [...sData.subQuestions[sqIdx].options, `Option ${String.fromCharCode(65 + sData.subQuestions[sqIdx].options.length)}`];
-                      updateSubQ(sqIdx, { options: copy });
+                    const addOpt = (sqIdx: number) => {
+                      const sq = sData.subQuestions[sqIdx];
+                      updateSubQ(sqIdx, { options: [...sq.options, `Option ${String.fromCharCode(65 + sq.options.length)}`] });
                     };
-                    const removeSubQOption = (sqIdx: number, optIdx: number) => {
-                      if (sData.subQuestions[sqIdx].options.length <= 2) return;
-                      const copy = sData.subQuestions[sqIdx].options.filter((_, i) => i !== optIdx);
-                      const correct = sData.subQuestions[sqIdx].correctOptionIndex;
+                    const removeOpt = (sqIdx: number, optIdx: number) => {
+                      const sq = sData.subQuestions[sqIdx];
+                      if (sq.options.length <= 2) return;
+                      const copy = sq.options.filter((_: any, i: number) => i !== optIdx);
+                      const correct = sq.correctOptionIndex;
                       updateSubQ(sqIdx, {
                         options: copy,
                         correctOptionIndex: optIdx === correct ? 0 : optIdx < correct ? correct - 1 : correct,
@@ -947,38 +962,36 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       <div className="space-y-4 p-4 bg-indigo-50/60 border border-indigo-200 rounded-2xl">
                         <h4 className="text-xs font-black uppercase text-indigo-900">Scenario & Sub-Questions</h4>
 
-                        {/* Scenario fields */}
+                        {/* Scenario-level fields */}
                         <div className="space-y-3 p-3 bg-white border border-indigo-200 rounded-xl">
                           <p className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">Scenario Details</p>
                           <div>
                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Scenario Title</label>
-                            <input
-                              type="text"
-                              value={sData.scenarioTitle}
+                            <input type="text" value={sData.scenarioTitle}
                               onChange={(e) => updateScenario({ scenarioTitle: e.target.value })}
-                              placeholder="e.g. Executive Scenario Case Study"
-                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                            />
+                              placeholder="e.g. Executive AI Strategy Case Study"
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
                           </div>
                           <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Scenario Text</label>
-                            <textarea
-                              rows={3}
-                              value={sData.scenarioText}
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Scenario / Business Challenge</label>
+                            <textarea rows={4} value={sData.scenarioText}
                               onChange={(e) => updateScenario({ scenarioText: e.target.value })}
-                              placeholder="Describe the full scenario here..."
-                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none"
-                            />
+                              placeholder="Describe the full scenario or business challenge here..."
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none" />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Instructions (Optional)</label>
+                            <textarea rows={2} value={sData.instructions || ''}
+                              onChange={(e) => updateScenario({ instructions: e.target.value })}
+                              placeholder="e.g. Read carefully and answer each question based on the scenario above."
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none" />
                           </div>
                           <div>
                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Background Context (Optional)</label>
-                            <textarea
-                              rows={2}
-                              value={sData.backgroundContext || ''}
+                            <textarea rows={2} value={sData.backgroundContext || ''}
                               onChange={(e) => updateScenario({ backgroundContext: e.target.value })}
-                              placeholder="Additional context or constraints..."
-                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none"
-                            />
+                              placeholder="Additional context, constraints, or background..."
+                              className="w-full mt-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none" />
                           </div>
                         </div>
 
@@ -988,88 +1001,164 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                             <p className="text-[10px] font-black uppercase text-indigo-600 tracking-wider">
                               Sub-Questions ({sData.subQuestions.length})
                             </p>
-                            <button
-                              type="button"
-                              onClick={addSubQ}
-                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition"
-                            >
+                            <button type="button" onClick={addSubQ}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl flex items-center gap-1.5 transition">
                               <Plus className="w-3.5 h-3.5" /> Add Sub-Question
                             </button>
                           </div>
 
                           {sData.subQuestions.length === 0 && (
-                            <p className="text-[11px] text-slate-400 italic text-center py-4 bg-white rounded-xl border border-dashed border-slate-300">
-                              No sub-questions yet — click "Add Sub-Question" above
+                            <p className="text-[11px] text-slate-400 italic text-center py-6 bg-white rounded-xl border border-dashed border-slate-300">
+                              No sub-questions yet — click &quot;Add Sub-Question&quot; above
                             </p>
                           )}
 
-                          {sData.subQuestions.map((sq, sqIdx) => (
-                            <div key={sq.id} className="p-3 bg-white border border-indigo-200 rounded-xl space-y-3">
-                              <div className="flex items-center justify-between">
-                                <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-lg text-[10px] font-black">Q{sqIdx + 1}</span>
-                                <button type="button" onClick={() => removeSubQ(sqIdx)} className="p-1 text-rose-500 hover:text-rose-700">
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
+                          {sData.subQuestions.map((sq: any, sqIdx: number) => {
+                            const sqType = sq.questionType || 'MCQ';
+                            return (
+                              <div key={sq.id || sqIdx} className="p-4 bg-white border border-indigo-200 rounded-xl space-y-3">
 
-                              <textarea
-                                rows={2}
-                                value={sq.questionText}
-                                onChange={(e) => updateSubQ(sqIdx, { questionText: e.target.value })}
-                                placeholder={`Sub-question ${sqIdx + 1} text...`}
-                                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none"
-                              />
+                                {/* Sub-Q Header: badge, type selector, reorder, delete */}
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-lg text-[10px] font-black shrink-0">Q{sqIdx + 1}</span>
 
-                              <div className="space-y-1.5">
-                                {sq.options.map((opt, optIdx) => (
-                                  <div key={optIdx} className="flex items-center gap-2">
-                                    <button
-                                      type="button"
-                                      onClick={() => updateSubQ(sqIdx, { correctOptionIndex: optIdx })}
-                                      className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition ${
-                                        sq.correctOptionIndex === optIdx
-                                          ? 'bg-emerald-500 border-emerald-500 text-white'
-                                          : 'border-slate-300 bg-white hover:border-emerald-400'
-                                      }`}
-                                    >
-                                      {sq.correctOptionIndex === optIdx && <Check className="w-3 h-3" />}
+                                  <select value={sqType}
+                                    onChange={(e) => updateSubQ(sqIdx, { questionType: e.target.value })}
+                                    className="flex-1 min-w-0 px-2 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                                    <option value="MCQ">Multiple Choice (MCQ)</option>
+                                    <option value="TRUE_FALSE">True / False</option>
+                                    <option value="CORRECT_SEQUENCE">Correct Sequence / Ordering</option>
+                                  </select>
+
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    <button type="button" onClick={() => moveSubQ(sqIdx, -1)} disabled={sqIdx === 0}
+                                      className="p-1 text-slate-500 hover:text-slate-800 disabled:opacity-30 bg-slate-100 rounded-lg transition">
+                                      <ArrowUp className="w-3.5 h-3.5" />
                                     </button>
-                                    <input
-                                      type="text"
-                                      value={opt}
-                                      onChange={(e) => updateSubQOption(sqIdx, optIdx, e.target.value)}
-                                      placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
-                                      className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                                    />
-                                    {sq.options.length > 2 && (
-                                      <button type="button" onClick={() => removeSubQOption(sqIdx, optIdx)} className="p-1 text-slate-400 hover:text-rose-500">
-                                        <Trash2 className="w-3 h-3" />
-                                      </button>
-                                    )}
+                                    <button type="button" onClick={() => moveSubQ(sqIdx, 1)} disabled={sqIdx === sData.subQuestions.length - 1}
+                                      className="p-1 text-slate-500 hover:text-slate-800 disabled:opacity-30 bg-slate-100 rounded-lg transition">
+                                      <ArrowDown className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button type="button" onClick={() => removeSubQ(sqIdx)}
+                                      className="p-1 text-rose-500 hover:text-rose-700 bg-rose-50 rounded-lg transition">
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
                                   </div>
-                                ))}
-                                <button
-                                  type="button"
-                                  onClick={() => addSubQOption(sqIdx)}
-                                  className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1"
-                                >
-                                  <Plus className="w-3 h-3" /> Add Option
-                                </button>
-                              </div>
+                                </div>
 
-                              <textarea
-                                rows={1}
-                                value={sq.explanation || ''}
-                                onChange={(e) => updateSubQ(sqIdx, { explanation: e.target.value })}
-                                placeholder="Explanation (shown after answer)..."
-                                className="w-full p-2 bg-amber-50 border border-amber-200 rounded-xl text-[11px] text-slate-700 focus:outline-none resize-none"
-                              />
-                            </div>
-                          ))}
+                                {/* Question Text */}
+                                <textarea rows={2} value={sq.questionText}
+                                  onChange={(e) => updateSubQ(sqIdx, { questionText: e.target.value })}
+                                  placeholder={`Sub-question ${sqIdx + 1} — what should students answer?`}
+                                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-1 focus:ring-indigo-400 resize-none" />
+
+                                {/* TRUE_FALSE quick toggle */}
+                                {sqType === 'TRUE_FALSE' && (
+                                  <div className="flex gap-2">
+                                    {['True', 'False'].map((label, optIdx) => (
+                                      <button key={label} type="button"
+                                        onClick={() => {
+                                          updateSubQ(sqIdx, {
+                                            options: ['True', 'False'],
+                                            correctOptionIndex: optIdx,
+                                          });
+                                        }}
+                                        className={`flex-1 py-2 rounded-xl text-xs font-black border transition ${
+                                          sq.correctOptionIndex === optIdx
+                                            ? 'bg-emerald-500 border-emerald-500 text-white'
+                                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-emerald-400'
+                                        }`}>
+                                        {label} {sq.correctOptionIndex === optIdx ? '✓' : ''}
+                                      </button>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {/* MCQ Options */}
+                                {sqType === 'MCQ' && (
+                                  <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Options — click ● to mark correct</p>
+                                    {sq.options.map((opt: string, optIdx: number) => (
+                                      <div key={optIdx} className="flex items-center gap-2">
+                                        <button type="button"
+                                          onClick={() => updateSubQ(sqIdx, { correctOptionIndex: optIdx })}
+                                          className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition ${
+                                            sq.correctOptionIndex === optIdx
+                                              ? 'bg-emerald-500 border-emerald-500 text-white'
+                                              : 'border-slate-300 bg-white hover:border-emerald-400'
+                                          }`}>
+                                          {sq.correctOptionIndex === optIdx && <Check className="w-3 h-3" />}
+                                        </button>
+                                        <input type="text" value={opt}
+                                          onChange={(e) => updateOpt(sqIdx, optIdx, e.target.value)}
+                                          placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                                          className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                                        {sq.options.length > 2 && (
+                                          <button type="button" onClick={() => removeOpt(sqIdx, optIdx)}
+                                            className="p-1 text-slate-400 hover:text-rose-500 transition">
+                                            <Trash2 className="w-3 h-3" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                    <button type="button" onClick={() => addOpt(sqIdx)}
+                                      className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1">
+                                      <Plus className="w-3 h-3" /> Add Option
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* CORRECT_SEQUENCE options (order = correct order) */}
+                                {sqType === 'CORRECT_SEQUENCE' && (
+                                  <div className="space-y-1.5">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Steps — order below IS the correct sequence</p>
+                                    {sq.options.map((opt: string, optIdx: number) => (
+                                      <div key={optIdx} className="flex items-center gap-2">
+                                        <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-[10px] flex items-center justify-center shrink-0">{optIdx + 1}</span>
+                                        <input type="text" value={opt}
+                                          onChange={(e) => {
+                                            const copy = [...sq.options];
+                                            copy[optIdx] = e.target.value;
+                                            updateSubQ(sqIdx, { options: copy, correctOrder: copy.map((_: any, i: number) => i) });
+                                          }}
+                                          placeholder={`Step ${optIdx + 1}`}
+                                          className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                                        {sq.options.length > 2 && (
+                                          <button type="button" onClick={() => removeOpt(sqIdx, optIdx)}
+                                            className="p-1 text-slate-400 hover:text-rose-500 transition">
+                                            <Trash2 className="w-3 h-3" />
+                                          </button>
+                                        )}
+                                      </div>
+                                    ))}
+                                    <button type="button" onClick={() => addOpt(sqIdx)}
+                                      className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1">
+                                      <Plus className="w-3 h-3" /> Add Step
+                                    </button>
+                                  </div>
+                                )}
+
+                                {/* Points + Explanation row */}
+                                <div className="flex items-center gap-3 pt-2 border-t border-slate-100">
+                                  <div className="flex items-center gap-1.5">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider shrink-0">Points</label>
+                                    <input type="number" min={0} value={sq.points ?? 250}
+                                      onChange={(e) => updateSubQ(sqIdx, { points: Number(e.target.value) })}
+                                      className="w-20 p-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
+                                  </div>
+                                  <textarea rows={1} value={sq.explanation || ''}
+                                    onChange={(e) => updateSubQ(sqIdx, { explanation: e.target.value })}
+                                    placeholder="Explanation shown after answer..."
+                                    className="flex-1 p-1.5 bg-amber-50 border border-amber-200 rounded-lg text-[11px] text-slate-700 focus:outline-none resize-none" />
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
                   })()}
+
 
                   {/* Controls Row: Time Limit, Points, Category */}
                   <div className="grid grid-cols-3 gap-3 pt-2">

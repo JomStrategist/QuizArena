@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       selectedSequence,
       selectedCategoryAssignments,
       selectedPromptBlocks,
+      selectedSubAnswers,
       responseTimeMs = 1000,
     } = body;
 
@@ -118,7 +119,8 @@ export async function POST(req: NextRequest) {
 
     const qType = question.questionType || 'MCQ';
     let isCorrect = false;
-    let isTimeout = selectedOptionIndex === -1 && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks;
+    let isTimeout = selectedOptionIndex === -1 && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks && !selectedSubAnswers;
+    let scenarioEarnedPoints = 0;
 
     if (!isTimeout) {
       if (qType === 'MCQ' || qType === 'TRUE_FALSE') {
@@ -148,7 +150,44 @@ export async function POST(req: NextRequest) {
         } else {
           isCorrect = true;
         }
-      } else if (qType === 'SCENARIO_QUESTIONS' || qType === 'SOLUTION_CHALLENGE') {
+      } else if (qType === 'SCENARIO_QUESTIONS') {
+        const subQuestions = question.scenarioQuestionsData?.subQuestions || [];
+        if (subQuestions.length > 0 && selectedSubAnswers) {
+          let correctCount = 0;
+          let earnedPtsSum = 0;
+
+          subQuestions.forEach((sq: any, idx: number) => {
+            const sqAns = selectedSubAnswers[idx];
+            const sqType = sq.questionType || 'MCQ';
+            const sqPts = sq.points || 100;
+            let sqCorrect = false;
+
+            if (sqType === 'MCQ' || sqType === 'TRUE_FALSE') {
+              sqCorrect = sqAns !== undefined && Number(sqAns) === sq.correctOptionIndex;
+            } else if (sqType === 'CORRECT_SEQUENCE') {
+              if (Array.isArray(sqAns) && Array.isArray(sq.correctOrder)) {
+                sqCorrect =
+                  sqAns.length === sq.correctOrder.length &&
+                  sqAns.every((val: number, i: number) => val === sq.correctOrder[i]);
+              }
+            } else {
+              sqCorrect = sqAns !== undefined && Number(sqAns) === sq.correctOptionIndex;
+            }
+
+            if (sqCorrect) {
+              correctCount++;
+              earnedPtsSum += sqPts;
+            }
+          });
+
+          isCorrect = correctCount === subQuestions.length;
+          scenarioEarnedPoints = earnedPtsSum;
+        } else if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
+          isCorrect = selectedOptionIndex === question.correctOptionIndex;
+        } else {
+          isCorrect = true;
+        }
+      } else if (qType === 'SOLUTION_CHALLENGE') {
         if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
           isCorrect = selectedOptionIndex === question.correctOptionIndex;
         } else {
@@ -160,7 +199,9 @@ export async function POST(req: NextRequest) {
     const maxPts = question.points || 1000;
 
     let pointsEarned = 0;
-    if (isCorrect && !isTimeout) {
+    if (qType === 'SCENARIO_QUESTIONS' && selectedSubAnswers) {
+      pointsEarned = scenarioEarnedPoints;
+    } else if (isCorrect && !isTimeout) {
       if (session.speedScoring !== false) {
         pointsEarned = calculateQuestionScore({
           isCorrect: true,

@@ -174,6 +174,17 @@ export async function GET(req: NextRequest) {
         // Omit correctOptionIndex & explanation during active answering for security
         delete sanitizedQuestion.correctOptionIndex;
         delete sanitizedQuestion.explanation;
+        if (sanitizedQuestion.scenarioQuestionsData?.subQuestions) {
+          sanitizedQuestion.scenarioQuestionsData.subQuestions = sanitizedQuestion.scenarioQuestionsData.subQuestions.map(
+            (sq: any) => {
+              const cleanedSq = { ...sq };
+              delete cleanedSq.correctOptionIndex;
+              delete cleanedSq.correctOrder;
+              delete cleanedSq.explanation;
+              return cleanedSq;
+            }
+          );
+        }
       }
     }
 

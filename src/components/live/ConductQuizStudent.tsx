@@ -213,6 +213,45 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
     }
   };
 
+  const handleSubAnswersComplete = async (subAnswers: Record<number, any>, isTimeout: boolean = false) => {
+    if (submitting || studentAnswer) return;
+
+    setSubmitting(true);
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+
+    try {
+      const res = await fetch('/api/v1/live-sessions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizCode,
+          displayName,
+          participantId,
+          questionIndex: session?.currentQuestionIndex || 0,
+          selectedOptionIndex: -1,
+          selectedSubAnswers: subAnswers,
+          responseTimeMs,
+          isTimeout,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setStudentAnswer(json.data);
+        if (json.data.isCorrect) {
+          soundManager.playCorrectSound();
+          showToast('Scenario Complete!', 'success');
+        } else {
+          soundManager.playWrongSound();
+        }
+      }
+    } catch (err) {
+      console.error('Error submitting scenario answer:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   // 1. PLAYER JOIN SCREEN (If not joined yet)
   if (!isJoined) {
     return (
@@ -495,6 +534,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
         totalQuestions={session?.totalQuestions || 5}
         selectedOptionIndex={selectedOption !== null ? selectedOption : studentAnswer?.selectedOptionIndex}
         onSelectOption={(idx) => handleOptionSelect(idx, false)}
+        onSubAnswersComplete={(subAnswers) => handleSubAnswersComplete(subAnswers, false)}
         disabled={!isQuestionActive || submitting}
         showCorrectAnswer={showCorrectAnswer}
         correctOptionIndex={showCorrectAnswer ? currentQuestion?.correctOptionIndex : null}

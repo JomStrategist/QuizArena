@@ -25,6 +25,7 @@ interface QuestionRendererProps {
   onSelectSequence?: (sequence: number[]) => void;
   onSelectCategoryAssignments?: (assignments: Record<string, string>) => void;
   onSelectPromptBlocks?: (blocks: { role?: string; context?: string; task?: string; outputFormat?: string }) => void;
+  onSubAnswersComplete?: (answers: Record<number, any>) => void;
   disabled?: boolean;
   showCorrectAnswer?: boolean;
   correctOptionIndex?: number | null;
@@ -43,6 +44,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   onSelectSequence,
   onSelectCategoryAssignments,
   onSelectPromptBlocks,
+  onSubAnswersComplete,
   disabled = false,
   showCorrectAnswer = false,
   correctOptionIndex,
@@ -85,7 +87,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   const [solEvaluated, setSolEvaluated] = useState<boolean>(false);
 
   // State for Scenario Questions
-  const [scenarioSubAnswers, setScenarioSubAnswers] = useState<Record<number, number>>({});
+  const [scenarioSubAnswers, setScenarioSubAnswers] = useState<Record<number, any>>({});
+  const [activeSubQIdx, setActiveSubQIdx] = useState<number>(0);
+  // Per-sub-question sequence ordering (for CORRECT_SEQUENCE sub-Qs)
+  const [subSeqMap, setSubSeqMap] = useState<Record<number, number[]>>({});
 
   useEffect(() => {
     if (question.options) {
@@ -93,14 +98,29 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     }
     setSelectedPromptPieces([]);
     setScenarioSubAnswers({});
+    setActiveSubQIdx(0);
+    setSubSeqMap({});
   }, [question]);
 
   const handleSubQuestionSelect = (subIdx: number, optIdx: number) => {
     if (disabled) return;
-    const updated = { ...scenarioSubAnswers, [subIdx]: optIdx };
+    const updated = { ...scenarioSubAnswers, [subIdx]: { selectedOptionIndex: optIdx } };
     setScenarioSubAnswers(updated);
-    if (onSelectOption) {
-      onSelectOption(optIdx);
+  };
+
+  const handleSubSeqChange = (subIdx: number, newSeq: number[]) => {
+    if (disabled) return;
+    setSubSeqMap((prev) => ({ ...prev, [subIdx]: newSeq }));
+    const updated = { ...scenarioSubAnswers, [subIdx]: { selectedSequence: newSeq } };
+    setScenarioSubAnswers(updated);
+  };
+
+  const advanceSubQ = (subQCount: number) => {
+    if (activeSubQIdx < subQCount - 1) {
+      setActiveSubQIdx((prev) => prev + 1);
+    } else {
+      // All sub-Qs answered — fire onSubAnswersComplete
+      if (onSubAnswersComplete) onSubAnswersComplete(scenarioSubAnswers);
     }
   };
 
@@ -1233,23 +1253,179 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const scData = question.scenarioQuestionsData || {
       scenarioTitle: question.questionText || 'Executive Business Scenario',
       scenarioText: question.explanation || 'Review the business scenario details carefully before answering.',
-      backgroundContext: 'Consider all strategic objectives, operational constraints, and technology requirements.',
+      backgroundContext: '',
+      instructions: '',
       subQuestions: [
         {
           id: 'q1',
+          questionType: 'MCQ' as const,
           questionText: 'What is the primary objective described in the scenario?',
-          options: ['Option A: Expand Market Reach', 'Option B: Reduce Operational Bottlenecks', 'Option C: Upgrade Legacy Hardware'],
+          options: ['Expand Market Reach', 'Reduce Operational Bottlenecks', 'Upgrade Legacy Hardware'],
           correctOptionIndex: 1,
+          correctOrder: [0, 1, 2],
+          points: 250,
           explanation: 'The scenario explicitly highlights reducing operational bottlenecks.',
         },
       ],
     };
 
     const subQuestions = scData.subQuestions || [];
+    const totalSubQs = subQuestions.length;
     const answeredCount = Object.keys(scenarioSubAnswers).length;
+    const isReviewMode = showCorrectAnswer || isAnswerSubmitted;
+    // In review mode show all sub-Qs; in play mode show one at a time
+    const displayIdx = isReviewMode ? null : activeSubQIdx;
+
+    const renderSubQuestion = (subQ: any, subIdx: number) => {
+      const sqType = subQ.questionType || 'MCQ';
+      const currentAnswer = scenarioSubAnswers[subIdx];
+      const selectedOpt = currentAnswer?.selectedOptionIndex;
+      const selectedSeq = currentAnswer?.selectedSequence || subSeqMap[subIdx] || subQ.options.map((_: any, i: number) => i);
+      const isSubAnswered = currentAnswer !== undefined;
+      const isSubCorrect = isReviewMode && (
+        sqType === 'CORRECT_SEQUENCE'
+          ? Array.isArray(selectedSeq) && Array.isArray(subQ.correctOrder) &&
+            selectedSeq.length === subQ.correctOrder.length &&
+            selectedSeq.every((v: number, i: number) => v === subQ.correctOrder[i])
+          : selectedOpt === subQ.correctOptionIndex
+      );
+
+      return (
+        <div key={subQ.id || subIdx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between border-b pb-3 border-slate-100">
+            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
+              Question {subIdx + 1} of {totalSubQs}
+              {sqType === 'CORRECT_SEQUENCE' && ' • Sequence'}
+              {sqType === 'TRUE_FALSE' && ' • True / False'}
+            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-indigo-500">{subQ.points ?? 0} pts</span>
+              {isSubAnswered && !isReviewMode && (
+                <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">✓ Answered</span>
+              )}
+              {isReviewMode && (
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
+                  isSubCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                }`}>
+                  {isSubCorrect ? '✓ Correct' : '✗ Incorrect'}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <h3 className="text-sm md:text-base font-extrabold text-slate-900 leading-snug">
+            {subQ.questionText}
+          </h3>
+
+          {/* TRUE_FALSE */}
+          {sqType === 'TRUE_FALSE' && (
+            <div className="grid grid-cols-2 gap-3">
+              {['True', 'False'].map((label, optIdx) => {
+                const isSelected = selectedOpt === optIdx;
+                const isCorrectOpt = isReviewMode && subQ.correctOptionIndex === optIdx;
+                const isWrongOpt = isReviewMode && selectedOpt === optIdx && !isCorrectOpt;
+                return (
+                  <button key={label} type="button" disabled={disabled || isReviewMode}
+                    onClick={() => handleSubQuestionSelect(subIdx, optIdx)}
+                    className={`py-4 rounded-2xl font-black text-sm border-2 transition ${
+                      isCorrectOpt ? 'bg-emerald-500 text-white border-emerald-500' :
+                      isWrongOpt ? 'bg-rose-500 text-white border-rose-500' :
+                      isSelected ? 'bg-blue-600 text-white border-blue-600' :
+                      'bg-slate-50 text-slate-800 border-slate-200 hover:border-blue-400'
+                    }`}>
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* MCQ */}
+          {(sqType === 'MCQ' || (!sqType)) && (
+            <div className="grid grid-cols-1 gap-2.5">
+              {subQ.options.map((optText: string, optIdx: number) => {
+                const isSelected = selectedOpt === optIdx;
+                const isCorrectOpt = isReviewMode && subQ.correctOptionIndex === optIdx;
+                const isWrongOpt = isReviewMode && selectedOpt === optIdx && !isCorrectOpt;
+                const letter = String.fromCharCode(65 + optIdx);
+                return (
+                  <button key={optIdx} type="button" disabled={disabled || isReviewMode}
+                    onClick={() => handleSubQuestionSelect(subIdx, optIdx)}
+                    className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition flex items-start space-x-3 ${
+                      isCorrectOpt ? 'bg-emerald-500 text-white border-emerald-600 shadow-md' :
+                      isWrongOpt ? 'bg-rose-500 text-white border-rose-600 shadow-md' :
+                      isSelected ? 'bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-500' :
+                      'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300'
+                    }`}>
+                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 ${
+                      isSelected || isCorrectOpt || isWrongOpt ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}>{letter}</span>
+                    <span className="leading-snug pt-0.5">{optText}</span>
+                    {isCorrectOpt && <CheckCircle2 className="w-4 h-4 ml-auto shrink-0 text-white" />}
+                    {isWrongOpt && <XCircle className="w-4 h-4 ml-auto shrink-0 text-white" />}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {/* CORRECT_SEQUENCE */}
+          {sqType === 'CORRECT_SEQUENCE' && (
+            <div className="space-y-2">
+              {selectedSeq.map((optIdx: number, pos: number) => {
+                const stepText = subQ.options[optIdx] || `Step ${optIdx + 1}`;
+                const correctPos = isReviewMode ? subQ.correctOrder?.indexOf(optIdx) : null;
+                return (
+                  <div key={optIdx} className={`p-3 rounded-2xl border flex items-center justify-between transition ${
+                    isReviewMode
+                      ? pos === correctPos ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'
+                      : 'bg-white border-slate-200'
+                  }`}>
+                    <div className="flex items-center space-x-3">
+                      <span className="w-7 h-7 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">{pos + 1}</span>
+                      <span className="text-sm font-bold text-slate-900">{stepText}</span>
+                    </div>
+                    {mode === 'player' && !disabled && !isReviewMode && (
+                      <div className="flex items-center space-x-1">
+                        <button type="button" disabled={pos === 0}
+                          onClick={() => {
+                            const newSeq = [...selectedSeq];
+                            [newSeq[pos], newSeq[pos - 1]] = [newSeq[pos - 1], newSeq[pos]];
+                            handleSubSeqChange(subIdx, newSeq);
+                          }}
+                          className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-xl text-slate-700 transition">
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button type="button" disabled={pos === selectedSeq.length - 1}
+                          onClick={() => {
+                            const newSeq = [...selectedSeq];
+                            [newSeq[pos], newSeq[pos + 1]] = [newSeq[pos + 1], newSeq[pos]];
+                            handleSubSeqChange(subIdx, newSeq);
+                          }}
+                          className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-xl text-slate-700 transition">
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Explanation feedback */}
+          {isReviewMode && subQ.explanation && (
+            <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 leading-relaxed">
+              <span className="font-black text-slate-900 block mb-1">Explanation</span>
+              {subQ.explanation}
+            </div>
+          )}
+        </div>
+      );
+    };
 
     return (
-      <div className="space-y-6 w-full font-sans text-slate-900 dark:text-slate-100">
+      <div className="space-y-6 w-full font-sans text-slate-900">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Left Panel: Scenario Case Study */}
           <div className="lg:col-span-5 bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 space-y-5 shadow-xl sticky top-4">
@@ -1260,98 +1436,73 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               <h2 className="text-xl md:text-2xl font-black text-white">{scData.scenarioTitle}</h2>
             </div>
 
-            {/* Scenario Text */}
-            <div className="p-4 bg-slate-800/90 border-l-4 border-purple-500 rounded-2xl text-xs md:text-sm leading-relaxed space-y-1">
-              <span className="text-[10px] uppercase font-black tracking-wider text-purple-400 block">Scenario Details</span>
+            <div className="p-4 bg-slate-800/90 border-l-4 border-purple-500 rounded-2xl text-xs md:text-sm leading-relaxed">
+              <span className="text-[10px] uppercase font-black tracking-wider text-purple-400 block mb-2">Scenario</span>
               <div className="text-slate-200 whitespace-pre-wrap">{scData.scenarioText}</div>
             </div>
 
-            {/* Background Context */}
+            {scData.instructions && (
+              <div className="p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-xs text-amber-200 space-y-1">
+                <span className="font-black block uppercase text-[10px] tracking-wider text-amber-400">Instructions</span>
+                <p className="leading-relaxed">{scData.instructions}</p>
+              </div>
+            )}
+
             {scData.backgroundContext && (
-              <div className="p-4 bg-slate-800/40 border border-slate-700/60 rounded-2xl text-xs text-slate-300 space-y-1">
-                <span className="font-bold text-slate-200 block text-[11px] uppercase tracking-wider">Key Context & Rules</span>
+              <div className="p-4 bg-slate-800/40 border border-slate-700/60 rounded-2xl text-xs text-slate-300">
+                <span className="font-bold text-slate-200 block text-[11px] uppercase tracking-wider mb-1">Key Context</span>
                 <p className="leading-relaxed">{scData.backgroundContext}</p>
               </div>
             )}
 
-            {/* Progress Badge */}
-            <div className="p-3 bg-purple-950/60 border border-purple-500/40 rounded-2xl text-xs font-bold text-purple-300 flex items-center justify-between">
-              <span>Sub-Questions Progress:</span>
-              <span className="font-black px-2 py-0.5 bg-purple-500/30 rounded-lg text-white">
-                {answeredCount} / {subQuestions.length} Answered
-              </span>
-            </div>
+            {/* Progress dots */}
+            {!isReviewMode && totalSubQs > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[10px] font-bold text-purple-300">
+                  <span>Progress</span>
+                  <span>{answeredCount} / {totalSubQs} answered</span>
+                </div>
+                <div className="flex gap-2 flex-wrap">
+                  {subQuestions.map((_: any, i: number) => (
+                    <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black border-2 transition ${
+                      i === activeSubQIdx ? 'bg-purple-500 border-purple-400 text-white' :
+                      scenarioSubAnswers[i] !== undefined ? 'bg-emerald-500 border-emerald-400 text-white' :
+                      'bg-slate-800 border-slate-700 text-slate-400'
+                    }`}>
+                      {i + 1}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Panel: Sub-Questions List */}
+          {/* Right Panel */}
           <div className="lg:col-span-7 space-y-5">
-            {subQuestions.map((subQ, subIdx) => {
-              const selectedOpt = scenarioSubAnswers[subIdx];
-              return (
-                <div key={subQ.id || subIdx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-center justify-between border-b pb-3 border-slate-100">
-                    <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
-                      Question {subIdx + 1} of {subQuestions.length}
-                    </span>
-                    {selectedOpt !== undefined && (
-                      <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md flex items-center space-x-1">
-                        <span>✓ Answered</span>
-                      </span>
-                    )}
-                  </div>
+            {isReviewMode ? (
+              // Review mode: show all sub-Qs with feedback
+              subQuestions.map((subQ: any, subIdx: number) => renderSubQuestion(subQ, subIdx))
+            ) : (
+              // Play mode: show one sub-Q at a time
+              <>
+                {totalSubQs > 0 && renderSubQuestion(subQuestions[activeSubQIdx], activeSubQIdx)}
 
-                  <h3 className="text-sm md:text-base font-extrabold text-slate-900 leading-snug">
-                    {subQ.questionText}
-                  </h3>
-
-                  <div className="grid grid-cols-1 gap-2.5 pt-1">
-                    {subQ.options.map((optText, optIdx) => {
-                      const isSelected = selectedOpt === optIdx;
-                      const letter = String.fromCharCode(65 + optIdx);
-                      return (
-                        <button
-                          key={optIdx}
-                          type="button"
-                          disabled={disabled}
-                          onClick={() => handleSubQuestionSelect(subIdx, optIdx)}
-                          className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition flex items-start space-x-3 ${
-                            isSelected
-                              ? 'bg-blue-600 text-white border-blue-700 shadow-md ring-2 ring-blue-500'
-                              : 'bg-slate-50 border-slate-200 text-slate-800 hover:bg-slate-100 hover:border-slate-300'
-                          }`}
-                        >
-                          <span
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[11px] shrink-0 ${
-                              isSelected ? 'bg-white text-blue-700' : 'bg-slate-200 text-slate-700'
-                            }`}
-                          >
-                            {letter}
-                          </span>
-                          <span className="leading-snug pt-0.5">{optText}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Show Feedback if Evaluated */}
-                  {(showCorrectAnswer || isAnswerSubmitted) && (
-                    <div
-                      className={`p-3.5 rounded-2xl border text-xs leading-relaxed ${
-                        selectedOpt === subQ.correctOptionIndex
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-900'
-                          : 'bg-rose-50 border-rose-300 text-rose-900'
-                      }`}
-                    >
-                      <div className="font-extrabold flex items-center space-x-1.5 mb-1">
-                        <span>{selectedOpt === subQ.correctOptionIndex ? '✓ Correct Answer' : '✗ Incorrect'}</span>
-                        <span>• Correct Option: {String.fromCharCode(65 + subQ.correctOptionIndex)}</span>
-                      </div>
-                      {subQ.explanation && <p className="opacity-90">{subQ.explanation}</p>}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+                {/* Next / Finish button */}
+                {mode === 'player' && !disabled && (
+                  <button type="button"
+                    onClick={() => advanceSubQ(totalSubQs)}
+                    className={`w-full py-4 rounded-2xl font-black text-sm transition ${
+                      scenarioSubAnswers[activeSubQIdx] !== undefined
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/25'
+                        : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                    disabled={scenarioSubAnswers[activeSubQIdx] === undefined}
+                  >
+                    {activeSubQIdx < totalSubQs - 1 ? `Next Question (${activeSubQIdx + 2} of ${totalSubQs}) →` : 'Finish & Submit Scenario ✓'}
+                  </button>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

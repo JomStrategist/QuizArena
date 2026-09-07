@@ -31,11 +31,18 @@ export interface IPromptBuilderData {
   pieces: { text: string; isCorrect: boolean }[];
 }
 
+export type SubQuestionType = 'MCQ' | 'TRUE_FALSE' | 'CORRECT_SEQUENCE';
+
 export interface ISubQuestion {
   id: string;
+  questionType?: SubQuestionType;
   questionText: string;
   options: string[];
-  correctOptionIndex: number;
+  correctOptionIndex?: number;
+  correctOrder?: number[];
+  categories?: { id: string; title: string }[];
+  categoryAssignments?: Record<string, string>;
+  points?: number;
   explanation?: string;
 }
 
@@ -43,8 +50,10 @@ export interface IScenarioQuestionsData {
   scenarioTitle: string;
   scenarioText: string;
   backgroundContext?: string;
+  instructions?: string;
   subQuestions: ISubQuestion[];
 }
+
 
 export interface IQuestion {
   _id: string;
