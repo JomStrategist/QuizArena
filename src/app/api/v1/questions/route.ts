@@ -48,8 +48,13 @@ export async function POST(req: NextRequest) {
 
     const {
       questionText,
-      options,
+      questionType = 'MCQ',
+      options = [],
       correctOptionIndex,
+      correctOrder,
+      categories,
+      categoryAssignments,
+      promptBlocks,
       timeLimit = 20,
       points = 1000,
       explanation,
@@ -57,12 +62,12 @@ export async function POST(req: NextRequest) {
       topic,
       difficulty = 'MEDIUM',
       tags = [],
-      trainerId = '650000000000000000000001', // Fallback Trainer ID
+      trainerId = '650000000000000000000001',
     } = body;
 
-    if (!questionText || !options || options.length < 2 || correctOptionIndex === undefined) {
+    if (!questionText) {
       return NextResponse.json(
-        { success: false, error: { code: 'BAD_REQUEST', message: 'Question text, options (>= 2), and correct answer index are required.' } },
+        { success: false, error: { code: 'BAD_REQUEST', message: 'Question text is required.' } },
         { status: 400 }
       );
     }
@@ -70,9 +75,13 @@ export async function POST(req: NextRequest) {
     const question = await QuestionModel.create({
       trainerId,
       questionText,
-      questionType: 'MCQ',
+      questionType,
       options,
       correctOptionIndex,
+      correctOrder,
+      categories,
+      categoryAssignments,
+      promptBlocks,
       timeLimit,
       points,
       explanation,

@@ -20,8 +20,12 @@ import {
   MoreVertical,
   GripVertical,
   CheckCircle2,
+  Layers,
+  ArrowUp,
+  ArrowDown,
+  HelpCircle as QuestionIcon,
 } from 'lucide-react';
-import { IQuestion, IQuiz } from '@/types';
+import { IQuestion, IQuiz, QuestionType } from '@/types';
 import { useToast } from '../ui/ToastNotification';
 
 interface QuizCreatorModalProps {
@@ -41,34 +45,23 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('Prompt Engineering');
-  const [coverUrl, setCoverUrl] = useState('');
 
   // Questions List in this Quiz (Full Question objects for direct editing)
   const [quizQuestions, setQuizQuestions] = useState<IQuestion[]>([]);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
 
-  // Available Bank Questions for picking/adding
-  const [availableBankQuestions, setAvailableBankQuestions] = useState<IQuestion[]>([]);
-  const [isBankPickerOpen, setIsBankPickerOpen] = useState(false);
-
-  // Question Preview modal state
-  const [previewingQuestion, setPreviewingQuestion] = useState<IQuestion | null>(null);
-
-  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
     if (isOpen) {
-      fetchBankQuestions();
       if (initialQuiz) {
         setTitle(initialQuiz.title || '');
         setDescription(initialQuiz.description || '');
         setCategory(initialQuiz.category || 'Prompt Engineering');
 
-        // Extract populated questions if available
         if (initialQuiz.questions && Array.isArray(initialQuiz.questions) && initialQuiz.questions.length > 0) {
-          setQuizQuestions(initialQuiz.questions.map(q => ({ ...q })));
+          setQuizQuestions(initialQuiz.questions.map((q) => ({ ...q })));
         } else if (initialQuiz.questionIds && Array.isArray(initialQuiz.questionIds)) {
           fetchQuizQuestionsByIds(
             initialQuiz.questionIds.map((item: any) => (typeof item === 'string' ? item : item._id))
@@ -80,7 +73,6 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
         setTitle('Activity 4: Prompt Engineering Challenge');
         setDescription('Master prompt design principles including Role definition, Context setting, Task instructions, Constraints, and Output formatting.');
         setCategory('Prompt Engineering');
-        // Initial sample question matching design if blank
         setQuizQuestions([
           {
             _id: 'temp-1',
@@ -109,20 +101,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     }
   }, [isOpen, initialQuiz]);
 
-  const fetchBankQuestions = async () => {
-    try {
-      const res = await fetch('/api/v1/questions');
-      const json = await res.json();
-      if (json.success) {
-        setAvailableBankQuestions(json.data || []);
-      }
-    } catch (err) {
-      console.error('Failed to load question bank', err);
-    }
-  };
-
   const fetchQuizQuestionsByIds = async (ids: string[]) => {
-    setLoading(true);
     try {
       const res = await fetch('/api/v1/questions');
       const json = await res.json();
@@ -132,49 +111,103 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
       }
     } catch (err) {
       showToast('Failed to load quiz questions', 'error');
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Active question being edited right now
   const currentQuestion = quizQuestions[activeQuestionIndex] || null;
 
   // Add new blank question
-  const handleAddNewBlankQuestion = () => {
-    const newQ: IQuestion = {
-      _id: `temp-${Date.now()}`,
-      trainerId: 'trainer-1',
-      questionText: `New Question ${quizQuestions.length + 1}`,
-      questionType: 'MCQ',
-      options: ['Option A', 'Option B', 'Option C', 'Option D'],
-      correctOptionIndex: 0,
-      timeLimit: 20,
-      points: 1000,
-      category: category || 'Prompt Engineering',
-      difficulty: 'MEDIUM',
-      tags: [],
-      explanation: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const handleAddNewBlankQuestion = (type: QuestionType = 'MCQ') => {
+    let newQ: IQuestion;
+
+    if (type === 'CORRECT_SEQUENCE') {
+      newQ = {
+        _id: `temp-${Date.now()}`,
+        trainerId: 'trainer-1',
+        questionText: 'Arrange the steps in the correct logical sequence',
+        questionType: 'CORRECT_SEQUENCE',
+        options: ['Step A: Problem Definition', 'Step B: Data Preprocessing', 'Step C: Model Training', 'Step D: Deployment'],
+        correctOrder: [0, 1, 2, 3],
+        timeLimit: 30,
+        points: 1000,
+        category: category || 'AI Workflows',
+        difficulty: 'MEDIUM',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } else if (type === 'DRAG_AND_DROP') {
+      newQ = {
+        _id: `temp-${Date.now()}`,
+        trainerId: 'trainer-1',
+        questionText: 'Sort each solution card into its matching category',
+        questionType: 'DRAG_AND_DROP',
+        options: ['Customer Churn Prediction', 'Handwritten Digit Recognition', 'Email Complaint Classifier', 'Factory Defect Camera'],
+        categories: [
+          { id: 'ml', title: 'Traditional Machine Learning' },
+          { id: 'dl', title: 'Deep Learning' },
+          { id: 'nlp', title: 'Natural Language Processing' },
+          { id: 'cv', title: 'Computer Vision' },
+        ],
+        categoryAssignments: { '0': 'ml', '1': 'dl', '2': 'nlp', '3': 'cv' },
+        timeLimit: 30,
+        points: 1000,
+        category: category || 'AI Classification',
+        difficulty: 'MEDIUM',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } else if (type === 'PROMPT_BUILDER') {
+      newQ = {
+        _id: `temp-${Date.now()}`,
+        trainerId: 'trainer-1',
+        questionText: 'Assemble an Effective RCTOF Prompt',
+        questionType: 'PROMPT_BUILDER',
+        options: ['Role', 'Context', 'Task', 'Output Format'],
+        promptBlocks: {
+          role: ['Act as a Senior AI Engineer', 'Act as a General Assistant'],
+          context: ['Working in e-commerce platform', 'Working in customer support'],
+          task: ['Generate an API response', 'Write a short summary'],
+          outputFormat: ['Format as valid JSON', 'Format as Markdown list'],
+        },
+        timeLimit: 30,
+        points: 1000,
+        category: category || 'Prompt Engineering',
+        difficulty: 'MEDIUM',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      newQ = {
+        _id: `temp-${Date.now()}`,
+        trainerId: 'trainer-1',
+        questionText: `New Question ${quizQuestions.length + 1}`,
+        questionType: type,
+        options: type === 'TRUE_FALSE' ? ['AI', 'Not AI'] : ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctOptionIndex: 0,
+        timeLimit: 20,
+        points: 1000,
+        category: category || 'General',
+        difficulty: 'MEDIUM',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+
     const updated = [...quizQuestions, newQ];
     setQuizQuestions(updated);
     setActiveQuestionIndex(updated.length - 1);
   };
 
-  // Add option to current active question
   const handleAddOption = () => {
     if (!currentQuestion) return;
-    if (currentQuestion.options.length >= 6) {
-      showToast('Maximum 6 options allowed.', 'warning');
-      return;
-    }
     const updatedOpts = [...currentQuestion.options, `Option ${String.fromCharCode(65 + currentQuestion.options.length)}`];
     updateCurrentQuestion({ options: updatedOpts });
   };
 
-  // Remove option from current active question
   const handleRemoveOption = (indexToRemove: number) => {
     if (!currentQuestion) return;
     if (currentQuestion.options.length <= 2) {
@@ -186,12 +219,11 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     if (indexToRemove === newCorrect) {
       newCorrect = 0;
     } else if (indexToRemove < newCorrect) {
-      newCorrect = newCorrect - 1;
+      newCorrect = Math.max(0, newCorrect - 1);
     }
     updateCurrentQuestion({ options: updatedOpts, correctOptionIndex: newCorrect });
   };
 
-  // Delete current question
   const handleDeleteCurrentQuestion = (indexToDelete: number) => {
     if (quizQuestions.length <= 1) {
       showToast('A quiz must have at least 1 question.', 'warning');
@@ -203,7 +235,6 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     showToast('Question removed from quiz.', 'info');
   };
 
-  // Helper to update current question object in state
   const updateCurrentQuestion = (fields: Partial<IQuestion>) => {
     setQuizQuestions((prev) => {
       const copy = [...prev];
@@ -214,12 +245,10 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     });
   };
 
-  // Calculate totals
   const totalPoints = quizQuestions.reduce((acc, q) => acc + (q.points || 1000), 0);
   const totalTimeSeconds = quizQuestions.reduce((acc, q) => acc + (q.timeLimit || 20), 0);
   const totalTimeMinutes = Math.max(1, Math.round(totalTimeSeconds / 60));
 
-  // Submit Quiz & save questions to DB
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -233,50 +262,44 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
 
     setSubmitting(true);
     try {
-      // 1. Save/Update individual questions into Question DB
       const questionIds: string[] = [];
       for (const q of quizQuestions) {
+        const payload = {
+          questionText: q.questionText,
+          questionType: q.questionType || 'MCQ',
+          options: q.options || [],
+          correctOptionIndex: q.correctOptionIndex,
+          correctOrder: q.correctOrder,
+          categories: q.categories,
+          categoryAssignments: q.categoryAssignments,
+          promptBlocks: q.promptBlocks,
+          timeLimit: q.timeLimit || 20,
+          points: q.points || 1000,
+          explanation: q.explanation,
+          category: q.category || category,
+          difficulty: q.difficulty || 'MEDIUM',
+        };
+
         if (q._id.startsWith('temp-')) {
-          // Create new question in DB
           const qRes = await fetch('/api/v1/questions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              questionText: q.questionText,
-              options: q.options,
-              correctOptionIndex: q.correctOptionIndex,
-              timeLimit: q.timeLimit,
-              points: q.points,
-              explanation: q.explanation,
-              category: q.category || category,
-              difficulty: q.difficulty || 'MEDIUM',
-            }),
+            body: JSON.stringify(payload),
           });
           const qJson = await qRes.json();
           if (qJson.success) {
             questionIds.push(qJson.data._id);
           }
         } else {
-          // Update existing question in DB
           await fetch(`/api/v1/questions?id=${q._id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              questionText: q.questionText,
-              options: q.options,
-              correctOptionIndex: q.correctOptionIndex,
-              timeLimit: q.timeLimit,
-              points: q.points,
-              explanation: q.explanation,
-              category: q.category || category,
-              difficulty: q.difficulty || 'MEDIUM',
-            }),
+            body: JSON.stringify(payload),
           });
           questionIds.push(q._id);
         }
       }
 
-      // 2. Create or Update Quiz object
       const method = initialQuiz ? 'PUT' : 'POST';
       const bodyPayload = initialQuiz
         ? {
@@ -318,15 +341,15 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
 
   if (!isOpen) return null;
 
-  const isEditing = !!initialQuiz;
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-900/50 backdrop-blur-md overflow-y-auto font-sans">
       <div className="bg-slate-50/95 rounded-3xl border border-slate-200 w-full max-w-6xl shadow-2xl overflow-hidden my-auto flex flex-col max-h-[92vh]">
+        
         {/* Top Header Bar */}
         <div className="bg-white px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
           <div className="flex items-center space-x-3">
             <button
+              type="button"
               onClick={onClose}
               className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-blue-600 text-xs font-bold rounded-xl transition flex items-center space-x-1"
             >
@@ -339,47 +362,26 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                 <Edit className="w-4 h-4" />
               </div>
               <div>
-                <div className="flex items-center space-x-2">
-                  <h1 className="text-xl font-black text-slate-900">
-                    {isEditing ? 'Edit Quiz' : 'Create Quiz'}
-                  </h1>
-                  <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
-                    READY
-                  </span>
-                </div>
+                <h1 className="text-xl font-black text-slate-900">
+                  {initialQuiz ? 'Edit Quiz' : 'Create Quiz'}
+                </h1>
                 <p className="text-[11px] text-slate-500 font-medium">
-                  Update quiz details, manage questions, and customize settings.
+                  Support for MCQ, True/False, Drag & Drop Categorization, Correct Sequence & Prompt Builder
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-right hidden md:block">
-              <p className="text-[10px] text-slate-400 font-bold">Last updated</p>
-              <p className="text-xs font-bold text-slate-700">06 Sep 2026, 10:30 AM</p>
-              <p className="text-[10px] text-slate-400 font-medium">by Admin</p>
-            </div>
-
-            {/* Banner Cursive Slogan */}
-            <div className="hidden lg:flex items-center space-x-2 bg-gradient-to-r from-blue-50 to-purple-50 px-3.5 py-1.5 rounded-2xl border border-blue-100">
-              <span className="font-serif italic text-blue-700 font-bold text-xs">
-                Create Engaging Quizzes for Brighter Minds
-              </span>
-              <Sparkles className="w-4 h-4 text-amber-500" />
-            </div>
-
-            <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full">
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+          <button type="button" onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 rounded-full">
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Scrollable Form Body */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-6">
-          {/* Section 1: Quiz Details Bar & Stat Summary Cards */}
+          
+          {/* Section 1: Quiz Details */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
-            {/* Title, Category & Description (8 Cols) */}
             <div className="lg:col-span-8 space-y-3">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
@@ -403,93 +405,88 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                     className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none"
                   >
                     <option value="Prompt Engineering">Prompt Engineering</option>
-                    <option value="AI Business Applications">AI Business Applications</option>
-                    <option value="AI & ML">AI & ML</option>
-                    <option value="AI Fundamentals">AI Fundamentals</option>
+                    <option value="AI Classification">AI Classification</option>
+                    <option value="AI Workflows">AI Workflows</option>
+                    <option value="AI Foundations">AI Foundations</option>
                     <option value="General">General</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-xs font-extrabold text-slate-700">Description</label>
-                  <span className="text-[10px] text-slate-400 font-semibold">{description.length}/500</span>
-                </div>
+                <label className="block text-xs font-extrabold text-slate-700 mb-1">Description</label>
                 <textarea
                   rows={2}
                   maxLength={500}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Master prompt design principles including Role definition, Context setting, Task instructions, Constraints, and Output formatting."
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none resize-none"
                 />
               </div>
             </div>
 
-            {/* Metric Stat Pills & Cover Image (4 Cols) */}
+            {/* Metric Stat Pills */}
             <div className="lg:col-span-4 flex flex-col justify-between space-y-3">
               <div className="grid grid-cols-3 gap-2">
-                {/* 1. Questions Count */}
                 <div className="bg-purple-50 p-2.5 rounded-2xl border border-purple-100 text-center space-y-0.5">
-                  <div className="w-6 h-6 rounded-full bg-purple-500 text-white flex items-center justify-center mx-auto">
-                    <BookOpen className="w-3 h-3" />
-                  </div>
-                  <p className="text-lg font-black text-purple-950 leading-tight">{quizQuestions.length}</p>
+                  <BookOpen className="w-4 h-4 text-purple-600 mx-auto" />
+                  <p className="text-lg font-black text-purple-950">{quizQuestions.length}</p>
                   <p className="text-[9px] font-bold text-purple-700">Questions</p>
                 </div>
-
-                {/* 2. Total Points */}
                 <div className="bg-amber-50 p-2.5 rounded-2xl border border-amber-100 text-center space-y-0.5">
-                  <div className="w-6 h-6 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center mx-auto">
-                    <Award className="w-3 h-3" />
-                  </div>
-                  <p className="text-lg font-black text-amber-950 leading-tight">{totalPoints.toLocaleString()}</p>
-                  <p className="text-[9px] font-bold text-amber-700">Total Points</p>
+                  <Award className="w-4 h-4 text-amber-500 mx-auto" />
+                  <p className="text-lg font-black text-amber-950">{totalPoints.toLocaleString()}</p>
+                  <p className="text-[9px] font-bold text-amber-700">Points</p>
                 </div>
-
-                {/* 3. Total Time */}
                 <div className="bg-teal-50 p-2.5 rounded-2xl border border-teal-100 text-center space-y-0.5">
-                  <div className="w-6 h-6 rounded-full bg-teal-500 text-white flex items-center justify-center mx-auto">
-                    <Clock className="w-3 h-3" />
-                  </div>
-                  <p className="text-lg font-black text-teal-950 leading-tight">{totalTimeMinutes} min</p>
-                  <p className="text-[9px] font-bold text-teal-700">Total Time</p>
+                  <Clock className="w-4 h-4 text-teal-600 mx-auto" />
+                  <p className="text-lg font-black text-teal-950">{totalTimeMinutes} min</p>
+                  <p className="text-[9px] font-bold text-teal-700">Duration</p>
                 </div>
               </div>
 
-              {/* Cover Image Upload Box */}
-              <div className="bg-blue-50/60 border border-dashed border-blue-200 p-3 rounded-2xl flex items-center justify-center space-x-2 cursor-pointer hover:bg-blue-100/50 transition">
-                <ImageIcon className="w-5 h-5 text-blue-500" />
-                <span className="text-xs font-bold text-blue-700">Change Cover</span>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-2xl text-[11px] font-bold text-blue-900">
+                Supports MCQ, True/False, Drag & Drop, Sequence & Prompt Builder
               </div>
             </div>
           </div>
 
-          {/* Section 2: 2-Column Layout (Left Questions List & Right Question Editor) */}
+          {/* Section 2: Questions Navigator + Question Type Editor */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* LEFT COLUMN: Questions Navigator List (4 Cols) */}
+            
+            {/* LEFT COLUMN: Questions List (4 Cols) */}
             <div className="lg:col-span-4 space-y-4">
               <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <div className="flex items-center space-x-2">
-                    <BookOpen className="w-4 h-4 text-blue-600" />
-                    <h3 className="text-sm font-black text-slate-900">
-                      Questions ({quizQuestions.length})
-                    </h3>
+                  <h3 className="text-sm font-black text-slate-900">Questions ({quizQuestions.length})</h3>
+                  
+                  {/* Add Question Menu */}
+                  <div className="flex flex-wrap gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('MCQ')}
+                      className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + MCQ
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('DRAG_AND_DROP')}
+                      className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + Drag & Drop
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('CORRECT_SEQUENCE')}
+                      className="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + Sequence
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleAddNewBlankQuestion}
-                    className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1 shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Questions</span>
-                  </button>
                 </div>
 
-                {/* Questions Sidebar List */}
                 <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
                   {quizQuestions.map((q, idx) => {
                     const isActive = idx === activeQuestionIndex;
@@ -504,27 +501,20 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                         }`}
                       >
                         <div className="flex items-center space-x-2.5 min-w-0 pr-2">
-                          <GripVertical className="w-3.5 h-3.5 text-slate-300 shrink-0" />
-                          <div
+                          <span
                             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
-                              isActive
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-slate-200 text-slate-700'
+                              isActive ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'
                             }`}
                           >
                             {idx + 1}
-                          </div>
+                          </span>
                           <div className="min-w-0">
                             <p className="text-xs font-bold text-slate-900 truncate">
                               {q.questionText || `Question ${idx + 1}`}
                             </p>
-                            <div className="flex items-center space-x-2 text-[10px] text-slate-400 font-semibold mt-0.5">
-                              <span>⏱ {q.timeLimit || 20} sec</span>
-                              <span>⭐ {q.points || 1000} pts</span>
-                              <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded">
-                                {q.questionType || 'MCQ'}
-                              </span>
-                            </div>
+                            <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded text-[9px] font-bold">
+                              {q.questionType || 'MCQ'}
+                            </span>
                           </div>
                         </div>
 
@@ -543,62 +533,36 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                   })}
                 </div>
               </div>
-
-              {/* Tips for a Great Quiz Box */}
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50/80 p-4 rounded-3xl border border-blue-100 shadow-xs space-y-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-xs">
-                    <Rocket className="w-4 h-4" />
-                  </div>
-                  <h4 className="text-xs font-extrabold text-blue-950">Tips for a Great Quiz</h4>
-                </div>
-                <ul className="text-[11px] text-slate-600 space-y-1 pl-1">
-                  <li className="flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Use clear and concise questions.</span>
-                  </li>
-                  <li className="flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Set appropriate time limits.</span>
-                  </li>
-                  <li className="flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Provide balanced options.</span>
-                  </li>
-                  <li className="flex items-center space-x-1.5">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                    <span>Check your quiz using Preview.</span>
-                  </li>
-                </ul>
-              </div>
             </div>
 
-            {/* RIGHT COLUMN: Question Form Editor (8 Cols) */}
+            {/* RIGHT COLUMN: Question Type Specific Editor (8 Cols) */}
             <div className="lg:col-span-8">
               {currentQuestion ? (
                 <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
-                  {/* Editor Header */}
+                  
+                  {/* Editor Header & Question Type Dropdown */}
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-lg bg-amber-400 text-slate-950 flex items-center justify-center font-black text-xs">
-                        <Edit className="w-4 h-4" />
-                      </div>
+                    <div className="flex items-center space-x-3">
                       <h3 className="text-base font-black text-slate-900">
                         Edit Question {activeQuestionIndex + 1}
                       </h3>
-                      <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
-                        {currentQuestion.questionType || 'MCQ'}
-                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setPreviewingQuestion(currentQuestion)}
-                      className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition flex items-center space-x-1"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Preview</span>
-                    </button>
+                    {/* Question Type Selector */}
+                    <div className="flex items-center space-x-2">
+                      <label className="text-xs font-bold text-slate-600">Question Type:</label>
+                      <select
+                        value={currentQuestion.questionType || 'MCQ'}
+                        onChange={(e) => updateCurrentQuestion({ questionType: e.target.value as QuestionType })}
+                        className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-900 focus:outline-none"
+                      >
+                        <option value="MCQ">Multiple Choice (MCQ)</option>
+                        <option value="TRUE_FALSE">True / False (Binary)</option>
+                        <option value="DRAG_AND_DROP">Drag & Drop Categorization</option>
+                        <option value="CORRECT_SEQUENCE">Correct the Sequence / Ordering</option>
+                        <option value="PROMPT_BUILDER">RCTOF Prompt Builder</option>
+                      </select>
+                    </div>
                   </div>
 
                   {/* Question Statement */}
@@ -611,24 +575,96 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       required
                       value={currentQuestion.questionText}
                       onChange={(e) => updateCurrentQuestion({ questionText: e.target.value })}
-                      placeholder="Which prompt is the most structured and effective for generating a JSON API response?"
+                      placeholder="Enter question statement..."
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                     />
                   </div>
 
-                  {/* Options List */}
-                  <div>
-                    <label className="block text-xs font-extrabold text-slate-700 mb-2">
-                      Options <span className="text-rose-500">*</span> (Select radio for Correct Answer)
-                    </label>
-                    <div className="space-y-2">
-                      {currentQuestion.options.map((opt, optIdx) => {
-                        const isCorrect = currentQuestion.correctOptionIndex === optIdx;
-                        return (
-                          <div key={optIdx} className="flex items-center space-x-2">
-                            <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
-                              {String.fromCharCode(65 + optIdx)}
+                  {/* DYNAMIC EDITOR PER QUESTION TYPE */}
+                  
+                  {/* 1. MCQ & TRUE_FALSE */}
+                  {(currentQuestion.questionType === 'MCQ' || currentQuestion.questionType === 'TRUE_FALSE') && (
+                    <div className="space-y-3">
+                      <label className="block text-xs font-extrabold text-slate-700">
+                        Options (Mark radio button for Correct Answer)
+                      </label>
+                      <div className="space-y-2">
+                        {currentQuestion.options.map((opt, optIdx) => {
+                          const isCorrect = currentQuestion.correctOptionIndex === optIdx;
+                          return (
+                            <div key={optIdx} className="flex items-center space-x-2">
+                              <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
+                                {String.fromCharCode(65 + optIdx)}
+                              </div>
+                              <input
+                                type="text"
+                                required
+                                value={opt}
+                                onChange={(e) => {
+                                  const copy = [...currentQuestion.options];
+                                  copy[optIdx] = e.target.value;
+                                  updateCurrentQuestion({ options: copy });
+                                }}
+                                className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => updateCurrentQuestion({ correctOptionIndex: optIdx })}
+                                className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 ${
+                                  isCorrect ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 bg-white'
+                                }`}
+                              >
+                                {isCorrect && <Check className="w-3.5 h-3.5" />}
+                              </button>
+                              {currentQuestion.options.length > 2 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveOption(optIdx)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 rounded-lg shrink-0"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                             </div>
+                          );
+                        })}
+                      </div>
+
+                      {currentQuestion.questionType === 'MCQ' && (
+                        <button
+                          type="button"
+                          onClick={handleAddOption}
+                          className="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold rounded-xl flex items-center space-x-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Option</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {/* 2. CORRECT_SEQUENCE */}
+                  {currentQuestion.questionType === 'CORRECT_SEQUENCE' && (
+                    <div className="space-y-3 p-4 bg-amber-50/60 border border-amber-200 rounded-2xl">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-black uppercase text-amber-900">
+                          Workflow Step Items (Order below defines Correct Sequence)
+                        </label>
+                        <button
+                          type="button"
+                          onClick={handleAddOption}
+                          className="px-2.5 py-1 bg-amber-600 text-white text-xs font-bold rounded-lg"
+                        >
+                          + Add Step
+                        </button>
+                      </div>
+
+                      <div className="space-y-2">
+                        {currentQuestion.options.map((opt, optIdx) => (
+                          <div key={optIdx} className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200">
+                            <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">
+                              {optIdx + 1}
+                            </span>
                             <input
                               type="text"
                               required
@@ -636,71 +672,80 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                               onChange={(e) => {
                                 const copy = [...currentQuestion.options];
                                 copy[optIdx] = e.target.value;
-                                updateCurrentQuestion({ options: copy });
+                                updateCurrentQuestion({ options: copy, correctOrder: copy.map((_, i) => i) });
                               }}
-                              className="flex-1 p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none"
+                              className="flex-1 text-xs font-bold text-slate-800 bg-transparent focus:outline-none"
                             />
-                            {/* Correct answer toggle radio */}
-                            <button
-                              type="button"
-                              onClick={() => updateCurrentQuestion({ correctOptionIndex: optIdx })}
-                              title={isCorrect ? 'Correct Answer' : 'Mark as Correct'}
-                              className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 ${
-                                isCorrect
-                                  ? 'bg-emerald-500 border-emerald-500 text-white'
-                                  : 'border-slate-300 hover:border-emerald-400 bg-white'
-                              }`}
-                            >
-                              {isCorrect && <Check className="w-3.5 h-3.5" />}
-                            </button>
-                            {/* Delete option */}
                             <button
                               type="button"
                               onClick={() => handleRemoveOption(optIdx)}
-                              className="p-1 text-slate-400 hover:text-rose-600 rounded-lg shrink-0"
+                              className="p-1 text-rose-500"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
-                        );
-                      })}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleAddOption}
-                      className="mt-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl transition flex items-center space-x-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add Option</span>
-                    </button>
-                  </div>
-
-                  {/* Controls Row: Correct Answer, Time Limit, Points, Category */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                    {/* Correct Answer Selection */}
-                    <div>
-                      <label className="block text-xs font-extrabold text-slate-700 mb-1">
-                        Correct Answer <span className="text-rose-500">*</span>
-                      </label>
-                      <select
-                        value={currentQuestion.correctOptionIndex}
-                        onChange={(e) => updateCurrentQuestion({ correctOptionIndex: Number(e.target.value) })}
-                        className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                      >
-                        {currentQuestion.options.map((_, idx) => (
-                          <option key={idx} value={idx}>
-                            {String.fromCharCode(65 + idx)}
-                          </option>
                         ))}
-                      </select>
+                      </div>
                     </div>
+                  )}
 
-                    {/* Time Limit */}
+                  {/* 3. DRAG_AND_DROP */}
+                  {currentQuestion.questionType === 'DRAG_AND_DROP' && (
+                    <div className="space-y-4 p-4 bg-purple-50/60 border border-purple-200 rounded-2xl">
+                      <h4 className="text-xs font-black uppercase text-purple-900">
+                        Drag & Drop Items & Category Assignments
+                      </h4>
+
+                      <div className="space-y-2">
+                        {currentQuestion.options.map((opt, optIdx) => {
+                          const assignments = currentQuestion.categoryAssignments || {};
+                          const currentCat = assignments[optIdx.toString()] || 'ml';
+
+                          return (
+                            <div key={optIdx} className="p-3 bg-white border border-purple-200 rounded-xl flex items-center justify-between gap-3">
+                              <input
+                                type="text"
+                                value={opt}
+                                onChange={(e) => {
+                                  const copy = [...currentQuestion.options];
+                                  copy[optIdx] = e.target.value;
+                                  updateCurrentQuestion({ options: copy });
+                                }}
+                                className="flex-1 text-xs font-bold text-slate-900 bg-transparent focus:outline-none"
+                              />
+
+                              <select
+                                value={currentCat}
+                                onChange={(e) => {
+                                  const updatedMap = { ...assignments, [optIdx.toString()]: e.target.value };
+                                  updateCurrentQuestion({ categoryAssignments: updatedMap });
+                                }}
+                                className="px-2.5 py-1 bg-purple-100 text-purple-900 rounded-lg text-xs font-bold"
+                              >
+                                <option value="ml">Traditional ML</option>
+                                <option value="dl">Deep Learning</option>
+                                <option value="nlp">NLP</option>
+                                <option value="cv">Computer Vision</option>
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddOption}
+                        className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-lg"
+                      >
+                        + Add Card Item
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Controls Row: Time Limit, Points, Category */}
+                  <div className="grid grid-cols-3 gap-3 pt-2">
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 mb-1">
-                        Time Limit <span className="text-rose-500">*</span>
-                      </label>
+                      <label className="block text-xs font-extrabold text-slate-700 mb-1">Time Limit</label>
                       <select
                         value={currentQuestion.timeLimit || 20}
                         onChange={(e) => updateCurrentQuestion({ timeLimit: Number(e.target.value) })}
@@ -714,11 +759,8 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       </select>
                     </div>
 
-                    {/* Points */}
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 mb-1">
-                        Points <span className="text-rose-500">*</span>
-                      </label>
+                      <label className="block text-xs font-extrabold text-slate-700 mb-1">Points</label>
                       <input
                         type="number"
                         value={currentQuestion.points || 1000}
@@ -727,11 +769,8 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       />
                     </div>
 
-                    {/* Category */}
                     <div>
-                      <label className="block text-xs font-extrabold text-slate-700 mb-1">
-                        Category <span className="text-rose-500">*</span>
-                      </label>
+                      <label className="block text-xs font-extrabold text-slate-700 mb-1">Category</label>
                       <input
                         type="text"
                         value={currentQuestion.category || category}
@@ -743,125 +782,44 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
 
                   {/* Explanation */}
                   <div>
-                    <div className="flex justify-between items-center mb-1">
-                      <label className="text-xs font-extrabold text-slate-700">Explanation (Optional)</label>
-                      <span className="text-[10px] text-slate-400 font-semibold">
-                        {(currentQuestion.explanation || '').length}/500
-                      </span>
-                    </div>
+                    <label className="block text-xs font-extrabold text-slate-700 mb-1">Explanation (Optional)</label>
                     <textarea
                       rows={2}
-                      maxLength={500}
                       value={currentQuestion.explanation || ''}
                       onChange={(e) => updateCurrentQuestion({ explanation: e.target.value })}
-                      placeholder="This is the most structured prompt as it defines a role, task, and expected output format clearly."
+                      placeholder="Add an explanation for students..."
                       className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none resize-none"
                     />
                   </div>
-
-                  {/* Question Bottom Action Buttons */}
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCurrentQuestion(activeQuestionIndex)}
-                      className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold rounded-xl transition flex items-center space-x-1"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>Delete Question</span>
-                    </button>
-
-                    <div className="flex items-center space-x-2">
-                      <button
-                        type="button"
-                        onClick={onClose}
-                        className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition"
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={submitting}
-                        className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-md shadow-blue-500/20 disabled:opacity-50 flex items-center space-x-1"
-                      >
-                        <Check className="w-4 h-4" />
-                        <span>Save Question</span>
-                      </button>
-                    </div>
-                  </div>
                 </div>
               ) : (
-                <div className="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400">
-                  Select a question from the left sidebar to edit details.
+                <div className="bg-white p-8 rounded-3xl border border-slate-200 text-center text-slate-400 font-bold">
+                  Select or add a question to edit.
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Action Footer */}
+          <div className="bg-white p-4 border-t border-slate-200 flex items-center justify-between rounded-b-3xl">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl shadow-lg shadow-blue-600/25 disabled:opacity-50"
+            >
+              {submitting ? 'Saving Quiz...' : 'Save Quiz & Questions'}
+            </button>
           </div>
         </form>
       </div>
-
-      {/* Preview Question Modal */}
-      {previewingQuestion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 p-6 max-w-md w-full space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">
-                Question Preview ({previewingQuestion.category || 'General'})
-              </span>
-              <button onClick={() => setPreviewingQuestion(null)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <h3 className="text-sm font-extrabold text-slate-900 leading-snug">
-                {previewingQuestion.questionText}
-              </h3>
-
-              <div className="space-y-2">
-                {previewingQuestion.options.map((opt, idx) => {
-                  const isCorrect = idx === previewingQuestion.correctOptionIndex;
-                  return (
-                    <div
-                      key={idx}
-                      className={`p-3 rounded-xl border flex items-center justify-between text-xs font-semibold ${
-                        isCorrect
-                          ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-bold'
-                          : 'bg-slate-50 border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <span>
-                        <strong className="mr-2">{String.fromCharCode(65 + idx)}.</strong>
-                        {opt}
-                      </span>
-                      {isCorrect && (
-                        <span className="text-[10px] text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-full">
-                          Correct Answer
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {previewingQuestion.explanation && (
-                <div className="bg-blue-50/60 p-3 rounded-xl border border-blue-100 text-xs text-blue-900 space-y-1">
-                  <p className="font-bold text-blue-950">Explanation:</p>
-                  <p>{previewingQuestion.explanation}</p>
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end pt-2">
-              <button
-                onClick={() => setPreviewingQuestion(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition"
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
