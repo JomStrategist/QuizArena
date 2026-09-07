@@ -453,8 +453,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                         className={`p-4 rounded-2xl border transition cursor-pointer space-y-3 ${
                           isSelected
                             ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500 shadow-md'
-                            : mode === 'projector'
-                            ? 'bg-slate-800 border-slate-700 text-white hover:border-indigo-400'
                             : 'bg-slate-900 border-slate-700 text-white hover:border-blue-500'
                         }`}
                       >
