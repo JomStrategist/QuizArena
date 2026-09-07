@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { seedQuizMaterials } from '@/lib/import/seedQuizMaterials';
 
-export async function POST(req: NextRequest) {
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
+async function handleSeed(req: NextRequest) {
   try {
     let trainerId = '650000000000000000000001';
     try {
@@ -23,4 +26,12 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+export async function POST(req: NextRequest) {
+  return handleSeed(req);
+}
+
+export async function GET(req: NextRequest) {
+  return handleSeed(req);
 }
