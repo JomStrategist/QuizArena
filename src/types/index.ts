@@ -10,8 +10,26 @@ export interface IUser {
   createdAt: string;
 }
 
-export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER';
+export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER' | 'SOLUTION_CHALLENGE';
 export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
+
+export interface ISolutionChallengeData {
+  icon: string;
+  dept: string;
+  answer: string;
+  capabilities: { text: string; isCorrect: boolean }[];
+  workflow: { text: string; isCorrect: boolean }[];
+  autonomy: { title: string; isCorrect: boolean; description: string }[];
+  controlTitle?: string;
+  why: string;
+}
+
+export interface IPromptBuilderData {
+  scenarioTitle?: string;
+  scenarioText?: string;
+  instruction?: string;
+  pieces: { text: string; isCorrect: boolean }[];
+}
 
 export interface IQuestion {
   _id: string;
@@ -24,6 +42,8 @@ export interface IQuestion {
   categories?: { id: string; title: string; description?: string }[];
   categoryAssignments?: Record<string, string>;
   promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
+  solutionChallengeData?: ISolutionChallengeData;
+  promptBuilderData?: IPromptBuilderData;
   timeLimit: number; // Seconds
   points: number;
   explanation?: string;
