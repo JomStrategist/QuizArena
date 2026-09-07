@@ -795,7 +795,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               {sqType === 'TRUE_FALSE' && ' • True / False'}
             </span>
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-indigo-500">{subQ.points ?? 0} pts</span>
+              <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
+                {subQ.points !== undefined ? subQ.points : 250} pts
+              </span>
               {isSubAnswered && !isReviewMode && (
                 <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">✓ Answered</span>
               )}
@@ -803,7 +805,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                   isSubCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                 }`}>
-                  {isSubCorrect ? '✓ Correct' : '✗ Incorrect'}
+                  {isSubCorrect ? `✓ Correct (+${subQ.points !== undefined ? subQ.points : 250} pts)` : '✗ Incorrect (+0 pts)'}
                 </span>
               )}
             </div>

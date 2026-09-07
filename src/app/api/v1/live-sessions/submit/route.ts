@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
           isCorrect = true;
         }
       } else if (qType === 'SCENARIO_QUESTIONS') {
-        const subQuestions = question.scenarioQuestionsData?.subQuestions || [];
+        const subQuestions = question.scenarioQuestionsData?.subQuestions || question.subQuestions || [];
         if (subQuestions.length > 0 && selectedSubAnswers) {
           let correctCount = 0;
           let earnedPtsSum = 0;
@@ -159,19 +159,35 @@ export async function POST(req: NextRequest) {
           subQuestions.forEach((sq: any, idx: number) => {
             const sqAns = selectedSubAnswers[idx];
             const sqType = sq.questionType || 'MCQ';
-            const sqPts = sq.points || 100;
+            const sqPts = sq.points !== undefined ? sq.points : (question.points ? Math.round(question.points / subQuestions.length) : 250);
             let sqCorrect = false;
 
             if (sqType === 'MCQ' || sqType === 'TRUE_FALSE') {
-              sqCorrect = sqAns !== undefined && Number(sqAns) === sq.correctOptionIndex;
+              const selectedIdx = typeof sqAns === 'object' && sqAns !== null && sqAns.selectedOptionIndex !== undefined
+                ? sqAns.selectedOptionIndex
+                : sqAns;
+              sqCorrect = selectedIdx !== undefined && Number(selectedIdx) === sq.correctOptionIndex;
+            } else if (sqType === 'MULTIPLE_SELECT') {
+              const selectedIndices = typeof sqAns === 'object' && sqAns !== null && Array.isArray(sqAns.selectedOptionIndices)
+                ? sqAns.selectedOptionIndices
+                : (Array.isArray(sqAns) ? sqAns : []);
+              sqCorrect = Array.isArray(selectedIndices) && Array.isArray(sq.correctOptionIndices) &&
+                selectedIndices.length === sq.correctOptionIndices.length &&
+                selectedIndices.every((val: number) => sq.correctOptionIndices.includes(val));
             } else if (sqType === 'CORRECT_SEQUENCE') {
-              if (Array.isArray(sqAns) && Array.isArray(sq.correctOrder)) {
+              const seq = typeof sqAns === 'object' && sqAns !== null && Array.isArray(sqAns.selectedSequence)
+                ? sqAns.selectedSequence
+                : (Array.isArray(sqAns) ? sqAns : []);
+              if (Array.isArray(seq) && Array.isArray(sq.correctOrder)) {
                 sqCorrect =
-                  sqAns.length === sq.correctOrder.length &&
-                  sqAns.every((val: number, i: number) => val === sq.correctOrder[i]);
+                  seq.length === sq.correctOrder.length &&
+                  seq.every((val: number, i: number) => val === sq.correctOrder[i]);
               }
             } else {
-              sqCorrect = sqAns !== undefined && Number(sqAns) === sq.correctOptionIndex;
+              const selectedIdx = typeof sqAns === 'object' && sqAns !== null && sqAns.selectedOptionIndex !== undefined
+                ? sqAns.selectedOptionIndex
+                : sqAns;
+              sqCorrect = selectedIdx !== undefined && Number(selectedIdx) === sq.correctOptionIndex;
             }
 
             if (sqCorrect) {

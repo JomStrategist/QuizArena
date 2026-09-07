@@ -1018,18 +1018,30 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                             return (
                               <div key={sq.id || sqIdx} className="p-4 bg-white border border-indigo-200 rounded-xl space-y-3">
 
-                                {/* Sub-Q Header: badge, type selector, reorder, delete */}
+                                {/* Sub-Q Header: badge, type selector, points, reorder, delete */}
                                 <div className="flex items-center gap-2 flex-wrap">
                                   <span className="px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-lg text-[10px] font-black shrink-0">Q{sqIdx + 1}</span>
 
                                   <select value={sqType}
                                     onChange={(e) => updateSubQ(sqIdx, { questionType: e.target.value })}
-                                    className="flex-1 min-w-0 px-2 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-400">
+                                    className="flex-1 min-w-[140px] px-2 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-900 rounded-lg text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-indigo-400">
                                     <option value="MCQ">Multiple Choice (MCQ)</option>
                                     <option value="MULTIPLE_SELECT">Multiple Select (Checkboxes)</option>
                                     <option value="TRUE_FALSE">True / False</option>
                                     <option value="CORRECT_SEQUENCE">Correct Sequence / Ordering</option>
                                   </select>
+
+                                  <div className="flex items-center gap-1 shrink-0 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">
+                                    <span className="text-[10px] font-black text-amber-700 uppercase">Pts:</span>
+                                    <input
+                                      type="number"
+                                      min={0}
+                                      step={50}
+                                      value={sq.points !== undefined ? sq.points : 250}
+                                      onChange={(e) => updateSubQ(sqIdx, { points: Number(e.target.value) || 0 })}
+                                      className="w-14 p-0.5 bg-white border border-amber-300 rounded text-center text-[10px] font-black text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                                    />
+                                  </div>
 
                                   <div className="flex items-center gap-1 shrink-0">
                                     <button type="button" onClick={() => moveSubQ(sqIdx, -1)} disabled={sqIdx === 0}
