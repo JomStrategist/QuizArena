@@ -12,9 +12,11 @@ import {
   Clock,
   QrCode,
   X,
+  Tv,
 } from 'lucide-react';
 import { QRCodeImage } from '@/lib/game/qrGenerator';
 import { FullScreenQRModal } from '../common/FullScreenQRModal';
+import { ProjectorViewModal } from './ProjectorViewModal';
 import { useToast } from '../ui/ToastNotification';
 
 interface LiveLobbyTrainerProps {
@@ -36,6 +38,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [isFullScreenQROpen, setIsFullScreenQROpen] = useState(false);
+  const [isProjectorViewOpen, setIsProjectorViewOpen] = useState(false);
   const { showToast } = useToast();
 
   const handleCopyCode = () => {
@@ -63,7 +66,20 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         onClose={() => setIsFullScreenQROpen(false)}
         title={quizTitle}
         code={quizCode}
-        subtitle="Join Live Session"
+        subtitle="Scan to Join Conduct Quiz Session"
+      />
+
+      {/* Full Screen Projector View Modal */}
+      <ProjectorViewModal
+        isOpen={isProjectorViewOpen}
+        onClose={() => setIsProjectorViewOpen(false)}
+        quizCode={quizCode}
+        quizTitle={quizTitle}
+        currentQuestion={null}
+        currentIdx={1}
+        totalQuestions={5}
+        timeLeft={30}
+        totalParticipants={participants.length}
       />
 
       {/* Top Banner Card */}
@@ -74,7 +90,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <div className="flex items-center space-x-2">
               <span className="font-black text-xl text-slate-900">QuizArena</span>
               <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 rounded-md">
-                LIVE LOBBY
+                LIVE GAME LOBBY
               </span>
             </div>
             <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
@@ -83,28 +99,35 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs font-semibold text-slate-500">
               <span className="inline-flex items-center space-x-1.5 px-3 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl">
                 <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-                <span>5 Questions</span>
-              </span>
-              <span className="inline-flex items-center space-x-1.5 px-3 py-0.5 bg-orange-50 text-orange-700 border border-orange-100 rounded-xl">
-                <Heart className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-                <span>Prompt Engineering</span>
+                <span>Trainer-Led Conduct Session</span>
               </span>
               <span className="inline-flex items-center space-x-1.5 px-3 py-0.5 bg-slate-100 text-slate-600 rounded-xl">
                 <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span>Created at 10:24 AM</span>
+                <span>No Account Required for Players</span>
               </span>
             </div>
           </div>
         </div>
 
-        {onClose && (
+        <div className="flex items-center space-x-3 self-start md:self-auto">
+          {/* Projector View Trigger */}
           <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-xl transition hover:bg-slate-100 self-start md:self-auto"
+            onClick={() => setIsProjectorViewOpen(true)}
+            className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-2"
           >
-            <X className="w-5 h-5" />
+            <Tv className="w-4 h-4 text-indigo-600" />
+            <span>Projector View (Full Screen)</span>
           </button>
-        )}
+
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl transition hover:bg-slate-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main 2-Column Grid (SCAN TO JOIN + JOIN CODE & START) */}
@@ -121,7 +144,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </div>
 
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner">
-            <QRCodeImage value={`https://quizarena.app/quiz/join?code=${quizCode}`} size={200} />
+            <QRCodeImage value={`https://quizarena.app/conduct/join?code=${quizCode}`} size={200} />
           </div>
 
           <button
@@ -140,7 +163,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             {/* Game Join Code Box */}
             <div className="bg-blue-50/60 border border-blue-200/80 p-6 rounded-3xl text-center relative space-y-1">
               <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 block">
-                Game Join Code
+                GAME JOIN CODE
               </span>
               <div className="flex items-center justify-center space-x-3">
                 <span className="text-5xl font-black font-mono tracking-widest text-blue-600">
@@ -163,12 +186,12 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
                   <Users className="w-5 h-5" />
                 </div>
                 <div>
-                  <p className="text-xs font-extrabold text-slate-900">Participants</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Waiting for more players...</p>
+                  <p className="text-xs font-extrabold text-slate-900">LOBBY PARTICIPANTS</p>
+                  <p className="text-[11px] text-slate-500 font-medium">Updating in real-time...</p>
                 </div>
               </div>
               <span className="text-3xl font-black text-slate-900 font-mono">
-                {participants.length || 3}
+                {participants.length}
               </span>
             </div>
           </div>
@@ -179,7 +202,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             className="w-full py-4 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-black text-base rounded-2xl transition shadow-xl shadow-orange-500/20 flex items-center justify-center space-x-2 active:scale-98"
           >
             <Play className="w-5 h-5 fill-current" />
-            <span>Start Quiz Now</span>
+            <span>START QUIZ NOW</span>
           </button>
         </div>
       </div>
@@ -195,7 +218,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
 
         <div className="flex flex-wrap items-center gap-3">
           {participants.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">No participants yet. Waiting for players to join...</p>
+            <p className="text-xs text-slate-400 italic">No participants yet. Waiting for players to join using 6-digit code or QR code...</p>
           ) : (
             participants.map((p, idx) => {
               const letter = p.displayName?.charAt(0).toUpperCase() || 'A';
@@ -204,7 +227,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
               return (
                 <div
                   key={idx}
-                  className="flex items-center space-x-2.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-900 shadow-2xs"
+                  className="flex items-center space-x-2.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-900 shadow-2xs animate-in zoom-in-95 duration-150"
                 >
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${style}`}>
                     {letter}

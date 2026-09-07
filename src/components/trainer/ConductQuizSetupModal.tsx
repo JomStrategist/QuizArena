@@ -13,6 +13,8 @@ import {
   BookOpen,
   HelpCircle,
   Sparkles,
+  ShieldCheck,
+  Award,
 } from 'lucide-react';
 import { IQuiz } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -39,6 +41,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
   const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(true);
   const [showScore, setShowScore] = useState<boolean>(true);
   const [showLeaderboard, setShowLeaderboard] = useState<boolean>(true);
+  const [finalLeaderboard, setFinalLeaderboard] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
 
   const { showToast } = useToast();
@@ -77,7 +80,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
           showCorrectAnswer,
           showScore,
           showLeaderboard,
-          finalPodium: true,
+          finalPodium: finalLeaderboard,
           pointsMode,
         }),
       });
@@ -103,11 +106,11 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 font-sans text-slate-900 animate-in fade-in duration-200 cursor-pointer"
+      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 font-sans text-slate-900 animate-in fade-in duration-200 cursor-pointer overflow-y-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden space-y-5 p-6 md:p-8 relative cursor-default"
+        className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden space-y-5 p-6 md:p-8 relative cursor-default my-8"
       >
         
         {/* Header */}
@@ -122,12 +125,13 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
                 </span>
               </div>
               <p className="text-[11px] text-slate-500 font-semibold">
-                Configure your quiz with flexible options
+                Configure your real-time trainer-led quiz session
               </p>
             </div>
           </div>
 
           <button
+            type="button"
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-700 rounded-xl transition hover:bg-slate-100"
           >
@@ -139,8 +143,8 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
         <form onSubmit={handleCreateSession} className="space-y-5">
           
           {/* Select Quiz to Conduct */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-600">
+          <div className="space-y-2">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
               Select Quiz to Conduct
             </label>
 
@@ -155,9 +159,40 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
                 </option>
               ))}
             </select>
+
+            {/* SELECTED QUIZ Summary Card */}
+            {currentSelectedQuiz && (
+              <div className="p-4 bg-gradient-to-r from-blue-50/80 to-slate-50 border border-blue-100 rounded-2xl space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+                    SELECTED QUIZ
+                  </span>
+                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md text-[10px] font-extrabold">
+                    {currentSelectedQuiz.category || 'General'}
+                  </span>
+                </div>
+                <h4 className="text-sm font-black text-slate-900">{currentSelectedQuiz.title}</h4>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-500 pt-0.5">
+                  <span className="flex items-center space-x-1">
+                    <BookOpen className="w-3.5 h-3.5 text-blue-600" />
+                    <span>{currentSelectedQuiz.questionIds?.length || 5} Questions</span>
+                  </span>
+                  <span className="flex items-center space-x-1">
+                    <Award className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Prepared by Trainer</span>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* SESSION SETTINGS Header */}
+          {/* Student Login Policy Notice */}
+          <div className="flex items-center space-x-2.5 p-3 bg-emerald-50 border border-emerald-200/80 rounded-2xl text-xs text-emerald-900 font-extrabold">
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>Student Policy: No Account Required (Name + 6-Digit Code)</span>
+          </div>
+
+          {/* SESSION SETTINGS */}
           <div className="space-y-3 pt-1">
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 pb-1">
               SESSION SETTINGS
@@ -175,7 +210,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
                 onChange={(e) => setQuestionTime(Number(e.target.value))}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none"
               >
-                <option value={15}>15 seconds</option>
+                <option value={10}>10 seconds</option>
                 <option value={20}>20 seconds</option>
                 <option value={30}>30 seconds (Recommended)</option>
                 <option value={45}>45 seconds</option>
@@ -195,7 +230,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
                 onChange={(e) => setPointsMode(e.target.value)}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none"
               >
-                <option value="SPEED_BASED">Speed-Based Points (Up to 1000)</option>
+                <option value="SPEED_BASED">Speed-Based Points (Up to 1000 pts)</option>
                 <option value="FLAT_POINTS">Flat Points (100 pts per question)</option>
                 <option value="NO_POINTS">No Points (Assessment only)</option>
               </select>
@@ -266,6 +301,23 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
                     type="checkbox"
                     checked={showLeaderboard}
                     onChange={(e) => setShowLeaderboard(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
+                </label>
+              </div>
+
+              {/* Toggle 5: Final Leaderboard / Results */}
+              <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
+                <div>
+                  <p className="text-xs font-extrabold text-slate-900">Final Leaderboard / Results</p>
+                  <p className="text-[10px] text-slate-500 font-semibold">Show complete rank summary at the end</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={finalLeaderboard}
+                    onChange={(e) => setFinalLeaderboard(e.target.checked)}
                     className="sr-only peer"
                   />
                   <div className="w-10 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600" />
