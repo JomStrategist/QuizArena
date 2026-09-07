@@ -236,7 +236,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   }
 
   // -------------------------------------------------------------
-  // TYPE 2: DRAG_AND_DROP (Categorization / Card Sorting)
+  // TYPE 2: DRAG_AND_DROP / CATEGORIZATION
   // -------------------------------------------------------------
   if (qType === 'DRAG_AND_DROP') {
     const items = question.options || [];
@@ -248,18 +248,19 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     ];
 
     const isDropdownCases = items.some((it) => /^Case \d+:/i.test(it)) || question.questionText?.includes('Choose the AI Combination');
+    const unassignedCount = items.filter((_, idx) => !categoryAssignments[idx.toString()]).length;
 
     return (
       <div className="space-y-6 w-full font-sans">
         <div className={`p-6 rounded-3xl border shadow-sm ${mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
           <span className="px-3 py-1 bg-purple-100 text-purple-900 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block mb-2">
-            {isDropdownCases ? 'AI COMBINATION CHALLENGE' : 'DRAG & DROP CATEGORIZATION'}
+            {isDropdownCases ? 'AI COMBINATION CHALLENGE' : 'SOLUTION CATEGORIZATION'}
           </span>
           <h2 className="text-xl md:text-2xl font-black">{renderQuestionText(question.questionText)}</h2>
           <p className={`text-xs sm:text-sm opacity-85 mt-2 font-medium leading-relaxed ${mode === 'projector' ? 'text-slate-300' : 'text-slate-600'}`}>
             {question.explanation || (
               items.length === 12
-                ? "Drag each of the 12 cards into the category that best describes it. You can also click a card, then click a category."
+                ? "Categorize each of the 12 solutions into the category that best describes it. Click a card to select it, or use the + Category buttons on each card."
                 : items.length === 6
                 ? "Now choose the best combination for each real-life case. Some cases use one concept; others combine a problem area with a learning approach."
                 : "Assign each card to its correct category."
@@ -320,70 +321,127 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             })}
           </div>
         ) : (
-          /* Standard Drag & Drop Categories Grid (Activity 1) */
+          /* Standard Solution Categorization Categories Grid (Activity 1) */
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {categories.map((cat) => (
-                <div
-                  key={cat.id}
-                  className={`p-4 rounded-2xl border min-h-[120px] space-y-2 ${
-                    mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-                  }`}
-                >
-                  <div className="border-b pb-2 border-slate-200/50">
-                    <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
-                    {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
-                  </div>
+              {categories.map((cat) => {
+                const assignedIndices = items
+                  .map((_, i) => i.toString())
+                  .filter((idxStr) => categoryAssignments[idxStr] === cat.id);
 
-                  <div className="space-y-2 pt-1">
-                    {items.map((itemText, idx) => {
-                      const isAssigned = categoryAssignments[idx.toString()] === cat.id;
-                      if (!isAssigned) return null;
+                return (
+                  <div
+                    key={cat.id}
+                    onClick={() => {
+                      if (activeItem !== null && mode === 'player' && !disabled) {
+                        handleAssignCategory(activeItem, cat.id);
+                        setActiveItem(null);
+                      }
+                    }}
+                    className={`p-4 rounded-2xl border min-h-[140px] space-y-3 transition ${
+                      activeItem !== null
+                        ? 'cursor-pointer ring-2 ring-blue-500/50 bg-blue-50/40 border-blue-400 hover:bg-blue-100/50'
+                        : mode === 'projector'
+                        ? 'bg-slate-900 border-white/20 text-white'
+                        : 'bg-slate-50 border-slate-200 text-slate-900'
+                    }`}
+                  >
+                    <div className="border-b pb-2 border-slate-200/50 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
+                        {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
+                      </div>
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black">
+                        {assignedIndices.length} items
+                      </span>
+                    </div>
 
-                      return (
-                        <div
-                          key={idx}
-                          className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs font-bold shadow-xs flex items-center justify-between"
-                        >
-                          <span>{itemText}</span>
-                          {mode === 'player' && !disabled && (
-                            <button
-                              type="button"
-                              onClick={() => handleAssignCategory(idx.toString(), '')}
-                              className="text-[10px] text-rose-600 font-extrabold hover:underline"
+                    <div className="space-y-2 pt-1">
+                      {assignedIndices.length === 0 ? (
+                        <p className="text-[11px] text-slate-400 italic font-medium pt-1">
+                          {activeItem !== null ? 'Click here to place selected card' : 'No items assigned yet'}
+                        </p>
+                      ) : (
+                        assignedIndices.map((idxStr) => {
+                          const idx = parseInt(idxStr, 10);
+                          const itemText = items[idx];
+                          return (
+                            <div
+                              key={idxStr}
+                              className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs font-bold shadow-xs flex items-center justify-between"
                             >
-                              Remove
-                            </button>
-                          )}
-                        </div>
-                      );
-                    })}
+                              <span className="leading-snug">{itemText}</span>
+                              {mode === 'player' && !disabled && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAssignCategory(idxStr, '');
+                                  }}
+                                  className="ml-2 text-[10px] text-rose-600 font-extrabold hover:underline shrink-0"
+                                >
+                                  Remove ✕
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Available Items Cards */}
+            {/* Available Items Cards Pool */}
             {mode === 'player' && !disabled && (
-              <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-black uppercase text-slate-500">Unassigned Items</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-500">
+                    Unassigned Solutions ({unassignedCount} Remaining)
+                  </h4>
+                  {activeItem !== null && (
+                    <span className="text-[11px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg">
+                      1 card selected — Click a category box above to place
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {items.map((itemText, idx) => {
-                    const currentCat = categoryAssignments[idx.toString()];
+                    const idxStr = idx.toString();
+                    const currentCat = categoryAssignments[idxStr];
                     if (currentCat) return null;
+                    const isSelected = activeItem === idxStr;
 
                     return (
-                      <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                        <p className="text-xs font-extrabold text-slate-900">{itemText}</p>
-                        <div className="flex flex-wrap gap-1">
+                      <div
+                        key={idx}
+                        onClick={() => setActiveItem(isSelected ? null : idxStr)}
+                        className={`p-4 rounded-2xl border transition cursor-pointer space-y-3 ${
+                          isSelected
+                            ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500 shadow-md'
+                            : 'bg-slate-50 border-slate-200 hover:bg-slate-100/70 hover:border-slate-300'
+                        }`}
+                      >
+                        <p className="text-xs md:text-sm font-extrabold text-slate-900 leading-snug">
+                          {itemText}
+                        </p>
+
+                        <div className="flex flex-wrap gap-1.5 pt-1">
                           {categories.map((cat) => (
                             <button
                               key={cat.id}
                               type="button"
-                              onClick={() => handleAssignCategory(idx.toString(), cat.id)}
-                              className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAssignCategory(idxStr, cat.id);
+                                if (activeItem === idxStr) setActiveItem(null);
+                              }}
+                              className="px-2.5 py-1.5 bg-white hover:bg-blue-600 hover:text-white text-blue-700 border border-blue-200 rounded-xl text-[10px] font-black transition shadow-xs flex items-center space-x-1"
                             >
-                              + {cat.title}
+                              <span>+</span>
+                              <span>{cat.title}</span>
                             </button>
                           ))}
                         </div>
