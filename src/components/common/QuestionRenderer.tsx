@@ -206,11 +206,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       { id: 'cv', title: 'Computer Vision' },
     ];
 
+    const isDropdownCases = items.some((it) => /^Case \d+:/i.test(it)) || question.questionText?.includes('Choose the AI Combination');
+
     return (
       <div className="space-y-6 w-full font-sans">
         <div className={`p-6 rounded-3xl border shadow-sm ${mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
           <span className="px-3 py-1 bg-purple-100 text-purple-900 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block mb-2">
-            DRAG & DROP CATEGORIZATION
+            {isDropdownCases ? 'AI COMBINATION CHALLENGE' : 'DRAG & DROP CATEGORIZATION'}
           </span>
           <h2 className="text-xl md:text-2xl font-black">{renderQuestionText(question.questionText)}</h2>
           <p className={`text-xs sm:text-sm opacity-85 mt-2 font-medium leading-relaxed ${mode === 'projector' ? 'text-slate-300' : 'text-slate-600'}`}>
@@ -224,77 +226,133 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {categories.map((cat) => (
-            <div
-              key={cat.id}
-              className={`p-4 rounded-2xl border min-h-[120px] space-y-2 ${
-                mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
-              }`}
-            >
-              <div className="border-b pb-2 border-slate-200/50">
-                <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
-                {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
-              </div>
+        {/* If question items are Cases with Dropdowns (Activity 2) */}
+        {isDropdownCases ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {items.map((itemText, idx) => {
+              const selectedCat = categoryAssignments[idx.toString()] || '';
+              const caseTitle = `Case ${idx + 1}`;
+              const cleanText = itemText.replace(/^Case \d+:\s*/i, '');
 
-              <div className="space-y-2 pt-1">
-                {items.map((itemText, idx) => {
-                  const isAssigned = categoryAssignments[idx.toString()] === cat.id;
-                  if (!isAssigned) return null;
-
-                  return (
-                    <div
-                      key={idx}
-                      className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs font-bold shadow-xs flex items-center justify-between"
-                    >
-                      <span>{itemText}</span>
-                      {mode === 'player' && !disabled && (
-                        <button
-                          type="button"
-                          onClick={() => handleAssignCategory(idx.toString(), '')}
-                          className="text-[10px] text-rose-600 font-extrabold hover:underline"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Available Items Cards */}
-        {mode === 'player' && !disabled && (
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3">
-            <h4 className="text-xs font-black uppercase text-slate-500">Unassigned Items</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {items.map((itemText, idx) => {
-                const currentCat = categoryAssignments[idx.toString()];
-                if (currentCat) return null;
-
-                return (
-                  <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
-                    <p className="text-xs font-extrabold text-slate-900">{itemText}</p>
-                    <div className="flex flex-wrap gap-1">
-                      {categories.map((cat) => (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => handleAssignCategory(idx.toString(), cat.id)}
-                          className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold"
-                        >
-                          + {cat.title}
-                        </button>
-                      ))}
-                    </div>
+              return (
+                <div
+                  key={idx}
+                  className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 shadow-sm transition ${
+                    mode === 'projector'
+                      ? 'bg-slate-900 border-white/20 text-white'
+                      : 'bg-white border-slate-200 text-slate-900'
+                  }`}
+                >
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-black uppercase text-blue-600 tracking-wider">
+                      {caseTitle}
+                    </h3>
+                    <p className="text-xs md:text-sm font-semibold leading-relaxed opacity-90">
+                      {cleanText}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="space-y-1.5 pt-3 border-t border-slate-200/60">
+                    <label className="block text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                      Select the best combination
+                    </label>
+                    <select
+                      disabled={disabled}
+                      value={selectedCat}
+                      onChange={(e) => handleAssignCategory(idx.toString(), e.target.value)}
+                      className={`w-full p-3 rounded-xl border text-xs md:text-sm font-bold transition focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer ${
+                        mode === 'projector'
+                          ? 'bg-slate-800 border-slate-700 text-white'
+                          : 'bg-slate-50 border-slate-300 text-slate-900 hover:border-blue-400'
+                      }`}
+                    >
+                      <option value="">Choose...</option>
+                      {categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              );
+            })}
           </div>
+        ) : (
+          /* Standard Drag & Drop Categories Grid (Activity 1) */
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categories.map((cat) => (
+                <div
+                  key={cat.id}
+                  className={`p-4 rounded-2xl border min-h-[120px] space-y-2 ${
+                    mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                  }`}
+                >
+                  <div className="border-b pb-2 border-slate-200/50">
+                    <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
+                    {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    {items.map((itemText, idx) => {
+                      const isAssigned = categoryAssignments[idx.toString()] === cat.id;
+                      if (!isAssigned) return null;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs font-bold shadow-xs flex items-center justify-between"
+                        >
+                          <span>{itemText}</span>
+                          {mode === 'player' && !disabled && (
+                            <button
+                              type="button"
+                              onClick={() => handleAssignCategory(idx.toString(), '')}
+                              className="text-[10px] text-rose-600 font-extrabold hover:underline"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Available Items Cards */}
+            {mode === 'player' && !disabled && (
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 space-y-3">
+                <h4 className="text-xs font-black uppercase text-slate-500">Unassigned Items</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {items.map((itemText, idx) => {
+                    const currentCat = categoryAssignments[idx.toString()];
+                    if (currentCat) return null;
+
+                    return (
+                      <div key={idx} className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                        <p className="text-xs font-extrabold text-slate-900">{itemText}</p>
+                        <div className="flex flex-wrap gap-1">
+                          {categories.map((cat) => (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              onClick={() => handleAssignCategory(idx.toString(), cat.id)}
+                              className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-[10px] font-bold"
+                            >
+                              + {cat.title}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     );
