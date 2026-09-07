@@ -469,7 +469,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   const isQuestionActive = session.stage === 'QUESTION_ACTIVE' && !studentAnswer;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 max-w-4xl mx-auto w-full font-sans text-slate-900 space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 w-full max-w-[96%] mx-auto font-sans text-slate-900 space-y-6">
       
       {/* Player Header Bar */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">

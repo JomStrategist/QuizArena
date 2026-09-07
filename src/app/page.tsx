@@ -96,7 +96,7 @@ export default function PublicLandingPage() {
       <BrandHeader />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center my-auto">
+      <main className="flex-1 w-full max-w-[96%] mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center my-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
           
           {/* ================= LEFT COLUMN: HERO & FEATURES & ILLUSTRATION (6 cols) ================= */}

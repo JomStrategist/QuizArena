@@ -181,7 +181,7 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
       : 0;
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 max-w-7xl mx-auto w-full font-sans text-slate-900 space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 w-full max-w-[96%] mx-auto font-sans text-slate-900 space-y-6">
       
       {/* Full Screen Projector View Modal */}
       <ProjectorViewModal

@@ -121,7 +121,7 @@ export default function ProtectedTrainerDashboardPage() {
         />
       )}
 
-      <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-4 md:p-6 w-full max-w-[96%] mx-auto">
         {viewState === 'DASHBOARD' && (
           <TrainerDashboard
             user={user}

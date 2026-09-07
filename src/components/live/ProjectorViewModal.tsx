@@ -78,7 +78,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
     <div className="fixed inset-0 z-[120] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950 via-slate-950 to-slate-950 text-white flex flex-col justify-between p-6 sm:p-10 font-sans overflow-hidden animate-in fade-in duration-300">
       
       {/* Top Header Bar */}
-      <div className="flex items-center justify-between w-full max-w-7xl mx-auto shrink-0">
+      <div className="flex items-center justify-between w-full max-w-[96%] mx-auto shrink-0">
         {/* Left Branding */}
         <div className="flex items-center space-x-4">
           <img src="/QuizArena Logo.png" alt="QuizArena" className="h-12 w-auto object-contain drop-shadow-md" />
@@ -111,7 +111,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
       </div>
 
       {/* Main Center Stage */}
-      <div className="my-auto py-6 max-w-7xl mx-auto w-full space-y-8">
+      <div className="my-auto py-6 max-w-[96%] mx-auto w-full space-y-8">
         
         {/* Progress & Circular Timer Row */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
@@ -214,7 +214,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
       </div>
 
       {/* Bottom Footer Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-7xl mx-auto shrink-0 pt-4 border-t border-white/10 gap-4">
+      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-[96%] mx-auto shrink-0 pt-4 border-t border-white/10 gap-4">
         {/* Left: Participants Badge */}
         <div className="flex items-center space-x-3 text-slate-200">
           <div className="p-2.5 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 text-indigo-300">
@@ -247,7 +247,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
       </div>
 
       {/* Bottom Branding & Handwritten Tagline */}
-      <div className="flex items-end justify-between w-full max-w-7xl mx-auto shrink-0 pt-2 text-xs">
+      <div className="flex items-end justify-between w-full max-w-[96%] mx-auto shrink-0 pt-2 text-xs">
         {/* Left: Parent Org Logo */}
         <div className="flex items-center space-x-2 opacity-90">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BY</span>
