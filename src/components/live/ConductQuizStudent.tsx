@@ -341,10 +341,44 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
           <span className="text-xs font-extrabold uppercase tracking-widest text-emerald-300">
             Q {currentIdx} OF {totalQuestions}
           </span>
+
+          {/* Circular Timer Ring */}
+          <div className="relative w-12 h-12 flex items-center justify-center">
+            <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
+              <circle
+                cx="30"
+                cy="30"
+                r="24"
+                stroke="currentColor"
+                strokeWidth="5"
+                className="text-white/20"
+                fill="transparent"
+              />
+              <circle
+                cx="30"
+                cy="30"
+                r="24"
+                stroke="currentColor"
+                strokeWidth="5"
+                className={`${
+                  timeLeft <= 5 ? 'text-rose-400' : 'text-emerald-400'
+                } transition-all duration-1000 ease-linear`}
+                fill="transparent"
+                strokeDasharray={2 * Math.PI * 24}
+                strokeDashoffset={2 * Math.PI * 24 * (1 - Math.max(0, timeLeft / (session?.questionTime || 30)))}
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="absolute text-sm font-black font-mono text-white">
+              {timeLeft}s
+            </span>
+          </div>
+
           <button onClick={handleToggleMute} className="p-2 rounded-xl bg-white/10 text-white">
             {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
           </button>
         </div>
+
 
         {/* Center Stage */}
         <div className="my-auto max-w-md mx-auto w-full space-y-6 text-center py-4">
@@ -524,7 +558,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
               } transition-all duration-1000 ease-linear`}
               fill="transparent"
               strokeDasharray={2 * Math.PI * 24}
-              strokeDashoffset={2 * Math.PI * 24 * (1 - Math.max(0, timeLeft / 30))}
+              strokeDashoffset={2 * Math.PI * 24 * (1 - Math.max(0, timeLeft / (session?.questionTime || 30)))}
               strokeLinecap="round"
             />
           </svg>

@@ -240,6 +240,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         quizTitle={quizTitle}
         rankings={rankings}
         onBackToDashboard={onCloseSession}
+        isTrainer={true}
       />
     );
   }

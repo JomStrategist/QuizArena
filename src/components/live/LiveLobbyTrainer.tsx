@@ -189,34 +189,31 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center space-x-2">
             <Users className="w-4 h-4 text-blue-600" />
-            <span>Joined Participants ({participants.length || 3})</span>
+            <span>Joined Participants ({participants.length})</span>
           </h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {(participants.length > 0
-            ? participants
-            : [
-                { displayName: 'Ajay' },
-                { displayName: 'Maria' },
-                { displayName: 'Rahul' },
-              ]
-          ).map((p, idx) => {
-            const letter = p.displayName?.charAt(0).toUpperCase() || 'A';
-            const style = avatarColors[idx % avatarColors.length];
+          {participants.length === 0 ? (
+            <p className="text-xs text-slate-400 italic">No participants yet. Waiting for players to join...</p>
+          ) : (
+            participants.map((p, idx) => {
+              const letter = p.displayName?.charAt(0).toUpperCase() || 'A';
+              const style = avatarColors[idx % avatarColors.length];
 
-            return (
-              <div
-                key={idx}
-                className="flex items-center space-x-2.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-900 shadow-2xs"
-              >
-                <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${style}`}>
-                  {letter}
-                </span>
-                <span>{p.displayName}</span>
-              </div>
-            );
-          })}
+              return (
+                <div
+                  key={idx}
+                  className="flex items-center space-x-2.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-900 shadow-2xs"
+                >
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${style}`}>
+                    {letter}
+                  </span>
+                  <span>{p.displayName}</span>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </div>

@@ -201,6 +201,7 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
         quizTitle={quizTitle}
         rankings={rankings}
         onBackToDashboard={onCloseSession}
+        isTrainer={true}
       />
     );
   }

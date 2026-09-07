@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Trophy, Download, RotateCcw, Award, Sparkles, Star } from 'lucide-react';
+import { Trophy, Download, RotateCcw, Award, Sparkles, Star, X } from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
 
 interface LivePodiumFinaleProps {
@@ -10,6 +10,7 @@ interface LivePodiumFinaleProps {
   userDisplayName?: string;
   userParticipantId?: string;
   onBackToDashboard: () => void;
+  isTrainer?: boolean;
 }
 
 export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
@@ -18,6 +19,7 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
   userDisplayName,
   userParticipantId,
   onBackToDashboard,
+  isTrainer = false,
 }) => {
   const { showToast } = useToast();
 
@@ -70,9 +72,21 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-extrabold text-amber-300">
-          <Trophy className="w-4 h-4 text-amber-400" />
-          <span>Final Results</span>
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/15 text-xs font-extrabold text-amber-300">
+            <Trophy className="w-4 h-4 text-amber-400" />
+            <span>Final Results</span>
+          </div>
+
+          {isTrainer && (
+            <button
+              onClick={onBackToDashboard}
+              title="Close & Return to Dashboard"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-rose-500/80 border border-white/20 hover:border-rose-400 text-white transition-all duration-200 shadow-md"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </div>
 
