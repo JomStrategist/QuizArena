@@ -3,8 +3,12 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { QuizModel } from '@/models/Quiz';
 import { QuestionModel } from '@/models/Question';
 import { UserModel } from '@/models/User';
+import { AssignmentModel } from '@/models/Assignment';
 import { verifyToken } from '@/lib/auth/jwt';
 import bcrypt from 'bcryptjs';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 // Pre-defined Quiz Content from the 4 HTML files in /Quiz
 const defaultHTMLQuizzes = [
@@ -358,7 +362,6 @@ async function ensureSeededQuizzes() {
 export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
-    await ensureSeededQuizzes();
 
     const { searchParams } = new URL(req.url);
     const category = searchParams.get('category');
@@ -500,6 +503,7 @@ export async function DELETE(req: NextRequest) {
     }
 
     await QuizModel.findByIdAndDelete(id);
+    await AssignmentModel.deleteMany({ quizId: id });
 
     return NextResponse.json({
       success: true,

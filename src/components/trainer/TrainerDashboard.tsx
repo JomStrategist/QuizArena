@@ -130,6 +130,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
     if (!confirm(`Are you sure you want to delete the quiz "${quiz.title}"?`)) {
       return;
     }
+
+    // Optimistically update UI state immediately
+    setQuizzes((prev) => prev.filter((q) => q._id !== quiz._id));
+
     try {
       const res = await fetch(`/api/v1/quizzes?id=${quiz._id}`, { method: 'DELETE' });
       const json = await res.json();
@@ -138,19 +142,22 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         loadData();
       } else {
         showToast(json.error?.message || 'Failed to delete quiz.', 'error');
+        loadData(); // Reload to restore state if deletion failed on server
       }
     } catch (err) {
       showToast('Error deleting quiz.', 'error');
+      loadData();
     }
   };
 
   const loadData = async () => {
     setLoading(true);
     try {
+      const timestamp = Date.now();
       const [quizRes, assignRes, resultsRes] = await Promise.all([
-        fetch('/api/v1/quizzes'),
-        fetch('/api/v1/assignments'),
-        fetch('/api/v1/live-sessions/results'),
+        fetch(`/api/v1/quizzes?t=${timestamp}`, { cache: 'no-store' }),
+        fetch(`/api/v1/assignments?t=${timestamp}`, { cache: 'no-store' }),
+        fetch(`/api/v1/live-sessions/results?t=${timestamp}`, { cache: 'no-store' }),
       ]);
 
       const quizJson = await quizRes.json();
