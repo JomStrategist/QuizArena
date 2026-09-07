@@ -457,18 +457,23 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   <p className="text-xs font-bold text-slate-900">{user?.name || 'Admin Trainer'}</p>
                   <p className="text-[10px] text-slate-500 truncate">{user?.email || 'admin@quizarena.com'}</p>
                 </div>
-                {onLogout && (
-                  <button
-                    onClick={() => {
-                      setIsUserMenuOpen(false);
+                <button
+                  onClick={async () => {
+                    setIsUserMenuOpen(false);
+                    try {
+                      await fetch('/api/v1/auth/logout', { method: 'POST' });
+                    } catch (e) {}
+                    if (onLogout) {
                       onLogout();
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 transition"
-                  >
-                    <LogOut className="w-3.5 h-3.5" />
-                    <span>Logout</span>
-                  </button>
-                )}
+                    } else {
+                      window.location.href = '/auth/trainer';
+                    }
+                  }}
+                  className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 transition"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Logout</span>
+                </button>
               </div>
             )}
           </div>

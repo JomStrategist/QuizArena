@@ -7,13 +7,17 @@ export async function POST(req: NextRequest) {
     timestamp: new Date().toISOString(),
   });
 
-  response.cookies.set('quizarena_token', '', {
+  const cookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    sameSite: 'lax' as const,
     path: '/',
-    maxAge: 0, // Delete cookie
-  });
+    maxAge: 0,
+  };
+
+  response.cookies.set('quizarena_token', '', cookieOptions);
+  response.cookies.set('token', '', cookieOptions);
+  response.cookies.set('auth_token', '', cookieOptions);
 
   return response;
 }

@@ -87,6 +87,17 @@ export default function ProtectedTrainerDashboardPage() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/v1/auth/logout', { method: 'POST' });
+      showToast('Logged out successfully.', 'info');
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      window.location.href = '/auth/trainer';
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -106,7 +117,7 @@ export default function ProtectedTrainerDashboardPage() {
         <BrandHeader
           subtitle="Trainer Dashboard"
           user={user}
-          onLogout={() => router.push('/')}
+          onLogout={handleLogout}
         />
       )}
 
@@ -114,7 +125,7 @@ export default function ProtectedTrainerDashboardPage() {
         {viewState === 'DASHBOARD' && (
           <TrainerDashboard
             user={user}
-            onLogout={() => router.push('/')}
+            onLogout={handleLogout}
             onStartLiveSession={(code, title, liveQuestions) => {
               setActiveQuizCode(code);
               setActiveQuizTitle(title);
