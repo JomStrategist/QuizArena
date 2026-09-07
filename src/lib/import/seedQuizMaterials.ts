@@ -181,11 +181,11 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
   });
 
   // -------------------------------------------------------------
-  // QUIZ 2: "Activity 2: AI Technology Detective" (Drag & Drop + 6 Combo MCQs)
+  // QUIZ 2: "Activity 2: AI Technology Detective" (Exactly 2 Drag & Drop Activities)
   // -------------------------------------------------------------
   const activity2QuestionsData = [
     {
-      questionText: 'Sort the 12 Solutions into Categories: Traditional ML, Deep Learning, NLP, and Computer Vision',
+      questionText: 'Activity 1 — Sort the 12 Solutions into Categories: Traditional ML, Deep Learning, NLP, and Computer Vision',
       questionType: 'DRAG_AND_DROP',
       options: [
         'Customer churn prediction',
@@ -226,100 +226,33 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
       difficulty: 'MEDIUM',
     },
     {
-      questionText: 'A customer-service voice assistant must understand what customers say and use a neural network trained on thousands of voice examples. What combination is needed?',
-      questionType: 'MCQ',
+      questionText: 'Activity 2 — Choose the AI Combination: Categorize each of the 6 real-life cases into its best AI technology combination.',
+      questionType: 'DRAG_AND_DROP',
       options: [
-        'NLP + Deep Learning',
-        'Computer Vision + Deep Learning',
-        'NLP + Traditional Machine Learning',
-        'Computer Vision + Traditional Machine Learning',
-        'Traditional Machine Learning only',
-        'NLP + Computer Vision',
+        'Case 1: A customer-service voice assistant must understand spoken words and use a neural network trained on voice recordings.',
+        'Case 2: A factory uses camera images and deep learning to identify damaged products on the assembly line.',
+        'Case 3: A company predicts employee churn using structured HR data like salary, tenure, department, and age.',
+        'Case 4: A support system automatically classifies customer emails as complaints, questions, or refund requests.',
+        'Case 5: A security system uses video footage and neural networks to detect violent activity in real-time.',
+        'Case 6: A bakery predicts next week\'s item sales using past sales history, prices, promotions, and day of week.',
       ],
-      correctOptionIndex: 0,
-      explanation: 'Speech/language is NLP; neural network on a large voice dataset is Deep Learning.',
+      categories: [
+        { id: 'nlp_dl', title: 'NLP + Deep Learning', description: 'Understands human speech/language using neural networks.' },
+        { id: 'cv_dl', title: 'Computer Vision + Deep Learning', description: 'Understands images or video footage using neural networks.' },
+        { id: 'tml', title: 'Traditional Machine Learning', description: 'Predicts outcomes using structured tabular data.' },
+        { id: 'nlp_ml', title: 'NLP + Machine Learning', description: 'Classifies text and language using classification models.' },
+      ],
+      categoryAssignments: {
+        '0': 'nlp_dl',
+        '1': 'cv_dl',
+        '2': 'tml',
+        '3': 'nlp_ml',
+        '4': 'cv_dl',
+        '5': 'tml',
+      },
+      explanation: 'Speech/language + neural network = NLP + Deep Learning. Camera images + neural network = Computer Vision + Deep Learning. Structured tabular data = Traditional ML. Language text + classification = NLP + Machine Learning.',
       category: 'AI Architectures',
       difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'A factory wants to use camera images to identify damaged products. What combination is most appropriate?',
-      questionType: 'MCQ',
-      options: [
-        'NLP + Deep Learning',
-        'Computer Vision + Deep Learning',
-        'Computer Vision + Traditional Machine Learning',
-        'NLP + Traditional Machine Learning',
-        'Traditional Machine Learning only',
-        'Computer Vision + NLP',
-      ],
-      correctOptionIndex: 1,
-      explanation: 'Camera images require Computer Vision, and visual pattern learning uses Deep Learning.',
-      category: 'Computer Vision',
-      difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'A company wants to predict which employees may leave using salary, tenure, age, department and previous performance data. What is the clearest approach?',
-      questionType: 'MCQ',
-      options: [
-        'Computer Vision + Deep Learning',
-        'NLP + Deep Learning',
-        'Traditional Machine Learning',
-        'NLP + Traditional Machine Learning',
-        'Computer Vision + Traditional Machine Learning',
-        'Deep Learning only',
-      ],
-      correctOptionIndex: 2,
-      explanation: 'Structured employee tabular data for churn prediction is classic Traditional ML.',
-      category: 'Machine Learning',
-      difficulty: 'EASY',
-    },
-    {
-      questionText: 'A company wants to automatically classify customer emails as complaint, question, compliment or refund request. What combination best describes the solution?',
-      questionType: 'MCQ',
-      options: [
-        'NLP + Machine Learning',
-        'Computer Vision + Deep Learning',
-        'Traditional Machine Learning only',
-        'Computer Vision + NLP',
-        'NLP + Deep Learning',
-        'Computer Vision + Traditional Machine Learning',
-      ],
-      correctOptionIndex: 0,
-      explanation: 'Text understanding requires NLP, and learning categories from email text uses Machine Learning.',
-      category: 'NLP',
-      difficulty: 'MEDIUM',
-    },
-    {
-      questionText: 'A security system uses camera footage and a neural network to detect whether violence or fighting is happening in the scene. What combination is needed?',
-      questionType: 'MCQ',
-      options: [
-        'NLP + Traditional Machine Learning',
-        'Computer Vision + Deep Learning',
-        'NLP + Deep Learning',
-        'Traditional Machine Learning only',
-        'Computer Vision + Traditional Machine Learning',
-        'NLP + Computer Vision',
-      ],
-      correctOptionIndex: 1,
-      explanation: 'Analyzing camera video is Computer Vision; recognizing complex action patterns with neural networks is Deep Learning.',
-      category: 'Computer Vision',
-      difficulty: 'HARD',
-    },
-    {
-      questionText: 'A bakery wants to predict how many items it will sell next week using previous sales, prices, promotions, day of the week, seasonality and other sales information. What is the clearest approach?',
-      questionType: 'MCQ',
-      options: [
-        'NLP + Deep Learning',
-        'Computer Vision + Deep Learning',
-        'Traditional Machine Learning',
-        'NLP + Traditional Machine Learning',
-        'Computer Vision + Traditional Machine Learning',
-        'Deep Learning only',
-      ],
-      correctOptionIndex: 2,
-      explanation: 'Structured sales telemetry and pricing features make this a classic Traditional Machine Learning prediction problem.',
-      category: 'Machine Learning',
-      difficulty: 'EASY',
     },
   ];
 
