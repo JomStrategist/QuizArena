@@ -703,7 +703,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         </div>
 
         {/* Evaluation Feedback if submitted or showing answers */}
-        {(showCorrectAnswer || isAnswerSubmitted) && (
+        {showCorrectAnswer && (
           <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
             <h4 className="text-sm font-black text-white uppercase tracking-wider">Exercise Result</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -758,7 +758,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       : ((question as any).subQuestions || []);
     const totalSubQs = subQuestions.length;
     const answeredCount = Object.keys(scenarioSubAnswers).length;
-    const isReviewMode = showCorrectAnswer || isAnswerSubmitted;
+    const isReviewMode = showCorrectAnswer;
     // In review mode show all sub-Qs; in play mode show one at a time
     const displayIdx = isReviewMode ? null : activeSubQIdx;
 

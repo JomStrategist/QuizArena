@@ -464,7 +464,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   const currentIdx = (session.currentQuestionIndex || 0) + 1;
   const totalQuestions = session.totalQuestions || 5;
 
-  const showCorrectAnswer = session.showCorrectAnswer !== false && (session.stage === 'SHOWING_RESULT' || Boolean(studentAnswer));
+  const showCorrectAnswer = session.showCorrectAnswer !== false && (session.stage === 'SHOWING_RESULT' || session.stage === 'GAME_OVER' || session.stage === 'REVEAL_ANSWER');
   const showScore = session.showScore !== false;
   const isQuestionActive = session.stage === 'QUESTION_ACTIVE' && !studentAnswer;
 
@@ -497,6 +497,24 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
           </span>
         </div>
       </div>
+
+      {/* Answer Submitted Pending Banner (While Question Active & Timer Running) */}
+      {studentAnswer && session.stage === 'QUESTION_ACTIVE' && (
+        <div className="p-4 rounded-3xl border border-blue-200 bg-blue-50 text-blue-900 shadow-sm flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black shrink-0 text-sm">
+              ✓
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-blue-950">Answer Submitted!</p>
+              <p className="text-[11px] font-semibold text-blue-700">Results and explanations will be revealed when question time ends.</p>
+            </div>
+          </div>
+          <div className="px-3 py-1 bg-blue-600 text-white font-mono font-black text-xs rounded-xl shadow-xs">
+            {timeLeft}s left
+          </div>
+        </div>
+      )}
 
       {/* Answer Result Banner (If Showing Result) */}
       {studentAnswer && session.stage === 'SHOWING_RESULT' && (
