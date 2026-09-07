@@ -147,11 +147,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       updated = [...selectedPromptPieces, pieceText];
     }
     setSelectedPromptPieces(updated);
-    if (onSelectSequence && question.options) {
-      const opts = question.options;
-      const idxs = updated.map((text) => opts.indexOf(text)).filter((i) => i !== -1);
-      onSelectSequence(idxs);
-    }
   };
 
   const movePromptPiece = (fromIdx: number, delta: number) => {
@@ -162,11 +157,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const [moved] = updated.splice(fromIdx, 1);
     updated.splice(toIdx, 0, moved);
     setSelectedPromptPieces(updated);
-    if (onSelectSequence && question.options) {
-      const opts = question.options;
-      const idxs = updated.map((text) => opts.indexOf(text)).filter((i) => i !== -1);
-      onSelectSequence(idxs);
-    }
   };
 
   const handleMoveStep = (fromIdx: number, toIdx: number) => {
