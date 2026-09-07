@@ -1305,14 +1305,24 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                 </select>
               </div>
 
-              {/* Create Quiz Button */}
-              <button
-                onClick={handleCreateNewQuiz}
-                className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1 shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Create Quiz</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="flex items-center space-x-2 shrink-0 w-full md:w-auto">
+                <button
+                  onClick={handleSeedMaterials}
+                  className="w-full md:w-auto px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Seed HTML Quizzes</span>
+                </button>
+
+                <button
+                  onClick={handleCreateNewQuiz}
+                  className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create Quiz</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1357,14 +1367,32 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               ))}
             </div>
           ) : sortedQuizzesTab.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-3">
+            <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center space-y-4">
               <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
                 <BookOpen className="w-6 h-6" />
               </div>
-              <h3 className="text-base font-bold text-slate-800">No quizzes found</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                No quizzes match your filter criteria. Build a new quiz to get started.
-              </p>
+              <div>
+                <h3 className="text-base font-bold text-slate-800">No quizzes found</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                  No quizzes match your filter criteria or your database is empty. You can seed the 4 HTML Quiz Materials instantly or create a new quiz.
+                </p>
+              </div>
+              <div className="flex items-center justify-center space-x-3 pt-2">
+                <button
+                  onClick={handleSeedMaterials}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center space-x-1.5"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Seed 4 HTML Quiz Materials</span>
+                </button>
+                <button
+                  onClick={handleCreateNewQuiz}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center space-x-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Create New Quiz</span>
+                </button>
+              </div>
             </div>
           ) : quizzesTabViewMode === 'GRID' ? (
             /* Grid View matching reference design */
