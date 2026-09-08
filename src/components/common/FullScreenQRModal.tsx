@@ -43,6 +43,17 @@ export const FullScreenQRModal: React.FC<FullScreenQRModalProps> = ({
     }
   }, [code, customUrl]);
 
+  // Request/exit native browser fullscreen with the modal
+  useEffect(() => {
+    if (isOpen) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    } else {
+      if (document.fullscreenElement) {
+        document.exitFullscreen?.().catch(() => {});
+      }
+    }
+  }, [isOpen]);
+
   // Handle ESC key press
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -69,7 +80,7 @@ export const FullScreenQRModal: React.FC<FullScreenQRModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col justify-between p-6 sm:p-10 bg-gradient-to-b from-slate-900 via-blue-950 to-indigo-950 text-white font-sans overflow-y-auto animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex flex-col justify-between p-6 sm:p-10 bg-gradient-to-b from-slate-900 via-blue-950 to-indigo-950 text-white font-sans overflow-y-auto animate-in fade-in duration-200">
       {/* Top Header Bar */}
       <div className="flex items-center justify-between w-full max-w-6xl mx-auto shrink-0">
         <div className="flex items-center space-x-3">

@@ -12,11 +12,9 @@ import {
   Clock,
   QrCode,
   X,
-  Tv,
 } from 'lucide-react';
 import { QRCodeImage } from '@/lib/game/qrGenerator';
 import { FullScreenQRModal } from '../common/FullScreenQRModal';
-import { ProjectorViewModal } from './ProjectorViewModal';
 import { useToast } from '../ui/ToastNotification';
 import { soundManager } from '@/lib/game/soundManager';
 
@@ -39,7 +37,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [isFullScreenQROpen, setIsFullScreenQROpen] = useState(false);
-  const [isProjectorViewOpen, setIsProjectorViewOpen] = useState(false);
   const [joinUrl, setJoinUrl] = useState('');
   const { showToast } = useToast();
 
@@ -69,7 +66,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 max-w-6xl mx-auto w-full font-sans text-slate-900 space-y-6">
       
-      {/* Full Screen QR Modal */}
+      {/* Full Screen QR Modal — triggers native browser fullscreen */}
       <FullScreenQRModal
         isOpen={isFullScreenQROpen}
         onClose={() => setIsFullScreenQROpen(false)}
@@ -77,21 +74,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         code={quizCode}
         subtitle="Scan to Join Conduct Quiz Session"
         customUrl={joinUrl}
-      />
-
-      {/* Full Screen Projector View Modal */}
-      <ProjectorViewModal
-        isOpen={isProjectorViewOpen}
-        onClose={() => setIsProjectorViewOpen(false)}
-        quizCode={quizCode}
-        quizTitle={quizTitle}
-        currentQuestion={null}
-        currentIdx={1}
-        totalQuestions={5}
-        timeLeft={30}
-        totalParticipants={participants.length}
-        stage="LOBBY"
-        participants={participants}
       />
 
       {/* Top Banner Card */}
