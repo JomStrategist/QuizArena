@@ -332,15 +332,15 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           </button>
         </div>
 
-        {/* Right Controls: Participants, Pause, End Game */}
+        {/* Right Controls: Next Question, Pause, End Game */}
         <div className="flex items-center space-x-3 shrink-0">
-          <div className="flex items-center space-x-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-2xl border border-blue-100 font-bold text-xs">
-            <Users className="w-4 h-4 text-blue-600" />
-            <div>
-              <span className="font-black text-sm block leading-none">{rankings.length || liveStats.totalParticipants || 0}</span>
-              <span className="text-[10px] text-blue-500">Participants</span>
-            </div>
-          </div>
+          <button
+            onClick={handleNextQuestion}
+            className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/20 active:scale-95"
+          >
+            <span>Next Question</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
 
           <button
             onClick={handlePauseResumeToggle}
