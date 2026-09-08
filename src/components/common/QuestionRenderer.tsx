@@ -354,13 +354,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </span>
           <h2 className="text-xl md:text-2xl font-black">{renderQuestionText(question.questionText)}</h2>
           <p className={`text-xs sm:text-sm opacity-85 mt-2 font-medium leading-relaxed ${mode === 'projector' ? 'text-slate-300' : 'text-slate-600'}`}>
-            {question.explanation || (
-              items.length === 12
-                ? "Categorize each of the 12 solutions into the category that best describes it. Click a card to select it, or use the + Category buttons on each card."
-                : items.length === 6
-                ? "Now choose the best combination for each real-life case. Some cases use one concept; others combine a problem area with a learning approach."
-                : "Assign each card to its correct category."
-            )}
+            {mode === 'trainer' || mode === 'projector'
+              ? `Categorization Challenge: ${items.length} solution cards categorized into ${categories.length} target categories.`
+              : (question.explanation || (
+                  items.length === 12
+                    ? "Categorize each of the 12 solutions into the category that best describes it. Select a category directly on each card item."
+                    : items.length === 6
+                    ? "Choose the best combination for each real-life case."
+                    : "Assign each card to its correct category."
+                ))
+            }
           </p>
         </div>
 
@@ -536,58 +539,131 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             </div>
           </div>
         ) : (
-          /* Trainer & Projector Category Columns Grid Overview */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {categories.map((cat) => {
-              const assignedIndices = items
-                .map((_, i) => i.toString())
-                .filter((idxStr) => categoryAssignments[idxStr] === cat.id);
+          /* Trainer & Projector Category Columns Grid Overview + All Solutions List */
+          <div className="space-y-6">
+            {/* Category Buckets */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categories.map((cat, catIdx) => {
+                const assignedIndices = items
+                  .map((_, i) => i.toString())
+                  .filter((idxStr) => {
+                    const idx = parseInt(idxStr, 10);
+                    const localAssigned = categoryAssignments[idxStr];
+                    const correctAssigned = question.categoryAssignments?.[idxStr];
+                    if (correctAssigned) return correctAssigned === cat.id;
+                    if (localAssigned) return localAssigned === cat.id;
 
-              return (
-                <div
-                  key={cat.id}
-                  className={`p-4 rounded-2xl border min-h-[140px] space-y-3 transition ${
-                    mode === 'projector'
-                      ? 'bg-slate-900 border-white/20 text-white'
-                      : 'bg-slate-50 border-slate-200 text-slate-900'
-                  }`}
-                >
-                  <div className="border-b pb-2 border-slate-200/50 flex items-center justify-between">
-                    <div>
-                      <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
-                      {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
+                    // Fallback distribution matching N categories
+                    const itemsPerCat = Math.max(1, Math.ceil(items.length / categories.length));
+                    return Math.floor(idx / itemsPerCat) === catIdx;
+                  });
+
+                return (
+                  <div
+                    key={cat.id}
+                    className={`p-4 rounded-2xl border min-h-[120px] space-y-3 transition ${
+                      mode === 'projector'
+                        ? 'bg-slate-900 border-white/20 text-white'
+                        : 'bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
+                    }`}
+                  >
+                    <div className="border-b pb-2 border-slate-200/50 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
+                        {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
+                      </div>
+                      <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black">
+                        {assignedIndices.length} items
+                      </span>
                     </div>
-                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black">
-                      {assignedIndices.length} items
-                    </span>
-                  </div>
 
-                  <div className="space-y-2 pt-1">
-                    {assignedIndices.length === 0 ? (
-                      <p className="text-[11px] text-slate-400 italic font-medium pt-1">
-                        No items assigned yet
-                      </p>
-                    ) : (
-                      assignedIndices.map((idxStr) => {
-                        const idx = parseInt(idxStr, 10);
-                        const { title: itemTitle, desc: itemDesc } = parseItem(items[idx]);
-                        return (
-                          <div
-                            key={idxStr}
-                            className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs shadow-xs"
-                          >
-                            <div className="space-y-0.5">
+                    <div className="space-y-2 pt-1">
+                      {assignedIndices.length === 0 ? (
+                        <p className="text-[11px] text-slate-400 italic font-medium pt-1">
+                          No items assigned yet
+                        </p>
+                      ) : (
+                        assignedIndices.map((idxStr) => {
+                          const idx = parseInt(idxStr, 10);
+                          const { title: itemTitle, desc: itemDesc } = parseItem(items[idx]);
+                          return (
+                            <div
+                              key={idxStr}
+                              className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs shadow-2xs space-y-0.5"
+                            >
                               <p className="font-black leading-snug text-slate-900">{itemTitle}</p>
                               {itemDesc && <p className="text-[10px] text-slate-500 font-medium leading-snug">{itemDesc}</p>}
                             </div>
-                          </div>
-                        );
-                      })
-                    )}
+                          );
+                        })
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+
+            {/* Complete Solutions Reference Cards for Trainer / Projector */}
+            <div className={`p-5 rounded-3xl border space-y-4 ${
+              mode === 'projector'
+                ? 'bg-slate-900 border-slate-800 text-white'
+                : 'bg-white border-slate-200 text-slate-900 shadow-xs'
+            }`}>
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <h4 className="text-xs font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                  Question Solutions Overview ({items.length} Cards)
+                </h4>
+                <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
+                  Target Answer Key
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {items.map((itemText, idx) => {
+                  const idxStr = idx.toString();
+                  let targetCatId = question.categoryAssignments?.[idxStr] || categoryAssignments[idxStr];
+                  if (!targetCatId) {
+                    const itemsPerCat = Math.max(1, Math.ceil(items.length / categories.length));
+                    const catIdx = Math.floor(idx / itemsPerCat);
+                    targetCatId = categories[catIdx]?.id || categories[0]?.id;
+                  }
+                  const targetCat = categories.find((c) => c.id === targetCatId);
+                  const { title: itemTitle, desc: itemDesc } = parseItem(itemText);
+
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-3.5 rounded-2xl border transition space-y-2 ${
+                        mode === 'projector'
+                          ? 'bg-slate-800/80 border-slate-700/80 text-white'
+                          : 'bg-slate-50/90 border-slate-200 text-slate-900'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 border-b border-slate-200/50 dark:border-slate-700/60 pb-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
+                          Item {idx + 1}
+                        </span>
+                        {targetCat ? (
+                          <span className="px-2.5 py-0.5 bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 rounded-lg text-[10px] font-bold">
+                            Category: {targetCat.title}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-[10px] font-bold">
+                            Unassigned
+                          </span>
+                        )}
+                      </div>
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-black leading-snug">{itemTitle}</p>
+                        {itemDesc && (
+                          <p className="text-[11px] font-medium opacity-75 leading-snug">{itemDesc}</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
       </div>
