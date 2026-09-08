@@ -174,7 +174,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     if (disabled) return;
     const updated = { ...categoryAssignments, [itemIdx]: catId };
     setCategoryAssignments(updated);
-    if (onSelectCategoryAssignments) onSelectCategoryAssignments(updated);
   };
 
   const handlePromptSelect = (field: 'role' | 'context' | 'task' | 'outputFormat', value: string) => {
@@ -369,55 +368,74 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
         {/* If question items are Cases with Dropdowns (Activity 2) */}
         {isDropdownCases ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {items.map((itemText, idx) => {
-              const selectedCat = categoryAssignments[idx.toString()] || '';
-              const caseTitle = `Case ${idx + 1}`;
-              const cleanText = itemText.replace(/^Case \d+:\s*/i, '');
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {items.map((itemText, idx) => {
+                const selectedCat = categoryAssignments[idx.toString()] || '';
+                const caseTitle = `Case ${idx + 1}`;
+                const cleanText = itemText.replace(/^Case \d+:\s*/i, '');
 
-              return (
-                <div
-                  key={idx}
-                  className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 shadow-sm transition ${
-                    mode === 'projector'
-                      ? 'bg-slate-900 border-white/20 text-white'
-                      : 'bg-white border-slate-200 text-slate-900'
+                return (
+                  <div
+                    key={idx}
+                    className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 shadow-sm transition ${
+                      mode === 'projector'
+                        ? 'bg-slate-900 border-white/20 text-white'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  >
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-black uppercase text-blue-600 tracking-wider">
+                        {caseTitle}
+                      </h3>
+                      <p className="text-xs md:text-sm font-semibold leading-relaxed opacity-90">
+                        {cleanText}
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5 pt-3 border-t border-slate-200/60">
+                      <label className="block text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                        Select the best combination
+                      </label>
+                      <select
+                        disabled={disabled}
+                        value={selectedCat}
+                        onChange={(e) => handleAssignCategory(idx.toString(), e.target.value)}
+                        className={`w-full p-3 rounded-xl border text-xs md:text-sm font-bold transition focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer ${
+                          mode === 'projector'
+                            ? 'bg-slate-800 border-slate-700 text-white'
+                            : 'bg-slate-50 border-slate-300 text-slate-900 hover:border-blue-400'
+                        }`}
+                      >
+                        <option value="">Choose...</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.title}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {mode === 'player' && !disabled && !isAnswerSubmitted && onSelectCategoryAssignments && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => onSelectCategoryAssignments(categoryAssignments)}
+                  disabled={Object.keys(categoryAssignments).length === 0}
+                  className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg ${
+                    Object.keys(categoryAssignments).length > 0
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-blue-600/30 active:scale-[0.98] cursor-pointer'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-black uppercase text-blue-600 tracking-wider">
-                      {caseTitle}
-                    </h3>
-                    <p className="text-xs md:text-sm font-semibold leading-relaxed opacity-90">
-                      {cleanText}
-                    </p>
-                  </div>
-
-                  <div className="space-y-1.5 pt-3 border-t border-slate-200/60">
-                    <label className="block text-[11px] font-black uppercase text-slate-400 tracking-wider">
-                      Select the best combination
-                    </label>
-                    <select
-                      disabled={disabled}
-                      value={selectedCat}
-                      onChange={(e) => handleAssignCategory(idx.toString(), e.target.value)}
-                      className={`w-full p-3 rounded-xl border text-xs md:text-sm font-bold transition focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer ${
-                        mode === 'projector'
-                          ? 'bg-slate-800 border-slate-700 text-white'
-                          : 'bg-slate-50 border-slate-300 text-slate-900 hover:border-blue-400'
-                      }`}
-                    >
-                      <option value="">Choose...</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>
-                          {cat.title}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              );
-            })}
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>Submit Categorization Answer ✓ ({Object.keys(categoryAssignments).length} of {items.length} Assigned)</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : mode === 'player' ? (
           /* Mobile-Optimized Direct Category Selection for Players */
@@ -537,6 +555,25 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 );
               })}
             </div>
+
+            {/* Submit Button for Drag & Drop Categorization */}
+            {mode === 'player' && !disabled && !isAnswerSubmitted && onSelectCategoryAssignments && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => onSelectCategoryAssignments(categoryAssignments)}
+                  disabled={Object.keys(categoryAssignments).length === 0}
+                  className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg ${
+                    Object.keys(categoryAssignments).length > 0
+                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-purple-600/30 active:scale-[0.98] cursor-pointer'
+                      : 'bg-slate-800 text-slate-500 border border-slate-700 cursor-not-allowed'
+                  }`}
+                >
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                  <span>Submit Categorization Answer ✓ ({Object.keys(categoryAssignments).length} of {items.length} Assigned)</span>
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           /* Trainer & Projector Category Columns Grid Overview + All Solutions List */
