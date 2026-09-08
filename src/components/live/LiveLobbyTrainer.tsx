@@ -74,7 +74,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   ];
 
   return (
-    <div className="min-h-[88vh] bg-slate-50 p-2 sm:p-4 w-full max-w-[99%] mx-auto font-sans text-slate-900 space-y-6 flex flex-col justify-between">
+    <div className="min-h-[88vh] bg-slate-50 p-2 sm:p-4 w-full font-sans text-slate-900 space-y-6 flex flex-col justify-between">
       
       {/* Full Screen QR Modal — triggers native browser fullscreen */}
       <FullScreenQRModal
@@ -114,6 +114,16 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         </div>
 
         <div className="flex items-center space-x-3 self-start md:self-auto">
+          {/* Start Quiz Button (Same size as Close Lobby) */}
+          <button
+            onClick={onStartGame}
+            className="px-5 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 border border-amber-300 rounded-2xl text-xs font-black transition flex items-center space-x-2 shadow-xs cursor-pointer active:scale-95"
+            title="Start Quiz Now"
+          >
+            <Play className="w-4 h-4 fill-current" />
+            <span>Start Quiz</span>
+          </button>
+
           {/* Prominent Close/Exit Button */}
           <button
             onClick={onClose ? onClose : () => { window.location.href = '/trainer/dashboard'; }}
@@ -137,8 +147,8 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Game Join Code & Start Quiz (6 cols) */}
-        <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+        {/* Right Column: Joined Players (6 cols) */}
+        <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-start space-y-6">
           
           <div className="space-y-6">
 
@@ -165,7 +175,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
                 <span>Joined Players ({participants.length})</span>
               </p>
 
-              <div className="flex flex-wrap items-center gap-2.5 max-h-[180px] overflow-y-auto p-1">
+              <div className="flex flex-wrap items-center gap-2.5 max-h-[320px] overflow-y-auto p-1">
                 {participants.length === 0 ? (
                   <p className="text-xs text-slate-400 italic py-3">No participants yet. Waiting for players to join using 6-digit code or QR code...</p>
                 ) : (
@@ -190,14 +200,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
               </div>
             </div>
           </div>
-
-          <button
-            onClick={onStartGame}
-            className="w-full py-5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-black text-lg rounded-2xl transition shadow-xl shadow-orange-500/25 flex items-center justify-center space-x-3 active:scale-98"
-          >
-            <Play className="w-6 h-6 fill-current" />
-            <span>START QUIZ NOW</span>
-          </button>
         </div>
       </div>
     </div>

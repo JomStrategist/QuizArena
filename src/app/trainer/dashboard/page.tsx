@@ -115,7 +115,7 @@ export default function ProtectedTrainerDashboardPage() {
     <div className="min-h-screen flex flex-col justify-between bg-slate-50">
 
 
-      <main className="flex-1 p-4 md:p-6 w-full max-w-[96%] mx-auto">
+      <main className="flex-1 p-2 sm:p-4 w-full">
         {viewState === 'DASHBOARD' && (
           <TrainerDashboard
             user={user}
