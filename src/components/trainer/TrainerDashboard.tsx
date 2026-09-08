@@ -384,12 +384,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
         {/* Center: intentionally empty for V1 */}
         <div />
 
-        {/* Right: Notifications & User Profile */}
+        {/* Right: User Profile */}
         <div className="flex items-center space-x-3">
-          <button className="w-9 h-9 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-500 hover:bg-slate-50 transition relative shadow-xs">
-            <Bell className="w-4 h-4" />
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-          </button>
 
           <div className="relative">
             <button
