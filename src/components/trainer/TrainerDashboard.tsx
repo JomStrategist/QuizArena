@@ -1246,32 +1246,6 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             <h2 className="text-base font-black text-slate-900">
               All Quizzes ({sortedQuizzesTab.length})
             </h2>
-
-            {/* View Switcher */}
-            <div className="bg-slate-200/80 p-0.5 rounded-xl flex items-center space-x-0.5 self-start sm:self-auto">
-              <button
-                onClick={() => setQuizzesTabViewMode('GRID')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                  quizzesTabViewMode === 'GRID'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Grid View</span>
-              </button>
-              <button
-                onClick={() => setQuizzesTabViewMode('LIST')}
-                className={`px-3 py-1 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                  quizzesTabViewMode === 'LIST'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                <List className="w-3.5 h-3.5" />
-                <span>List View</span>
-              </button>
-            </div>
           </div>
 
           {/* Quizzes Listing */}
@@ -1302,120 +1276,9 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                 </button>
               </div>
             </div>
-          ) : quizzesTabViewMode === 'GRID' ? (
-            /* Grid View matching reference design */
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {paginatedQuizzesTab.map((quiz, index) => {
-                const modifiedDate = formatDateSafe(quiz.updatedAt);
-
-                return (
-                  <div
-                    key={quiz._id}
-                    className={`bg-white p-5 rounded-2xl border border-slate-200 border-l-4 ${getQuizCardBorderColor(
-                      index
-                    )} shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4`}
-                  >
-                    <div className="space-y-3">
-                      {/* Top Title Row */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center space-x-3">
-                          {renderQuizIcon(index, quiz.category)}
-                          <div>
-                            <div className="flex items-center space-x-2">
-                              <h3 className="text-sm font-extrabold text-slate-900 leading-snug">
-                                {quiz.title}
-                              </h3>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center space-x-1.5 shrink-0">
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
-                            {quiz.status || 'READY'}
-                          </span>
-                          <button className="p-1 text-slate-400 hover:text-slate-600 rounded-lg">
-                            <MoreVertical className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Description */}
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                        {quiz.description ||
-                          'Evaluate learner capabilities across structured assessment modules, core concepts, and practical tasks.'}
-                      </p>
-
-                      {/* Category Pill & Metadata */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
-                        <span
-                          className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${getCategoryBadgeClass(
-                            quiz.category
-                          )}`}
-                        >
-                          {quiz.category || 'General'}
-                        </span>
-
-                        <span className="flex items-center space-x-1 text-[11px] text-slate-500 font-semibold">
-                          <BookOpen className="w-3.5 h-3.5 text-blue-500" />
-                          <span>{quiz.questionIds?.length || 5} Questions</span>
-                        </span>
-
-                        <span className="flex items-center space-x-1 text-[11px] text-slate-400 font-medium">
-                          <Calendar className="w-3.5 h-3.5" />
-                          <span>Updated {modifiedDate}</span>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons Row */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-100">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <button
-                          onClick={() => handleEditQuiz(quiz)}
-                          className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold rounded-xl transition flex items-center space-x-1"
-                        >
-                          <Edit className="w-3.5 h-3.5 text-amber-600" />
-                          <span>Edit</span>
-                        </button>
-
-                        <button
-                          onClick={() => setIsAssignOpen(true)}
-                          className="px-3 py-1.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-800 text-xs font-bold rounded-xl transition flex items-center space-x-1"
-                        >
-                          <Send className="w-3.5 h-3.5 text-purple-600" />
-                          <span>Assign</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleOpenConductSetup(quiz)}
-                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition flex items-center space-x-1 shadow-xs"
-                        >
-                          <ClipboardList className="w-3.5 h-3.5" />
-                          <span>Conduct Quiz</span>
-                        </button>
-
-                        <button
-                          onClick={() => handleLaunchLiveSession(quiz._id)}
-                          className="px-3 py-1.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-xs font-extrabold rounded-xl transition flex items-center space-x-1 shadow-xs"
-                        >
-                          <Radio className="w-3.5 h-3.5" />
-                          <span>Live Game</span>
-                        </button>
-                      </div>
-
-                      <button
-                        onClick={() => handleDeleteQuiz(quiz)}
-                        title="Delete Quiz"
-                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
           ) : (
+            /* List View - only view in V1 */
+
             /* List View */
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
