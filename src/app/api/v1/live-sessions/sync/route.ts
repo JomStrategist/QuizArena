@@ -42,16 +42,13 @@ export async function GET(req: NextRequest) {
 
     // Synchronized State Machine Auto Progression
     if (session.stage !== 'PAUSED' && session.stage !== 'CLOSED' && session.stage !== 'LOBBY') {
-      if (session.stage === 'STARTING' && session.stageStartTimestamp) {
-        const countdownElapsed = (now - session.stageStartTimestamp) / 1000;
-        if (countdownElapsed >= 3) {
-          session.stage = 'QUESTION_ACTIVE';
-          session.questionStartTimestamp = Date.now();
-          session.markModified('stage');
-          session.markModified('questionStartTimestamp');
-          await session.save();
-          emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'QUESTION_ACTIVE', questionIndex: qIdx });
-        }
+      if (session.stage === 'STARTING') {
+        session.stage = 'QUESTION_ACTIVE';
+        session.questionStartTimestamp = Date.now();
+        session.markModified('stage');
+        session.markModified('questionStartTimestamp');
+        await session.save();
+        emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'QUESTION_ACTIVE', questionIndex: qIdx });
       } else if (session.stage === 'QUESTION_ACTIVE' && session.questionStartTimestamp) {
         const elapsedSeconds = (now - session.questionStartTimestamp) / 1000;
         if (elapsedSeconds >= questionTime) {

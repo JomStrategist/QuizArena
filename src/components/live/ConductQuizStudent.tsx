@@ -126,10 +126,24 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
           const remaining = Math.max(0, qTime - elapsed);
           setTimeLeft(remaining);
 
+          soundManager.updateQuizState({
+            stage: sess.stage,
+            timeLeft: remaining,
+            questionTimeLimit: qTime,
+            isAnswerSubmitted: Boolean(json.data.studentAnswer),
+          });
+
           if (remaining <= 0 && !json.data.studentAnswer && !hasTimedOut && !submitting) {
             setHasTimedOut(true);
             handleOptionSelect(-1, true);
           }
+        } else {
+          soundManager.updateQuizState({
+            stage: sess.stage,
+            timeLeft: qTime,
+            questionTimeLimit: qTime,
+            isAnswerSubmitted: Boolean(json.data.studentAnswer),
+          });
         }
       }
     } catch (err) {
@@ -140,7 +154,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   useEffect(() => {
     if (isJoined) {
       syncState();
-      const interval = setInterval(syncState, 1000);
+      const interval = setInterval(syncState, 500);
 
       let eventSource: EventSource | null = null;
       try {

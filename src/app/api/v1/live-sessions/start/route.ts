@@ -28,14 +28,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    session.stage = 'STARTING';
+    session.stage = 'QUESTION_ACTIVE';
     session.stageStartTimestamp = Date.now();
+    session.questionStartTimestamp = Date.now();
     session.currentQuestionIndex = 0;
     await session.save();
 
     emitSessionEvent(session.quizCode, 'GAME_STARTED', {
       quizCode: session.quizCode,
-      stage: 'STARTING',
+      stage: 'QUESTION_ACTIVE',
+      questionIndex: 0,
+    });
+    emitSessionEvent(session.quizCode, 'STAGE_CHANGED', {
+      stage: 'QUESTION_ACTIVE',
+      questionIndex: 0,
     });
 
     return NextResponse.json({

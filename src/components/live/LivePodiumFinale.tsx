@@ -3,6 +3,7 @@
 import React from 'react';
 import { Trophy, Download, RotateCcw, Award, Sparkles, Star, X } from 'lucide-react';
 import { useToast } from '../ui/ToastNotification';
+import { soundManager } from '@/lib/game/soundManager';
 
 interface LivePodiumFinaleProps {
   quizTitle: string;
@@ -22,6 +23,10 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
   isTrainer = false,
 }) => {
   const { showToast } = useToast();
+
+  React.useEffect(() => {
+    soundManager.playLeaderboardSound();
+  }, []);
 
   // Top 3 players
   const top1 = rankings[0] || { displayName: 'Ajay', score: 4059, accuracy: '90%' };

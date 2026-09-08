@@ -1,30 +1,109 @@
 /**
- * QuizArena Game Audio Synthesizer (Web Audio API)
- * Royalty-free, zero-dependency audio generator for game sounds and feedback.
+ * QuizArena Global Reusable Quiz Audio System
+ * Manages background music, dynamic timer warning music, answer submission sound effects,
+ * and leaderboard reveal music across all existing and future quizzes.
  */
 
+export type QuizAudioState =
+  | 'IDLE'
+  | 'LOBBY'
+  | 'QUESTION_ACTIVE'
+  | 'QUESTION_WARNING'
+  | 'TIME_UP'
+  | 'ANSWER_SUBMITTED'
+  | 'LEADERBOARD';
+
+export interface QuizAudioConfigItem {
+  src: string;
+  loop: boolean;
+  volume: number;
+}
+
+export const quizAudioConfig: Record<string, QuizAudioConfigItem> = {
+  lobby: {
+    src: '/Music/Lobby Theme.mp3',
+    loop: true,
+    volume: 0.35,
+  },
+  question: {
+    src: '/Music/Live Game Question Music.mp3',
+    loop: true,
+    volume: 0.35,
+  },
+  warning: {
+    src: '/Music/Time Warning : Final Countdown.mp3',
+    loop: true,
+    volume: 0.45,
+  },
+  timeUp: {
+    src: '/Music/Time Up : Answer Time Over.mp3',
+    loop: false,
+    volume: 0.5,
+  },
+  answerSubmitted: {
+    src: '/Music/Answer Submitted.mp3',
+    loop: false,
+    volume: 0.55,
+  },
+  leaderboard: {
+    src: '/Music/Leaderboard : Results Reveal.mp3',
+    loop: false,
+    volume: 0.45,
+  },
+};
+
 class SoundManager {
-  private audioCtx: AudioContext | null = null;
+  private currentState: QuizAudioState = 'IDLE';
   private isMuted: boolean = false;
+  private currentAudioKey: string | null = null;
+  private audioCache: Map<string, HTMLAudioElement> = new Map();
+  private isUnlocked: boolean = false;
 
   constructor() {
-    // AudioContext will be initialized on first user interaction
+    if (typeof window !== 'undefined') {
+      const unlockAudio = () => {
+        if (this.isUnlocked) return;
+        this.isUnlocked = true;
+        // Warm up / unlock audio elements
+        Object.keys(quizAudioConfig).forEach((key) => {
+          const audio = this.getAudioElement(key);
+          if (audio) {
+            audio.load();
+          }
+        });
+        window.removeEventListener('click', unlockAudio);
+        window.removeEventListener('pointerdown', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+      };
+
+      window.addEventListener('click', unlockAudio);
+      window.addEventListener('pointerdown', unlockAudio);
+      window.addEventListener('keydown', unlockAudio);
+    }
   }
 
-  private initContext() {
-    if (!this.audioCtx && typeof window !== 'undefined') {
-      const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtxClass) {
-        this.audioCtx = new AudioCtxClass();
-      }
+  private getAudioElement(key: string): HTMLAudioElement | null {
+    if (typeof window === 'undefined') return null;
+
+    const config = quizAudioConfig[key];
+    if (!config) return null;
+
+    if (!this.audioCache.has(key)) {
+      const audio = new Audio(config.src);
+      audio.loop = config.loop;
+      audio.volume = config.volume;
+      audio.preload = 'auto';
+      this.audioCache.set(key, audio);
     }
-    if (this.audioCtx && this.audioCtx.state === 'suspended') {
-      this.audioCtx.resume().catch(() => {});
-    }
+
+    return this.audioCache.get(key) || null;
   }
 
-  public setMuted(muted: boolean) {
+  public setMuted(muted: boolean): void {
     this.isMuted = muted;
+    if (muted) {
+      this.stopCurrentAudio();
+    }
   }
 
   public getMuted(): boolean {
@@ -32,161 +111,174 @@ class SoundManager {
   }
 
   public toggleMute(): boolean {
-    this.isMuted = !this.isMuted;
+    this.setMuted(!this.isMuted);
     return this.isMuted;
   }
 
-  // Play Game Start Fanfare (3-2-1 Go!)
-  public playStartBeep(final: boolean = false) {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.audioCtx) return;
-
-    const now = this.audioCtx.currentTime;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-
-    osc.type = final ? 'triangle' : 'sine';
-    osc.frequency.setValueAtTime(final ? 880 : 440, now); // A5 for final, A4 for countdown
-    
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + (final ? 0.6 : 0.25));
-
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    osc.start(now);
-    osc.stop(now + (final ? 0.6 : 0.25));
+  private stopCurrentAudio(): void {
+    if (this.currentAudioKey) {
+      const audio = this.audioCache.get(this.currentAudioKey);
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      this.currentAudioKey = null;
+    }
   }
 
-  // Play Correct Answer Chime (+ Points)
-  public playCorrectSound() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.audioCtx) return;
+  public setAudioState(newState: QuizAudioState, options?: { force?: boolean }): void {
+    if (this.currentState === newState && !options?.force) {
+      return;
+    }
 
-    const now = this.audioCtx.currentTime;
-    // Arpeggio notes: E5 -> G#5 -> B5 (E major triad)
-    const notes = [523.25, 659.25, 783.99, 1046.50];
+    this.currentState = newState;
 
-    notes.forEach((freq, idx) => {
-      if (!this.audioCtx) return;
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
+    if (this.isMuted) {
+      this.stopCurrentAudio();
+      return;
+    }
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+    let targetKey: string | null = null;
+    switch (newState) {
+      case 'LOBBY':
+        targetKey = 'lobby';
+        break;
+      case 'QUESTION_ACTIVE':
+        targetKey = 'question';
+        break;
+      case 'QUESTION_WARNING':
+        targetKey = 'warning';
+        break;
+      case 'TIME_UP':
+        targetKey = 'timeUp';
+        break;
+      case 'ANSWER_SUBMITTED':
+        targetKey = 'answerSubmitted';
+        break;
+      case 'LEADERBOARD':
+        targetKey = 'leaderboard';
+        break;
+      case 'IDLE':
+      default:
+        targetKey = null;
+        break;
+    }
 
-      gain.gain.setValueAtTime(0, now + idx * 0.08);
-      gain.gain.linearRampToValueAtTime(0.25, now + idx * 0.08 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.35);
+    if (!targetKey) {
+      this.stopCurrentAudio();
+      return;
+    }
 
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
+    if (this.currentAudioKey === targetKey) {
+      return;
+    }
 
-      osc.start(now + idx * 0.08);
-      osc.stop(now + idx * 0.08 + 0.35);
-    });
+    this.stopCurrentAudio();
+
+    const audio = this.getAudioElement(targetKey);
+    if (audio) {
+      audio.currentTime = 0;
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          // Gracefully ignore autoplay restriction errors until user interacts
+        });
+      }
+      this.currentAudioKey = targetKey;
+    }
   }
 
-  // Play Wrong Answer Sound
-  public playWrongSound() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.audioCtx) return;
-
-    const now = this.audioCtx.currentTime;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-
-    osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(220, now); // A3
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.35); // Drop to A2
-
-    gain.gain.setValueAtTime(0.3, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.35);
+  public playAnswerSubmitted(): void {
+    this.setAudioState('ANSWER_SUBMITTED', { force: true });
   }
 
-  // Play Timeout Sound
-  public playTimeoutSound() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.audioCtx) return;
-
-    const now = this.audioCtx.currentTime;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-
-    osc.type = 'square';
-    osc.frequency.setValueAtTime(300, now);
-    osc.frequency.setValueAtTime(200, now + 0.15);
-
-    gain.gain.setValueAtTime(0.2, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.4);
+  public playTimeUp(): void {
+    this.setAudioState('TIME_UP', { force: true });
   }
 
-  // Play Low Time Tension Tick (final 5 seconds)
-  public playTickSound() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.audioCtx) return;
-
-    const now = this.audioCtx.currentTime;
-    const osc = this.audioCtx.createOscillator();
-    const gain = this.audioCtx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(750, now);
-
-    gain.gain.setValueAtTime(0.15, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-
-    osc.connect(gain);
-    gain.connect(this.audioCtx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.08);
+  public playLeaderboardSound(): void {
+    this.setAudioState('LEADERBOARD', { force: true });
   }
 
-  // Play Leaderboard Transition Sound
-  public playLeaderboardSound() {
-    if (this.isMuted) return;
-    this.initContext();
-    if (!this.audioCtx) return;
+  public playStartBeep(final: boolean = false): void {
+    if (final) {
+      this.setAudioState('QUESTION_ACTIVE', { force: true });
+    }
+  }
 
-    const now = this.audioCtx.currentTime;
-    const notes = [440, 554.37, 659.25, 880];
+  public playCorrectSound(): void {
+    this.playAnswerSubmitted();
+  }
 
-    notes.forEach((freq, idx) => {
-      if (!this.audioCtx) return;
-      const osc = this.audioCtx.createOscillator();
-      const gain = this.audioCtx.createGain();
+  public playWrongSound(): void {
+    this.playAnswerSubmitted();
+  }
 
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+  public playTimeoutSound(): void {
+    this.playTimeUp();
+  }
 
-      gain.gain.setValueAtTime(0, now + idx * 0.06);
-      gain.gain.linearRampToValueAtTime(0.2, now + idx * 0.06 + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.4);
+  public playTickSound(): void {
+    // Tick sound handled by warning music state transition
+  }
 
-      osc.connect(gain);
-      gain.connect(this.audioCtx.destination);
+  /**
+   * Calculates the dynamic warning countdown threshold based on question time limit
+   */
+  public getWarningThreshold(questionTimeLimit: number = 20): number {
+    if (questionTimeLimit >= 45) return 10;
+    if (questionTimeLimit >= 15) return 5;
+    return Math.max(3, Math.floor(questionTimeLimit * 0.25));
+  }
 
-      osc.start(now + idx * 0.06);
-      osc.stop(now + idx * 0.06 + 0.4);
-    });
+  /**
+   * Automatically updates quiz audio state based on current stage, timer, and submission state
+   */
+  public updateQuizState(params: {
+    stage: string;
+    timeLeft: number;
+    questionTimeLimit?: number;
+    isAnswerSubmitted?: boolean;
+  }): void {
+    const { stage, timeLeft, questionTimeLimit = 20, isAnswerSubmitted = false } = params;
+
+    if (stage === 'LOBBY') {
+      this.setAudioState('LOBBY');
+      return;
+    }
+
+    if (stage === 'FINAL_PODIUM' || stage === 'FINAL_SCOREBOARD' || stage === 'LEADERBOARD' || stage === 'SHOWING_RESULT') {
+      this.setAudioState('LEADERBOARD');
+      return;
+    }
+
+    if (stage === 'QUESTION_ACTIVE') {
+      if (isAnswerSubmitted) {
+        if (this.currentState !== 'ANSWER_SUBMITTED') {
+          this.setAudioState('ANSWER_SUBMITTED');
+        }
+        return;
+      }
+
+      if (timeLeft <= 0) {
+        this.setAudioState('TIME_UP');
+        return;
+      }
+
+      const warningThreshold = this.getWarningThreshold(questionTimeLimit);
+      if (timeLeft <= warningThreshold) {
+        this.setAudioState('QUESTION_WARNING');
+        return;
+      }
+
+      this.setAudioState('QUESTION_ACTIVE');
+      return;
+    }
+
+    if (stage === 'PAUSED' || stage === 'CLOSED') {
+      this.setAudioState('IDLE');
+      return;
+    }
   }
 }
 

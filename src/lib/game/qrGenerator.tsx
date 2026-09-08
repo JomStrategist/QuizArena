@@ -5,8 +5,11 @@
 
 // Simple robust QR Code Generator (Reed-Solomon + Matrix formatting for URLs)
 export function generateQRCodeSVG(text: string, size: number = 256): string {
-  // Use public Google Charts / QR Server API URL fallback if needed, or generate pure inline SVG matrix
-  const encodedText = encodeURIComponent(text);
+  let fullText = text;
+  if (fullText.startsWith('/') && typeof window !== 'undefined') {
+    fullText = `${window.location.origin}${fullText}`;
+  }
+  const encodedText = encodeURIComponent(fullText);
   const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodedText}&margin=10`;
   return qrApiUrl;
 }

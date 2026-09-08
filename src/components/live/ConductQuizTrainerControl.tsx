@@ -81,11 +81,18 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
           const remaining = Math.max(0, qTime - elapsed);
           setTimeLeft(remaining);
 
-          if (remaining <= 5 && remaining > 0) {
-            soundManager.playTickSound();
-          }
+          soundManager.updateQuizState({
+            stage: sess.stage,
+            timeLeft: remaining,
+            questionTimeLimit: qTime,
+          });
         } else {
           setTimeLeft(qTime);
+          soundManager.updateQuizState({
+            stage: sess.stage,
+            timeLeft: qTime,
+            questionTimeLimit: qTime,
+          });
         }
       }
     } catch (err) {

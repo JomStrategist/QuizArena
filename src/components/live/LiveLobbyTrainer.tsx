@@ -18,6 +18,7 @@ import { QRCodeImage } from '@/lib/game/qrGenerator';
 import { FullScreenQRModal } from '../common/FullScreenQRModal';
 import { ProjectorViewModal } from './ProjectorViewModal';
 import { useToast } from '../ui/ToastNotification';
+import { soundManager } from '@/lib/game/soundManager';
 
 interface LiveLobbyTrainerProps {
   quizCode: string;
@@ -39,7 +40,15 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   const [copied, setCopied] = useState(false);
   const [isFullScreenQROpen, setIsFullScreenQROpen] = useState(false);
   const [isProjectorViewOpen, setIsProjectorViewOpen] = useState(false);
+  const [joinUrl, setJoinUrl] = useState('');
   const { showToast } = useToast();
+
+  React.useEffect(() => {
+    soundManager.setAudioState('LOBBY');
+    if (typeof window !== 'undefined') {
+      setJoinUrl(`${window.location.origin}/quiz/join?code=${quizCode}`);
+    }
+  }, [quizCode]);
 
   const handleCopyCode = () => {
     navigator.clipboard.writeText(quizCode);
@@ -67,6 +76,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         title={quizTitle}
         code={quizCode}
         subtitle="Scan to Join Conduct Quiz Session"
+        customUrl={joinUrl}
       />
 
       {/* Full Screen Projector View Modal */}
@@ -144,7 +154,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </div>
 
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner">
-            <QRCodeImage value={`https://quizarena.app/conduct/join?code=${quizCode}`} size={200} />
+            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={200} />
           </div>
 
           <button
