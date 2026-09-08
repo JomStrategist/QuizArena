@@ -134,6 +134,23 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
     };
   }, [quizCode, playSoundToggle]);
 
+  const handleNextQuestion = async () => {
+    try {
+      const res = await fetch('/api/v1/live-sessions/next', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizCode }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast('Advanced to next stage!', 'info');
+        fetchSyncData();
+      }
+    } catch (err) {
+      showToast('Action failed', 'error');
+    }
+  };
+
   const handleStartQuiz = async () => {
     try {
       if (playSoundToggle) soundManager.playStartBeep(true);
@@ -319,6 +336,15 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           >
             <Maximize2 className="w-4 h-4 text-blue-600" />
             <span>Projector View</span>
+          </button>
+
+          {/* Next Question Button */}
+          <button
+            onClick={handleNextQuestion}
+            className="px-4.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/25 active:scale-95"
+          >
+            <span>NEXT QUESTION</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </header>

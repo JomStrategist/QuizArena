@@ -40,6 +40,11 @@ export async function GET(req: NextRequest) {
     const questionTime = currentQ?.timeLimit || session.questionTime || 20;
     const now = Date.now();
 
+    const answersForQ = (session.answers && session.answers[qIdx]) || {};
+    const participantCount = Object.keys(session.participants || {}).length;
+    const answeredCount = Object.keys(answersForQ).length;
+    const allParticipantsAnswered = participantCount > 0 && answeredCount >= participantCount;
+
     // Synchronized State Machine Auto Progression
     if (session.stage !== 'PAUSED' && session.stage !== 'CLOSED' && session.stage !== 'LOBBY') {
       if (session.stage === 'STARTING') {
@@ -51,7 +56,7 @@ export async function GET(req: NextRequest) {
         emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'QUESTION_ACTIVE', questionIndex: qIdx });
       } else if (session.stage === 'QUESTION_ACTIVE' && session.questionStartTimestamp) {
         const elapsedSeconds = (now - session.questionStartTimestamp) / 1000;
-        if (elapsedSeconds >= questionTime) {
+        if (elapsedSeconds >= questionTime || allParticipantsAnswered) {
           session.stage = 'SHOWING_RESULT';
           session.stageStartTimestamp = Date.now();
           session.markModified('stage');
@@ -118,8 +123,6 @@ export async function GET(req: NextRequest) {
     }
 
     // Build question stats for current question
-    const answersForQ = (session.answers && session.answers[qIdx]) || {};
-
     const participantList = Object.values(session.participants || {}).sort(
       (a: any, b: any) => (b.score || 0) - (a.score || 0)
     );
@@ -144,7 +147,6 @@ export async function GET(req: NextRequest) {
       p.avgResponseTimeMs = countAns > 0 ? Math.round(totalMs / countAns) : 0;
     });
 
-    const answeredCount = Object.keys(answersForQ).length;
     let correctCount = 0;
     let wrongCount = 0;
     let timeoutCount = 0;
