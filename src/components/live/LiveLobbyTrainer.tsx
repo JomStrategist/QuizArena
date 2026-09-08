@@ -132,8 +132,8 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         {/* Left Column: SCAN TO JOIN QR Card (6 cols) */}
         <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center space-y-6">
 
-          <div className="p-5 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner my-auto">
-            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={280} />
+          <div className="p-5 sm:p-6 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner my-auto flex items-center justify-center">
+            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={380} />
           </div>
         </div>
 

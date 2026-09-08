@@ -123,7 +123,7 @@ export const FullScreenQRModal: React.FC<FullScreenQRModalProps> = ({
           {/* Left Column: QR Code Card */}
           <div className="bg-white text-slate-900 p-7 rounded-3xl shadow-2xl flex flex-col items-center justify-between text-center border border-white/40">
             <div className="flex items-center justify-center my-auto py-2">
-              <QRCodeImage value={joinUrl || `/quiz/join?code=${code}`} size={260} />
+              <QRCodeImage value={joinUrl || `/quiz/join?code=${code}`} size={340} />
             </div>
 
             <div className="flex items-center space-x-2 text-xs font-extrabold text-slate-700 mt-4 pt-3 border-t border-slate-100 w-full justify-center">

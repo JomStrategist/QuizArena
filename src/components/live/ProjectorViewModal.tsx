@@ -154,7 +154,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
 
               {/* QR Code */}
               <div className="p-4 bg-white rounded-3xl shadow-2xl border-4 border-indigo-500/20 transform transition hover:scale-105">
-                <QRCodeImage value={joinUrl || `https://quizarena.com/join?code=${quizCode}`} size={220} className="rounded-xl" />
+                <QRCodeImage value={joinUrl || `https://quizarena.com/join?code=${quizCode}`} size={300} className="rounded-xl" />
               </div>
 
               {/* Game Code Display */}
