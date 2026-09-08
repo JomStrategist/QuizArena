@@ -712,16 +712,10 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
 
             {/* Top 5 Ranked Players */}
             <div className="space-y-2">
-              {(rankings.length > 0
-                ? rankings.slice(0, 5)
-                : [
-                    { displayName: 'Ajay', score: 1000, time: '3.2s' },
-                    { displayName: 'Maria Thomas', score: 850, time: '4.1s' },
-                    { displayName: 'Rahul Mehta', score: 760, time: '4.8s' },
-                    { displayName: 'Sneha Iyer', score: 720, time: '5.4s' },
-                    { displayName: 'Vikram Patel', score: 700, time: '6.1s' },
-                  ]
-              ).map((p: any, idx: number) => {
+              {rankings.length === 0 ? (
+                <p className="text-xs text-slate-400 italic text-center py-2">No scores recorded yet.</p>
+              ) : (
+                rankings.slice(0, 5).map((p: any, idx: number) => {
                 const isFirst = idx === 0;
                 const avatarColors = [
                   'bg-blue-600 text-white',
@@ -778,7 +772,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
                     </span>
                   </div>
                 );
-              })}
+              }))}
             </div>
 
             {/* View Full Leaderboard Button */}

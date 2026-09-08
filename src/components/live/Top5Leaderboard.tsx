@@ -36,12 +36,6 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   const top10 = sorted.slice(0, 10);
   const currentQNum = (currentQuestionIndex || 0) + 1;
 
-  // Fallback demo data matching the reference layout if rankings list is small
-  const defaultNames = [
-    'Alex Thomas', 'Maria Garcia', 'John Smith', 'Sarah Johnson',
-    'David Lee', 'Priya Patel', 'Lucas Martin', 'Emma Wilson',
-    'Ryan Chen', 'Olivia Brown'
-  ];
   const avatarColors = [
     'bg-purple-600 text-white',
     'bg-blue-600 text-white',
@@ -55,11 +49,11 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     'bg-purple-500 text-white',
   ];
 
-  const firstPlace = sorted[0] || { displayName: 'Alex Thomas', score: 4820, correctAnswers: currentQNum, avgResponseTimeMs: 3200 };
-  const secondPlace = sorted[1] || { displayName: 'Maria Garcia', score: 4510, correctAnswers: currentQNum, avgResponseTimeMs: 3800 };
-  const thirdPlace = sorted[2] || { displayName: 'John Smith', score: 4210, correctAnswers: currentQNum, avgResponseTimeMs: 4100 };
+  const firstPlace = sorted[0] || null;
+  const secondPlace = sorted[1] || null;
+  const thirdPlace = sorted[2] || null;
 
-  const totalParticipants = rankings.length > 0 ? rankings.length : 187;
+  const totalParticipants = rankings.length;
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col justify-between font-sans text-slate-800 p-3 sm:p-5 max-w-[1440px] mx-auto w-full space-y-4">
@@ -135,11 +129,11 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
               <Crown className="w-6 h-6 text-slate-300 fill-slate-200 drop-shadow-md" />
               <div className="bg-white/90 backdrop-blur-md border border-white rounded-2xl p-3 text-center w-full shadow-lg">
                 <div className="w-10 h-10 rounded-full bg-blue-600 text-white font-black text-sm flex items-center justify-center mx-auto shadow-md">
-                  {secondPlace.displayName.charAt(0)}
+                  {secondPlace ? secondPlace.displayName.charAt(0) : '-'}
                 </div>
-                <p className="text-xs font-black text-slate-900 truncate mt-1.5">{secondPlace.displayName}</p>
+                <p className="text-xs font-black text-slate-900 truncate mt-1.5">{secondPlace ? secondPlace.displayName : '-'}</p>
                 <p className="text-sm font-black text-slate-900 mt-0.5 font-mono">
-                  {(secondPlace.score || 0).toLocaleString()}
+                  {secondPlace ? (secondPlace.score || 0).toLocaleString() : '-'}
                 </p>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">points</span>
               </div>
@@ -154,11 +148,11 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
               <Crown className="w-8 h-8 text-amber-400 fill-amber-300 drop-shadow-lg animate-bounce" />
               <div className="bg-gradient-to-b from-amber-100 to-amber-200 border-2 border-white rounded-2xl p-3 text-center w-full shadow-xl">
                 <div className="w-12 h-12 rounded-full bg-purple-600 text-white font-black text-base flex items-center justify-center mx-auto shadow-md">
-                  {firstPlace.displayName.charAt(0)}
+                  {firstPlace ? firstPlace.displayName.charAt(0) : '-'}
                 </div>
-                <p className="text-xs font-black text-slate-900 truncate mt-1.5">{firstPlace.displayName}</p>
+                <p className="text-xs font-black text-slate-900 truncate mt-1.5">{firstPlace ? firstPlace.displayName : '-'}</p>
                 <p className="text-base font-black text-slate-900 mt-0.5 font-mono">
-                  {(firstPlace.score || 0).toLocaleString()}
+                  {firstPlace ? (firstPlace.score || 0).toLocaleString() : '-'}
                 </p>
                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider block">points</span>
               </div>
@@ -173,11 +167,11 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
               <Crown className="w-6 h-6 text-amber-600 fill-amber-500 drop-shadow-md" />
               <div className="bg-white/90 backdrop-blur-md border border-white rounded-2xl p-3 text-center w-full shadow-lg">
                 <div className="w-10 h-10 rounded-full bg-amber-500 text-white font-black text-sm flex items-center justify-center mx-auto shadow-md">
-                  {thirdPlace.displayName.charAt(0)}
+                  {thirdPlace ? thirdPlace.displayName.charAt(0) : '-'}
                 </div>
-                <p className="text-xs font-black text-slate-900 truncate mt-1.5">{thirdPlace.displayName}</p>
+                <p className="text-xs font-black text-slate-900 truncate mt-1.5">{thirdPlace ? thirdPlace.displayName : '-'}</p>
                 <p className="text-sm font-black text-slate-900 mt-0.5 font-mono">
-                  {(thirdPlace.score || 0).toLocaleString()}
+                  {thirdPlace ? (thirdPlace.score || 0).toLocaleString() : '-'}
                 </p>
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">points</span>
               </div>
@@ -222,17 +216,17 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {top10.map((p, idx) => {
-                  const displayName = p.displayName || defaultNames[idx] || `Player ${idx + 1}`;
+                  const displayName = p.displayName || `Player ${idx + 1}`;
                   const isCurrentUser =
                     (userParticipantId && p.participantId === userParticipantId) ||
                     (userDisplayName && displayName.toLowerCase() === userDisplayName.toLowerCase());
 
                   const rankNum = idx + 1;
-                  const scoreVal = p.score !== undefined ? p.score : (5000 - idx * 250);
-                  const correctStr = `${p.correctAnswers || Math.max(1, currentQNum - (idx > 3 ? 1 : 0))} / ${currentQNum}`;
-                  const accuracyPct = p.accuracy !== undefined ? p.accuracy : (idx < 3 ? 100 : idx < 7 ? 75 : 50);
-                  const avgTimeSec = p.avgResponseTimeMs ? (p.avgResponseTimeMs / 1000).toFixed(1) + 's' : (3.2 + idx * 0.5).toFixed(1) + 's';
-                  const trendDelta = p.lastRankDelta !== undefined ? p.lastRankDelta : (idx === 0 ? 2 : idx === 1 ? 1 : idx === 2 ? -2 : idx === 3 ? 3 : idx === 4 ? 1 : idx === 5 ? -1 : 0);
+                  const scoreVal = p.score !== undefined ? p.score : 0;
+                  const correctStr = `${p.correctAnswers || 0} / ${currentQNum}`;
+                  const accuracyPct = p.accuracy !== undefined ? p.accuracy : 0;
+                  const avgTimeSec = p.avgResponseTimeMs ? (p.avgResponseTimeMs / 1000).toFixed(1) + 's' : '-';
+                  const trendDelta = p.lastRankDelta !== undefined ? p.lastRankDelta : 0;
 
                   // Row highlight styling per rank
                   let rowBgClass = 'hover:bg-slate-50 transition';

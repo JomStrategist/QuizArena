@@ -29,24 +29,15 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
   }, []);
 
   // Top 3 players
-  const top1 = rankings[0] || { displayName: 'Ajay', score: 4059, accuracy: '90%' };
-  const top2 = rankings[1] || { displayName: 'Maria', score: 3210, accuracy: '80%' };
-  const top3 = rankings[2] || { displayName: 'Rahul', score: 2890, accuracy: '70%' };
+  const top1 = rankings[0] || null;
+  const top2 = rankings[1] || null;
+  const top3 = rankings[2] || null;
 
   const handleDownloadReport = () => {
     try {
       const headers = 'Rank,Name,Score,Accuracy\n';
-      const rows = (rankings.length > 0
-        ? rankings
-        : [
-            { displayName: 'Ajay', score: 4059, accuracy: '90%' },
-            { displayName: 'Maria', score: 3210, accuracy: '80%' },
-            { displayName: 'Rahul', score: 2890, accuracy: '70%' },
-            { displayName: 'Sneha', score: 2450, accuracy: '60%' },
-            { displayName: 'Vikram', score: 2120, accuracy: '50%' },
-          ]
-      )
-        .map((p, idx) => `${idx + 1},"${p.displayName || 'Participant'}",${p.score || 0},${p.accuracy || '80%'}`)
+      const rows = rankings
+        .map((p, idx) => `${idx + 1},"${p.displayName || 'Participant'}",${p.score || 0},${p.accuracy || 0}%`)
         .join('\n');
 
       const blob = new Blob([headers + rows], { type: 'text/csv' });
@@ -118,10 +109,10 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
             </div>
             <div className="text-center">
               <p className="text-sm font-extrabold text-white truncate max-w-[110px]">
-                {top2.displayName}
+                {top2 ? top2.displayName : '-'}
               </p>
               <p className="text-xs font-black text-amber-400 font-mono">
-                {(top2.score || 3210).toLocaleString()} pts
+                {top2 ? `${(top2.score || 0).toLocaleString()} pts` : '-'}
               </p>
             </div>
             <div className="w-full bg-gradient-to-t from-slate-700 to-slate-500 h-28 rounded-t-2xl flex items-center justify-center border-t-2 border-slate-300 shadow-lg">
@@ -139,10 +130,10 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
             </div>
             <div className="text-center">
               <p className="text-base font-black text-white truncate max-w-[130px]">
-                {top1.displayName}
+                {top1 ? top1.displayName : '-'}
               </p>
               <p className="text-sm font-black text-amber-300 font-mono">
-                {(top1.score || 4059).toLocaleString()} pts
+                {top1 ? `${(top1.score || 0).toLocaleString()} pts` : '-'}
               </p>
             </div>
             <div className="w-full bg-gradient-to-t from-amber-600 via-amber-500 to-amber-400 h-40 rounded-t-2xl flex items-center justify-center border-t-2 border-amber-200 shadow-2xl">
@@ -157,10 +148,10 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
             </div>
             <div className="text-center">
               <p className="text-sm font-extrabold text-white truncate max-w-[110px]">
-                {top3.displayName}
+                {top3 ? top3.displayName : '-'}
               </p>
               <p className="text-xs font-black text-amber-400 font-mono">
-                {(top3.score || 2890).toLocaleString()} pts
+                {top3 ? `${(top3.score || 0).toLocaleString()} pts` : '-'}
               </p>
             </div>
             <div className="w-full bg-gradient-to-t from-amber-900 to-amber-700 h-20 rounded-t-2xl flex items-center justify-center border-t-2 border-amber-600 shadow-lg">
@@ -180,34 +171,29 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
           </div>
 
           <div className="space-y-1.5 text-xs">
-            {(rankings.length > 0
-              ? rankings.slice(0, 5)
-              : [
-                  { displayName: 'Ajay', score: 4059, accuracy: '90%' },
-                  { displayName: 'Maria', score: 3210, accuracy: '80%' },
-                  { displayName: 'Rahul', score: 2890, accuracy: '70%' },
-                  { displayName: 'Sneha', score: 2450, accuracy: '60%' },
-                  { displayName: 'Vikram', score: 2120, accuracy: '50%' },
-                ]
-            ).map((p: any, idx: number) => (
-              <div
-                key={idx}
-                className={`grid grid-cols-12 items-center p-2.5 rounded-xl border ${
-                  idx === 0
-                    ? 'bg-amber-400/20 border-amber-400/40 text-amber-300 font-bold'
-                    : 'bg-white/5 border-white/10 text-white'
-                }`}
-              >
-                <span className="col-span-1 font-black">{idx + 1}</span>
-                <span className="col-span-6 font-extrabold truncate">{p.displayName}</span>
-                <span className="col-span-3 text-right font-black font-mono text-amber-400">
-                  {(p.score || 1000).toLocaleString()}
-                </span>
-                <span className="col-span-2 text-right font-semibold text-slate-300">
-                  {p.accuracy || `${90 - idx * 10}%`}
-                </span>
-              </div>
-            ))}
+            {rankings.length === 0 ? (
+              <p className="text-xs text-slate-400 italic text-center py-2">No scores recorded yet.</p>
+            ) : (
+              rankings.slice(0, 5).map((p: any, idx: number) => (
+                <div
+                  key={idx}
+                  className={`grid grid-cols-12 items-center p-2.5 rounded-xl border ${
+                    idx === 0
+                      ? 'bg-amber-400/20 border-amber-400/40 text-amber-300 font-bold'
+                      : 'bg-white/5 border-white/10 text-white'
+                  }`}
+                >
+                  <span className="col-span-1 font-black">{idx + 1}</span>
+                  <span className="col-span-6 font-extrabold truncate">{p.displayName}</span>
+                  <span className="col-span-3 text-right font-black font-mono text-amber-400">
+                    {(p.score || 0).toLocaleString()}
+                  </span>
+                  <span className="col-span-2 text-right font-semibold text-slate-300">
+                    {p.accuracy ? `${p.accuracy}%` : '0%'}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

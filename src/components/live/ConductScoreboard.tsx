@@ -27,9 +27,9 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
     });
   }, []);
 
-  const firstPlace = rankings[0] || { displayName: 'Champion', score: 0, correctAnswers: 0, wrongAnswers: 0 };
-  const secondPlace = rankings[1] || { displayName: 'Runner-up', score: 0, correctAnswers: 0, wrongAnswers: 0 };
-  const thirdPlace = rankings[2] || { displayName: '3rd Place', score: 0, correctAnswers: 0, wrongAnswers: 0 };
+  const firstPlace = rankings[0] || null;
+  const secondPlace = rankings[1] || null;
+  const thirdPlace = rankings[2] || null;
 
   // Find current user ranking if userDisplayName is passed
   const userRankIndex = userDisplayName
@@ -107,8 +107,8 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
           <div className="w-10 h-10 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-black text-sm border-2 border-slate-300">
             2
           </div>
-          <p className="text-xs font-bold text-slate-800 truncate w-full text-center">{secondPlace.displayName}</p>
-          <p className="text-[11px] font-black text-blue-600">{secondPlace.score} pts</p>
+          <p className="text-xs font-bold text-slate-800 truncate w-full text-center">{secondPlace ? secondPlace.displayName : '-'}</p>
+          <p className="text-[11px] font-black text-blue-600">{secondPlace ? `${secondPlace.score || 0} pts` : '-'}</p>
           <div className="w-full bg-gradient-to-t from-slate-300 to-slate-200 h-28 rounded-t-2xl shadow-md border-t border-slate-300 flex items-center justify-center">
             <span className="text-xl font-black text-slate-500">2nd</span>
           </div>
@@ -122,8 +122,8 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
               1
             </div>
           </div>
-          <p className="text-sm font-black text-slate-900 truncate w-full text-center">{firstPlace.displayName}</p>
-          <p className="text-xs font-black text-amber-600">{firstPlace.score} pts</p>
+          <p className="text-sm font-black text-slate-900 truncate w-full text-center">{firstPlace ? firstPlace.displayName : '-'}</p>
+          <p className="text-xs font-black text-amber-600">{firstPlace ? `${firstPlace.score || 0} pts` : '-'}</p>
           <div className="w-full bg-gradient-to-t from-amber-400 to-amber-300 h-40 rounded-t-2xl shadow-xl border-t-2 border-amber-200 flex items-center justify-center">
             <span className="text-2xl font-black text-slate-950">1st</span>
           </div>
@@ -134,8 +134,8 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
           <div className="w-10 h-10 rounded-full bg-amber-700 text-amber-100 flex items-center justify-center font-black text-sm border-2 border-amber-800">
             3
           </div>
-          <p className="text-xs font-bold text-slate-800 truncate w-full text-center">{thirdPlace.displayName}</p>
-          <p className="text-[11px] font-black text-amber-700">{thirdPlace.score} pts</p>
+          <p className="text-xs font-bold text-slate-800 truncate w-full text-center">{thirdPlace ? thirdPlace.displayName : '-'}</p>
+          <p className="text-[11px] font-black text-amber-700">{thirdPlace ? `${thirdPlace.score || 0} pts` : '-'}</p>
           <div className="w-full bg-gradient-to-t from-amber-700/30 to-amber-700/20 h-20 rounded-t-2xl shadow-md border-t border-amber-300 flex items-center justify-center">
             <span className="text-xl font-black text-amber-800">3rd</span>
           </div>
