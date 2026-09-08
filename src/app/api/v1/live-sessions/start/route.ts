@@ -1,0 +1,58 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/db/connect';
+import { LiveSessionModel } from '@/models/LiveSession';
+import { emitSessionEvent } from '@/lib/game/liveSyncStream';
+
+export async function POST(req: NextRequest) {
+  try {
+    await connectToDatabase();
+    const body = await req.json();
+    const { quizCode } = body;
+
+    if (!quizCode) {
+      return NextResponse.json(
+        { success: false, error: { code: 'BAD_REQUEST', message: 'Quiz code is required.' } },
+        { status: 400 }
+      );
+    }
+
+    const session = await LiveSessionModel.findOne({
+      quizCode: quizCode.toString().trim(),
+      stage: { $ne: 'CLOSED' },
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: { code: 'NOT_FOUND', message: 'Active session not found.' } },
+        { status: 404 }
+      );
+    }
+
+    session.stage = 'QUESTION_ACTIVE';
+    session.stageStartTimestamp = Date.now();
+    session.questionStartTimestamp = Date.now();
+    session.currentQuestionIndex = 0;
+    await session.save();
+
+    emitSessionEvent(session.quizCode, 'GAME_STARTED', {
+      quizCode: session.quizCode,
+      stage: 'QUESTION_ACTIVE',
+      questionIndex: 0,
+    });
+    emitSessionEvent(session.quizCode, 'STAGE_CHANGED', {
+      stage: 'QUESTION_ACTIVE',
+      questionIndex: 0,
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: session,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: { code: 'SERVER_ERROR', message: error.message } },
+      { status: 500 }
+    );
+  }
+}

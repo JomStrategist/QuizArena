@@ -26,3 +26,7 @@ yarn-error.log*
 *.pem
 ._*
 *.tsbuildinfo
+
+# Version subfolders (V1 is at root, V2 is local-only backup)
+/QuizArena V1/
+/QuizArena V2/
