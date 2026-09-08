@@ -152,6 +152,7 @@ export default function ProtectedTrainerDashboardPage() {
             sessionType="LIVE_GAME"
             participants={participants}
             onStartGame={() => handleStartSession('LIVE_RUNNING')}
+            onClose={() => setViewState('DASHBOARD')}
           />
         )}
 
@@ -170,6 +171,7 @@ export default function ProtectedTrainerDashboardPage() {
             sessionType="CONDUCT"
             participants={participants}
             onStartGame={() => handleStartSession('CONDUCT_RUNNING')}
+            onClose={() => setViewState('DASHBOARD')}
           />
         )}
 

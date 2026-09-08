@@ -132,7 +132,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
         options: ['Step A: Problem Definition', 'Step B: Data Preprocessing', 'Step C: Model Training', 'Step D: Deployment'],
         correctOrder: [0, 1, 2, 3],
         timeLimit: 30,
-        points: 1000,
+        points: 100,
         category: category || 'AI Workflows',
         difficulty: 'MEDIUM',
         tags: [],
@@ -171,7 +171,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           '8': 'dl', '9': 'dl', '10': 'dl', '11': 'nlp',
         },
         timeLimit: 30,
-        points: 1000,
+        points: 100,
         category: category || 'AI Classification',
         difficulty: 'MEDIUM',
         tags: [],
@@ -192,7 +192,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           outputFormat: ['Format as valid JSON', 'Format as Markdown list'],
         },
         timeLimit: 30,
-        points: 1000,
+        points: 100,
         category: category || 'Prompt Engineering',
         difficulty: 'MEDIUM',
         tags: [],
@@ -223,7 +223,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           ],
         },
         timeLimit: 30,
-        points: 1000,
+        points: 100,
         category: category || 'Scenario Analysis',
         difficulty: 'MEDIUM',
         tags: [],
@@ -239,7 +239,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
         options: ['Option A', 'Option B', 'Option C', 'Option D'],
         correctOptionIndices: [0, 1],
         timeLimit: 25,
-        points: 1000,
+        points: 100,
         category: category || 'General',
         difficulty: 'MEDIUM',
         tags: [],
@@ -255,7 +255,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
         options: type === 'TRUE_FALSE' ? ['AI', 'Not AI'] : ['Option A', 'Option B', 'Option C', 'Option D'],
         correctOptionIndex: 0,
         timeLimit: 20,
-        points: 1000,
+        points: 100,
         category: category || 'General',
         difficulty: 'MEDIUM',
         tags: [],
@@ -539,58 +539,15 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 className="text-sm font-black text-slate-900">Questions ({quizQuestions.length})</h3>
                   
-                  {/* Add Question Menu */}
-                  <div className="flex flex-wrap gap-1 max-w-[280px]">
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('MCQ')}
-                      className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + MCQ
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('MULTIPLE_SELECT')}
-                      className="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + Multi
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('TRUE_FALSE')}
-                      className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + True/False
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('DRAG_AND_DROP')}
-                      className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + Drag/Drop
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('CORRECT_SEQUENCE')}
-                      className="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + Sequence
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('PROMPT_BUILDER')}
-                      className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + Prompt
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleAddNewBlankQuestion('SCENARIO_QUESTIONS')}
-                      className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition"
-                    >
-                      + Scenario
-                    </button>
-                  </div>
+                  {/* Add Question Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleAddNewBlankQuestion('MCQ')}
+                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition flex items-center space-x-1.5 shadow-xs"
+                  >
+                    <Plus className="w-4 h-4 stroke-[3]" />
+                    <span>Add Question</span>
+                  </button>
                 </div>
 
                 <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
@@ -600,13 +557,13 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       <div
                         key={q._id || idx}
                         onClick={() => setActiveQuestionIndex(idx)}
-                        className={`p-3 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                        className={`p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between group ${
                           isActive
-                            ? 'bg-blue-50/90 border-blue-400 shadow-xs ring-2 ring-blue-500/20'
-                            : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-100/60'
+                            ? 'bg-blue-50 border-blue-500 shadow-sm'
+                            : 'bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-slate-100'
                         }`}
                       >
-                        <div className="flex items-center space-x-2.5 min-w-0 pr-2">
+                        <div className="flex items-center space-x-3 overflow-hidden">
                           <span
                             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
                               isActive ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'
@@ -614,26 +571,28 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                           >
                             {idx + 1}
                           </span>
-                          <div className="min-w-0">
+                          <div className="truncate">
                             <p className="text-xs font-bold text-slate-900 truncate">
-                              {q.questionText || `Question ${idx + 1}`}
+                              {q.questionText || 'Untitled Question'}
                             </p>
-                            <span className="px-1.5 py-0.2 bg-emerald-100 text-emerald-800 rounded text-[9px] font-bold">
-                              {q.questionType || 'MCQ'}
+                            <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                              {q.questionType}
                             </span>
                           </div>
                         </div>
 
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteCurrentQuestion(idx);
-                          }}
-                          className="p-1 text-slate-400 hover:text-rose-600 rounded-lg shrink-0"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {quizQuestions.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteCurrentQuestion(idx);
+                            }}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     );
                   })}
@@ -641,12 +600,12 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
               </div>
             </div>
 
-            {/* RIGHT COLUMN: Question Type Specific Editor (8 Cols) */}
-            <div className="lg:col-span-8">
+            {/* RIGHT COLUMN: Question Editor (8 Cols) */}
+            <div className="lg:col-span-8 space-y-4">
               {currentQuestion ? (
-                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-5">
                   
-                  {/* Editor Header & Question Type Dropdown */}
+                  {/* Header: Question Index & Type Selector */}
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                     <div className="flex items-center space-x-3">
                       <h3 className="text-base font-black text-slate-900">
@@ -663,6 +622,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                         className="px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-xl text-xs font-bold text-blue-900 focus:outline-none"
                       >
                         <option value="MCQ">Multiple Choice (MCQ)</option>
+                        <option value="MULTIPLE_SELECT">Multiple Select Answers</option>
                         <option value="TRUE_FALSE">True / False (Binary)</option>
                         <option value="DRAG_AND_DROP">Drag & Drop Categorization</option>
                         <option value="CORRECT_SEQUENCE">Correct the Sequence / Ordering</option>

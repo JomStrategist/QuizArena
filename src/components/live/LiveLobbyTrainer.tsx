@@ -90,6 +90,8 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         totalQuestions={5}
         timeLeft={30}
         totalParticipants={participants.length}
+        stage="LOBBY"
+        participants={participants}
       />
 
       {/* Top Banner Card */}
@@ -129,14 +131,15 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <span>Projector View (Full Screen)</span>
           </button>
 
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl transition hover:bg-slate-100"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          )}
+          {/* Prominent Close/Exit Button */}
+          <button
+            onClick={onClose ? onClose : () => { window.location.href = '/trainer/dashboard'; }}
+            className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
+            title="Close & Exit Lobby"
+          >
+            <X className="w-4 h-4 stroke-[2.5]" />
+            <span className="hidden sm:inline">Close Lobby</span>
+          </button>
         </div>
       </div>
 

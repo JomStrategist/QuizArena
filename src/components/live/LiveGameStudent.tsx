@@ -42,10 +42,10 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const [studentAnswer, setStudentAnswer] = useState<any>(null);
   const [rankings, setRankings] = useState<any[]>([]);
   const [liveStats, setLiveStats] = useState<any>({
-    totalParticipants: 28,
-    answeredCount: 24,
-    correctCount: 20,
-    wrongCount: 4,
+    totalParticipants: 0,
+    answeredCount: 0,
+    correctCount: 0,
+    wrongCount: 0,
   });
   const [timeLeft, setTimeLeft] = useState<number>(16);
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -267,7 +267,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           <div className="flex items-center justify-center gap-3 pt-1">
             <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-blue-100">
               <Users className="w-4 h-4 text-blue-400" />
-              <span>{session?.participantsCount || 28} Participants</span>
+              <span>{session?.participantsCount || 0} Participants</span>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-amber-200">

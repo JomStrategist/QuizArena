@@ -242,6 +242,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         sessionType="LIVE_GAME"
         participants={rankings}
         onStartGame={handleStartQuiz}
+        onClose={onCloseSession}
       />
     );
   }
@@ -303,7 +304,9 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         totalQuestions={totalQuestions}
         timeLeft={timeLeft}
         totalTime={totalTime}
-        totalParticipants={liveStats.totalParticipants || 28}
+        totalParticipants={rankings.length || liveStats.totalParticipants || 0}
+        stage={stage}
+        participants={rankings}
       />
 
       {/* Top Header Bar */}
@@ -407,7 +410,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           <div className="flex items-center space-x-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-2xl border border-blue-100 font-bold text-xs">
             <Users className="w-4 h-4 text-blue-600" />
             <div>
-              <span className="font-black text-sm block leading-none">{liveStats.totalParticipants || 28}</span>
+              <span className="font-black text-sm block leading-none">{rankings.length || liveStats.totalParticipants || 0}</span>
               <span className="text-[10px] text-blue-500">Participants</span>
             </div>
           </div>
@@ -599,7 +602,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
                 </div>
                 <div>
                   <span className="text-xl font-black text-slate-900 block leading-tight">
-                    {liveStats.totalParticipants || 28}
+                    {rankings.length || liveStats.totalParticipants || 0}
                   </span>
                   <span className="text-[10px] font-bold text-slate-500">Joined</span>
                 </div>
@@ -612,7 +615,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
                 </div>
                 <div>
                   <span className="text-xl font-black text-slate-900 block leading-tight">
-                    {liveStats.answeredCount || 24}
+                    {liveStats.answeredCount || 0}
                   </span>
                   <span className="text-[10px] font-bold text-slate-500">Answered</span>
                 </div>
@@ -625,7 +628,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
                 </div>
                 <div>
                   <span className="text-xl font-black text-slate-900 block leading-tight">
-                    {liveStats.correctCount || 20}
+                    {liveStats.correctCount || 0}
                   </span>
                   <span className="text-[10px] font-bold text-emerald-700">Correct ({correctPct}%)</span>
                 </div>
@@ -638,7 +641,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
                 </div>
                 <div>
                   <span className="text-xl font-black text-slate-900 block leading-tight">
-                    {liveStats.wrongCount || 4}
+                    {liveStats.wrongCount || 0}
                   </span>
                   <span className="text-[10px] font-bold text-rose-700">Incorrect ({wrongPct}%)</span>
                 </div>
@@ -654,7 +657,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
                 <span>Live Leaderboard</span>
               </div>
               <span className="text-xs font-bold text-blue-600">
-                Top 5 of {rankings.length || 28} →
+                Top 5 of {rankings.length || 0} →
               </span>
             </div>
 
