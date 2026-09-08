@@ -209,6 +209,38 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
                 {participants.length}
               </span>
             </div>
+
+            {/* Joined Participants Avatars */}
+            <div className="space-y-3 pt-2">
+              <p className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center space-x-2">
+                <Users className="w-4 h-4 text-blue-600" />
+                <span>Joined Players ({participants.length})</span>
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2.5 max-h-[180px] overflow-y-auto p-1">
+                {participants.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic py-3">No participants yet. Waiting for players to join using 6-digit code or QR code...</p>
+                ) : (
+                  participants.map((p, idx) => {
+                    const name = typeof p === 'string' ? p : p?.displayName || p?.name || `Player ${idx + 1}`;
+                    const letter = name.charAt(0).toUpperCase();
+                    const style = avatarColors[idx % avatarColors.length];
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-center space-x-2 px-3.5 py-1.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-900 shadow-2xs animate-in zoom-in-95 duration-150"
+                      >
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black ${style}`}>
+                          {letter}
+                        </span>
+                        <span>{name}</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
 
           <button
@@ -218,40 +250,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <Play className="w-6 h-6 fill-current" />
             <span>START QUIZ NOW</span>
           </button>
-        </div>
-      </div>
-
-      {/* Bottom Section: Joined Participants Avatars */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-700 flex items-center space-x-2">
-            <Users className="w-4 h-4 text-blue-600" />
-            <span>Joined Participants ({participants.length})</span>
-          </h3>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3">
-          {participants.length === 0 ? (
-            <p className="text-xs text-slate-400 italic">No participants yet. Waiting for players to join using 6-digit code or QR code...</p>
-          ) : (
-            participants.map((p, idx) => {
-              const name = typeof p === 'string' ? p : p?.displayName || p?.name || `Player ${idx + 1}`;
-              const letter = name.charAt(0).toUpperCase();
-              const style = avatarColors[idx % avatarColors.length];
-
-              return (
-                <div
-                  key={idx}
-                  className="flex items-center space-x-2.5 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-extrabold text-slate-900 shadow-2xs animate-in zoom-in-95 duration-150"
-                >
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${style}`}>
-                    {letter}
-                  </span>
-                  <span>{name}</span>
-                </div>
-              );
-            })
-          )}
         </div>
       </div>
     </div>
