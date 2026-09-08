@@ -765,6 +765,8 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const scenarioTitle = pbData?.scenarioTitle || question.questionText || 'Build an Effective Prompt';
     const scenarioText = pbData?.scenarioText || question.explanation || '';
     const pieces: { text: string; isCorrect: boolean }[] = pbData?.pieces || (question.options || []).map((opt) => ({ text: opt, isCorrect: true }));
+    const isInteractive = mode === 'player' && !disabled && !isAnswerSubmitted;
+    const correctPiecesInOrder = pieces.filter((p) => p.isCorrect);
 
     return (
       <div className="space-y-6 w-full font-sans text-slate-900 dark:text-slate-100">
@@ -819,13 +821,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                   <button
                     key={idx}
                     type="button"
-                    disabled={disabled}
+                    disabled={!isInteractive}
                     onClick={() => togglePromptPiece(piece.text)}
                     className={`w-full text-left p-3.5 rounded-2xl border text-xs font-semibold transition-all flex items-start space-x-3 ${
                       isSelected
                         ? 'bg-blue-600/30 border-blue-500 text-blue-100 shadow-md ring-1 ring-blue-500'
                         : 'bg-slate-800/50 border-slate-700/70 text-slate-300 hover:bg-slate-800 hover:border-slate-600'
-                    }`}
+                    } ${!isInteractive ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'}`}
                   >
                     <div
                       className={`w-5 h-5 rounded-lg border flex items-center justify-center shrink-0 mt-0.5 transition ${
@@ -870,7 +872,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                         <span className="leading-snug">{pieceText}</span>
                       </div>
 
-                      {!disabled && (
+                      {isInteractive && (
                         <div className="flex items-center space-x-1 shrink-0">
                           <button
                             type="button"
@@ -906,7 +908,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                   ? selectedPromptPieces.join('\n\n')
                   : 'Select and arrange pieces to preview your prompt here.'}
               </div>
-              {mode === 'player' && !disabled && !isAnswerSubmitted && selectedPromptPieces.length > 0 && onSelectSequence && (
+              {isInteractive && selectedPromptPieces.length > 0 && onSelectSequence && (
                 <button
                   type="button"
                   onClick={() => {
@@ -925,38 +927,45 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </div>
         </div>
 
-        {/* Evaluation Feedback if submitted or showing answers */}
-        {showCorrectAnswer && (
-          <div className="p-6 bg-slate-900 border border-slate-800 rounded-3xl space-y-4">
-            <h4 className="text-sm font-black text-white uppercase tracking-wider">Exercise Result</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {pieces.map((p, i) => {
-                const isSelected = selectedPromptPieces.includes(p.text);
-                if (!isSelected && !p.isCorrect) return null;
-                return (
-                  <div
-                    key={i}
-                    className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between ${
-                      p.isCorrect
-                        ? isSelected
-                          ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-300'
-                          : 'bg-amber-950/40 border-amber-500/40 text-amber-300'
-                        : 'bg-rose-950/60 border-rose-500/60 text-rose-300'
-                    }`}
-                  >
-                    <span className="truncate mr-2">{p.text}</span>
-                    {p.isCorrect ? (
-                      isSelected ? (
-                        <span className="text-[10px] px-2 py-0.5 bg-emerald-500/20 rounded font-black text-emerald-400 shrink-0">Correct (+3)</span>
-                      ) : (
-                        <span className="text-[10px] px-2 py-0.5 bg-amber-500/20 rounded font-black text-amber-400 shrink-0">Missed</span>
-                      )
-                    ) : (
-                      <span className="text-[10px] px-2 py-0.5 bg-rose-500/20 rounded font-black text-rose-400 shrink-0">Distractor (+0)</span>
-                    )}
-                  </div>
-                );
-              })}
+        {/* Evaluation Feedback & Target Correct Prompt Reveal */}
+        {(showCorrectAnswer || mode === 'trainer' || mode === 'projector') && (
+          <div className="p-6 bg-slate-900 border border-emerald-500/40 rounded-3xl space-y-5 shadow-xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <h4 className="text-sm font-black text-emerald-400 uppercase tracking-wider flex items-center space-x-2">
+                  <CheckCircle2 className="w-4.5 h-4.5" />
+                  <span>Correct Target Prompt Answer Key</span>
+                </h4>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  All {correctPiecesInOrder.length} required prompt pieces assembled in exact logical sequence.
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-xl text-xs font-black">
+                {correctPiecesInOrder.length} Pieces
+              </span>
+            </div>
+
+            {/* List all 5 correct options in full text in order */}
+            <div className="space-y-2.5">
+              {correctPiecesInOrder.map((p, idx) => (
+                <div
+                  key={idx}
+                  className="p-3.5 bg-slate-850 border border-emerald-500/30 rounded-2xl flex items-start space-x-3 text-xs font-semibold text-emerald-100 shadow-sm"
+                >
+                  <span className="w-5 h-5 rounded-full bg-emerald-500 text-slate-950 text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">
+                    {idx + 1}
+                  </span>
+                  <span className="leading-relaxed flex-1">{p.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Combined Target Prompt Box */}
+            <div className="pt-2">
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">Complete Assembled Target Prompt</p>
+              <div className="p-4 bg-slate-950 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-mono leading-relaxed whitespace-pre-wrap shadow-inner">
+                {correctPiecesInOrder.map((p) => p.text).join('\n\n')}
+              </div>
             </div>
           </div>
         )}

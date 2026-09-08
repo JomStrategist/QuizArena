@@ -64,6 +64,53 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     setActiveQuestionIndex(toIdx);
   };
 
+  const [draggedSeqStepIdx, setDraggedSeqStepIdx] = useState<number | null>(null);
+  const [draggedSubSeqStepKey, setDraggedSubSeqStepKey] = useState<string | null>(null);
+
+  const handleMoveMainSequenceStep = (fromIdx: number, toIdx: number) => {
+    if (!currentQuestion || !currentQuestion.options || fromIdx < 0 || toIdx < 0 || toIdx >= currentQuestion.options.length || fromIdx === toIdx) return;
+    const copy = [...currentQuestion.options];
+    const [moved] = copy.splice(fromIdx, 1);
+    copy.splice(toIdx, 0, moved);
+    updateCurrentQuestion({ options: copy, correctOrder: copy.map((_, i) => i) });
+  };
+
+  const handleMoveSubSequenceStep = (sqIdx: number, fromIdx: number, toIdx: number) => {
+    if (!currentQuestion) return;
+    const sData: any = currentQuestion.scenarioQuestionsData || {
+      scenarioTitle: currentQuestion.questionText || '',
+      scenarioText: '',
+      subQuestions: (currentQuestion as any)?.subQuestions || [],
+    };
+    const subQuestions = sData.subQuestions || [];
+    const sq = subQuestions[sqIdx];
+    if (!sq || !sq.options || fromIdx < 0 || toIdx < 0 || toIdx >= sq.options.length || fromIdx === toIdx) return;
+
+    const copy = [...sq.options];
+    const [moved] = copy.splice(fromIdx, 1);
+    copy.splice(toIdx, 0, moved);
+
+    const updatedSubQs = [...subQuestions];
+    updatedSubQs[sqIdx] = {
+      ...sq,
+      options: copy,
+      correctOrder: copy.map((_: any, i: number) => i),
+    };
+
+    const updatedScenario = {
+      scenarioTitle: sData.scenarioTitle || currentQuestion.questionText || '',
+      scenarioText: sData.scenarioText || '',
+      backgroundContext: sData.backgroundContext,
+      instructions: sData.instructions,
+      subQuestions: updatedSubQs,
+    };
+
+    updateCurrentQuestion({
+      scenarioQuestionsData: updatedScenario,
+      subQuestions: updatedSubQs,
+    } as any);
+  };
+
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
 
@@ -874,13 +921,18 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                   {currentQuestion.questionType === 'CORRECT_SEQUENCE' && (
                     <div className="space-y-3 p-4 bg-amber-50/60 border border-amber-200 rounded-2xl">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-black uppercase text-amber-900">
-                          Workflow Step Items (Order below defines Correct Sequence)
-                        </label>
+                        <div>
+                          <label className="text-xs font-black uppercase text-amber-900 block">
+                            Workflow Step Items (Order below defines Correct Sequence)
+                          </label>
+                          <p className="text-[10px] text-amber-700 font-semibold mt-0.5">
+                            💡 Drag handles (⋮⋮) or use ↑/↓ arrows to re-arrange steps into their correct sequence.
+                          </p>
+                        </div>
                         <button
                           type="button"
                           onClick={handleAddOption}
-                          className="px-2.5 py-1 bg-amber-600 text-white text-xs font-bold rounded-lg"
+                          className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg transition"
                         >
                           + Add Step
                         </button>
@@ -888,10 +940,36 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
 
                       <div className="space-y-2">
                         {currentQuestion.options.map((opt, optIdx) => (
-                          <div key={optIdx} className="flex items-center space-x-2 bg-white p-2.5 rounded-xl border border-amber-200">
+                          <div
+                            key={optIdx}
+                            draggable
+                            onDragStart={(e) => {
+                              setDraggedSeqStepIdx(optIdx);
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'move';
+                            }}
+                            onDrop={(e) => {
+                              e.preventDefault();
+                              if (draggedSeqStepIdx !== null && draggedSeqStepIdx !== optIdx) {
+                                handleMoveMainSequenceStep(draggedSeqStepIdx, optIdx);
+                                setDraggedSeqStepIdx(null);
+                              }
+                            }}
+                            className={`flex items-center space-x-2 bg-white p-2.5 rounded-xl border transition-all ${
+                              draggedSeqStepIdx === optIdx ? 'border-amber-500 bg-amber-100/60 shadow-md' : 'border-amber-200 hover:border-amber-400'
+                            }`}
+                          >
+                            <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-amber-700 p-1 shrink-0" title="Drag to reorder step">
+                              <GripVertical className="w-4 h-4" />
+                            </div>
+
                             <span className="w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-black flex items-center justify-center shrink-0">
                               {optIdx + 1}
                             </span>
+
                             <input
                               type="text"
                               required
@@ -901,15 +979,38 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                 copy[optIdx] = e.target.value;
                                 updateCurrentQuestion({ options: copy, correctOrder: copy.map((_, i) => i) });
                               }}
+                              placeholder={`Step ${optIdx + 1}`}
                               className="flex-1 text-xs font-bold text-slate-800 bg-transparent focus:outline-none"
                             />
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveOption(optIdx)}
-                              className="p-1 text-rose-500"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+
+                            <div className="flex items-center space-x-1 shrink-0">
+                              <button
+                                type="button"
+                                disabled={optIdx === 0}
+                                onClick={() => handleMoveMainSequenceStep(optIdx, optIdx - 1)}
+                                className="p-1 text-slate-400 hover:text-amber-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Move Up"
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={optIdx === currentQuestion.options.length - 1}
+                                onClick={() => handleMoveMainSequenceStep(optIdx, optIdx + 1)}
+                                className="p-1 text-slate-400 hover:text-amber-700 disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="Move Down"
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveOption(optIdx)}
+                                className="p-1 text-rose-500 hover:text-rose-700"
+                                title="Remove Step"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1394,28 +1495,94 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                 {/* CORRECT_SEQUENCE options (order = correct order) */}
                                 {sqType === 'CORRECT_SEQUENCE' && (
                                   <div className="space-y-1.5">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Steps — order below IS the correct sequence</p>
-                                    {sq.options.map((opt: string, optIdx: number) => (
-                                      <div key={optIdx} className="flex items-center gap-2">
-                                        <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-[10px] flex items-center justify-center shrink-0">{optIdx + 1}</span>
-                                        <input type="text" value={opt}
-                                          onChange={(e) => {
-                                            const copy = [...sq.options];
-                                            copy[optIdx] = e.target.value;
-                                            updateSubQ(sqIdx, { options: copy, correctOrder: copy.map((_: any, i: number) => i) });
+                                    <p className="text-[10px] font-black text-amber-800 uppercase tracking-wider">
+                                      Steps — order below IS the correct sequence (Drag ⋮⋮ or use ↑/↓ to reorder)
+                                    </p>
+                                    {sq.options.map((opt: string, optIdx: number) => {
+                                      const stepKey = `${sqIdx}-${optIdx}`;
+                                      return (
+                                        <div
+                                          key={optIdx}
+                                          draggable
+                                          onDragStart={(e) => {
+                                            setDraggedSubSeqStepKey(stepKey);
+                                            e.dataTransfer.effectAllowed = 'move';
                                           }}
-                                          placeholder={`Step ${optIdx + 1}`}
-                                          className="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400" />
-                                        {sq.options.length > 2 && (
-                                          <button type="button" onClick={() => removeOpt(sqIdx, optIdx)}
-                                            className="p-1 text-slate-400 hover:text-rose-500 transition">
-                                            <Trash2 className="w-3 h-3" />
-                                          </button>
-                                        )}
-                                      </div>
-                                    ))}
-                                    <button type="button" onClick={() => addOpt(sqIdx)}
-                                      className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1">
+                                          onDragOver={(e) => {
+                                            e.preventDefault();
+                                            e.dataTransfer.dropEffect = 'move';
+                                          }}
+                                          onDrop={(e) => {
+                                            e.preventDefault();
+                                            if (draggedSubSeqStepKey) {
+                                              const [fromSqStr, fromOptStr] = draggedSubSeqStepKey.split('-');
+                                              const fromSq = Number(fromSqStr);
+                                              const fromOpt = Number(fromOptStr);
+                                              if (fromSq === sqIdx && fromOpt !== optIdx) {
+                                                handleMoveSubSequenceStep(sqIdx, fromOpt, optIdx);
+                                                setDraggedSubSeqStepKey(null);
+                                              }
+                                            }
+                                          }}
+                                          className={`flex items-center gap-1.5 p-1.5 rounded-lg border transition ${
+                                            draggedSubSeqStepKey === stepKey ? 'border-amber-500 bg-amber-50 shadow-sm' : 'bg-slate-50 border-slate-200'
+                                          }`}
+                                        >
+                                          <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-amber-600 p-0.5" title="Drag to reorder step">
+                                            <GripVertical className="w-3.5 h-3.5" />
+                                          </div>
+                                          <span className="w-6 h-6 rounded-full bg-amber-500 text-white font-black text-[10px] flex items-center justify-center shrink-0">
+                                            {optIdx + 1}
+                                          </span>
+                                          <input
+                                            type="text"
+                                            value={opt}
+                                            onChange={(e) => {
+                                              const copy = [...sq.options];
+                                              copy[optIdx] = e.target.value;
+                                              updateSubQ(sqIdx, { options: copy, correctOrder: copy.map((_: any, i: number) => i) });
+                                            }}
+                                            placeholder={`Step ${optIdx + 1}`}
+                                            className="flex-1 p-1.5 bg-white border border-slate-200 rounded-md text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                                          />
+                                          <div className="flex items-center gap-0.5">
+                                            <button
+                                              type="button"
+                                              disabled={optIdx === 0}
+                                              onClick={() => handleMoveSubSequenceStep(sqIdx, optIdx, optIdx - 1)}
+                                              className="p-1 text-slate-400 hover:text-amber-700 disabled:opacity-30"
+                                              title="Move Up"
+                                            >
+                                              <ArrowUp className="w-3 h-3" />
+                                            </button>
+                                            <button
+                                              type="button"
+                                              disabled={optIdx === sq.options.length - 1}
+                                              onClick={() => handleMoveSubSequenceStep(sqIdx, optIdx, optIdx + 1)}
+                                              className="p-1 text-slate-400 hover:text-amber-700 disabled:opacity-30"
+                                              title="Move Down"
+                                            >
+                                              <ArrowDown className="w-3 h-3" />
+                                            </button>
+                                            {sq.options.length > 2 && (
+                                              <button
+                                                type="button"
+                                                onClick={() => removeOpt(sqIdx, optIdx)}
+                                                className="p-1 text-slate-400 hover:text-rose-500 transition"
+                                                title="Remove Step"
+                                              >
+                                                <Trash2 className="w-3 h-3" />
+                                              </button>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    <button
+                                      type="button"
+                                      onClick={() => addOpt(sqIdx)}
+                                      className="text-[10px] text-indigo-600 font-black hover:underline flex items-center gap-1 mt-1"
+                                    >
                                       <Plus className="w-3 h-3" /> Add Step
                                     </button>
                                   </div>
@@ -1468,12 +1635,19 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
 
                     <div>
                       <label className="block text-xs font-extrabold text-slate-700 mb-1">Points</label>
-                      <input
-                        type="number"
-                        value={currentQuestion.points || 1000}
-                        onChange={(e) => updateCurrentQuestion({ points: Number(e.target.value) })}
-                        className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
-                      />
+                      {currentQuestion.questionType === 'SCENARIO_QUESTIONS' ? (
+                        <div className="p-2 bg-purple-50 border border-purple-200 rounded-xl text-[11px] font-bold text-purple-900 flex items-center justify-between">
+                          <span className="text-[10px] text-purple-700 uppercase">Sum of Sub-Qs:</span>
+                          <span className="text-xs font-black text-purple-800">{currentQuestion.points || 0} pts</span>
+                        </div>
+                      ) : (
+                        <input
+                          type="number"
+                          value={currentQuestion.points || 1000}
+                          onChange={(e) => updateCurrentQuestion({ points: Number(e.target.value) })}
+                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                        />
+                      )}
                     </div>
 
                     <div>
