@@ -90,17 +90,9 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
       <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <img src="/QuizArena Icon.png" alt="QuizArena" className="w-12 h-12 object-contain" />
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <span className="font-black text-2xl text-slate-900">QuizArena</span>
-              <span className="px-3 py-1 text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 rounded-lg">
-                LIVE GAME LOBBY
-              </span>
-            </div>
-            <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
-              {quizTitle}
-            </h1>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
+            {quizTitle}
+          </h1>
         </div>
 
         {/* Center: Game Join Code Card */}
