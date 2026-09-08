@@ -90,16 +90,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
               {quizTitle}
             </h1>
-            <div className="flex flex-wrap items-center gap-2 pt-0.5 text-xs font-semibold text-slate-500">
-              <span className="inline-flex items-center space-x-1.5 px-3 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl">
-                <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-                <span>Trainer-Led Conduct Session</span>
-              </span>
-              <span className="inline-flex items-center space-x-1.5 px-3 py-0.5 bg-slate-100 text-slate-600 rounded-xl">
-                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                <span>No Account Required for Players</span>
-              </span>
-            </div>
+
           </div>
         </div>
 
