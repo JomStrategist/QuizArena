@@ -252,16 +252,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   ];
 
   const renderScenarioDetailsBanner = () => {
-    const sc = question.scenarioQuestionsData || (question as any).scenarioData || {};
-    const scenarioTitle = sc.scenarioTitle || (question as any).scenarioTitle || '';
-    const scenarioText = sc.scenarioText || (question as any).scenarioText || '';
-    const instructions = sc.instructions || (question as any).instructions || '';
-    const backgroundContext = sc.backgroundContext || (question as any).backgroundContext || '';
+    const sc = question.scenarioQuestionsData || (question as any).scenarioData || (question as any).scenarioQuestions || {};
+    const scenarioTitle = sc.scenarioTitle || (question as any).scenarioTitle || (question as any).parentScenarioTitle || (question as any).topic || '';
+    const scenarioText = sc.scenarioText || (question as any).scenarioText || (question as any).scenario || (question as any).parentScenarioText || '';
+    const instructions = sc.instructions || (question as any).instructions || (question as any).scenarioInstructions || '';
+    const backgroundContext = sc.backgroundContext || (question as any).backgroundContext || (question as any).keyContext || (question as any).context || '';
 
     if (!scenarioTitle && !scenarioText && !backgroundContext) return null;
 
-    const subIdx = (question as any).subQuestionIndex;
-    const totalSub = (question as any).totalSubQuestions;
+    const subIdx = (question as any).subQuestionIndex ?? (question as any).subIdx ?? (question as any).subQuestionIdx;
+    const totalSub = (question as any).totalSubQuestions ?? (question as any).totalSub ?? (question as any).totalSubQuestionsCount;
 
     return (
       <div className={`p-4 sm:p-5 rounded-3xl border space-y-2 mb-4 transition-all shadow-sm ${
@@ -274,7 +274,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             <BookOpen className="w-4 h-4 text-purple-600 shrink-0" />
             <span>
               SCENARIO CASE STUDY
-              {subIdx !== undefined ? ` • SUB-QUESTION ${subIdx + 1} OF ${totalSub}` : ''}
+              {subIdx !== undefined && totalSub !== undefined ? ` • SUB-QUESTION ${Number(subIdx) + 1} OF ${totalSub}` : ''}
             </span>
           </div>
           {scenarioTitle && (
