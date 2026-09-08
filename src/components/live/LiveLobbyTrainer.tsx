@@ -155,16 +155,16 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           {/* Copy URL / Link Button */}
           <button
             onClick={handleCopyLink}
-            className="w-full py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center justify-center space-x-2 shadow-xs"
+            className="w-full py-4 bg-blue-100/70 hover:bg-blue-200/80 text-blue-600 border border-blue-200 rounded-2xl text-sm font-bold transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
           >
             {copiedLink ? (
               <>
-                <Check className="w-4.5 h-4.5 text-emerald-600" />
+                <Check className="w-5 h-5 text-emerald-600" />
                 <span className="text-emerald-700 font-black">URL Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4.5 h-4.5 text-blue-600" />
+                <Copy className="w-5 h-5 text-blue-600" />
                 <span>Copy URL</span>
               </>
             )}
