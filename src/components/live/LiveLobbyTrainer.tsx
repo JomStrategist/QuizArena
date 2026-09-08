@@ -94,22 +94,22 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </h1>
         </div>
 
-        {/* Center: Game Join Code Card */}
-        <div className="bg-slate-950 text-white px-6 py-2 rounded-2xl border border-slate-800 shadow-md flex items-center space-x-4 self-center md:self-auto">
-          <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+        {/* Center: Game Join Code Card (Fills Center Space) */}
+        <div className="flex-1 max-w-xl mx-auto md:mx-6 bg-slate-950 text-white px-8 py-3 rounded-2xl border border-slate-800 shadow-md flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 whitespace-nowrap hidden sm:inline">
               GAME CODE
-            </p>
-            <p className="text-2xl md:text-3xl font-black font-mono tracking-widest text-amber-400">
+            </span>
+            <span className="text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-[0.25em] text-amber-400">
               {quizCode}
-            </p>
+            </span>
           </div>
           <button
             onClick={handleCopyCode}
-            className="p-2 text-slate-400 hover:text-white rounded-lg transition cursor-pointer"
+            className="p-2.5 text-slate-400 hover:text-amber-400 hover:bg-slate-900 rounded-xl transition cursor-pointer flex items-center"
             title="Copy Code"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
           </button>
         </div>
 
