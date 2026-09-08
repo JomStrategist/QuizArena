@@ -1344,6 +1344,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       ? correctOptionIndex
       : question.correctOptionIndex;
 
+  // Helper to parse "Title||Description" for standard options
+  const parseOpt = (text: string): { title: string; desc: string } => {
+    const sep = text.indexOf('||');
+    if (sep === -1) return { title: text, desc: '' };
+    return { title: text.slice(0, sep).trim(), desc: text.slice(sep + 2).trim() };
+  };
+
   if (mode === 'projector') {
     return (
       <div className="space-y-8 w-full">
@@ -1363,6 +1370,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           {options.map((optText, idx) => {
             const theme = optionThemes[idx % 4];
             const isCorrect = showCorrectAnswer && actualCorrectIndex === idx;
+            const { title: optTitle, desc: optDesc } = parseOpt(optText);
 
             return (
               <div
@@ -1376,9 +1384,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-xl sm:text-2xl font-black shrink-0 border border-white/30 ${theme.badge}`}>
                   {theme.letter}
                 </div>
-                <span className="text-lg sm:text-2xl font-extrabold tracking-tight leading-snug">
-                  {optText}
-                </span>
+                <div className="flex-1 space-y-1">
+                  <span className="text-lg sm:text-2xl font-extrabold tracking-tight leading-snug block">
+                    {optTitle}
+                  </span>
+                  {optDesc && (
+                    <span className="text-sm font-medium opacity-85 leading-snug block">
+                      {optDesc}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -1408,6 +1423,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           {options.map((optText, idx) => {
             const theme = optionThemes[idx % 4];
             const isCorrect = showCorrectAnswer && actualCorrectIndex === idx;
+            const { title: optTitle, desc: optDesc } = parseOpt(optText);
 
             return (
               <div
@@ -1418,11 +1434,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     : 'bg-slate-50/80 border-slate-200 text-slate-800 font-extrabold'
                 }`}
               >
-                <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-4 min-w-0 pr-2">
                   <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-base font-black shrink-0 ${theme.badge}`}>
                     {theme.letter}
                   </span>
-                  <span className="text-base md:text-lg font-black text-slate-900 leading-snug">{optText}</span>
+                  <div className="space-y-0.5">
+                    <span className="text-base md:text-lg font-black text-slate-900 leading-snug block">{optTitle}</span>
+                    {optDesc && <span className="text-xs font-medium text-slate-500 block leading-snug">{optDesc}</span>}
+                  </div>
                 </div>
 
                 {isCorrect && (
@@ -1482,6 +1501,8 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             }
           }
 
+          const { title: optTitle, desc: optDesc } = parseOpt(optText);
+
           return (
             <button
               key={idx}
@@ -1492,7 +1513,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:shadow-md'
               }`}
             >
-              <div className="flex items-center space-x-3.5">
+              <div className="flex items-start space-x-3.5 min-w-0 pr-2">
                 <span
                   className={`w-10 h-10 rounded-2xl flex items-center justify-center text-sm font-black shrink-0 ${
                     isSelected || (showCorrectAnswer && (isCorrect || isUserWrong))
@@ -1502,9 +1523,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 >
                   {theme.letter}
                 </span>
-                <span className="text-base md:text-lg font-black tracking-tight leading-snug">
-                  {optText}
-                </span>
+                <div className="space-y-1">
+                  <span className="text-base md:text-lg font-black tracking-tight leading-snug block">
+                    {optTitle}
+                  </span>
+                  {optDesc && (
+                    <span className="text-xs font-semibold opacity-85 leading-snug block">
+                      {optDesc}
+                    </span>
+                  )}
+                </div>
               </div>
 
               {showCorrectAnswer && isCorrect && (

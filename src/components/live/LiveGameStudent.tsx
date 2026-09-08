@@ -22,6 +22,7 @@ import {
 import { useToast } from '../ui/ToastNotification';
 import { Top5Leaderboard } from './Top5Leaderboard';
 import { LivePodiumFinale } from './LivePodiumFinale';
+import { QuestionRenderer } from '../common/QuestionRenderer';
 import { soundManager } from '@/lib/game/soundManager';
 
 interface LiveGameStudentProps {
@@ -183,6 +184,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           questionIndex: session?.currentQuestionIndex || 0,
           selectedOptionIndex: index,
           responseTimeMs,
+          isTimeout,
         }),
       });
 
@@ -197,16 +199,108 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
     }
   };
 
+  const handleCategoryAssignmentsSelect = async (assignments: Record<string, string>) => {
+    if (submitting || studentAnswer) return;
+
+    setSubmitting(true);
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+
+    try {
+      const res = await fetch('/api/v1/live-sessions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizCode,
+          participantId,
+          displayName,
+          questionIndex: session?.currentQuestionIndex || 0,
+          selectedOptionIndex: -1,
+          selectedCategoryAssignments: assignments,
+          responseTimeMs,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStudentAnswer(json.data);
+      }
+    } catch (err) {
+      console.error('Error submitting category assignments:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSequenceSelect = async (sequence: number[]) => {
+    if (submitting || studentAnswer) return;
+
+    setSubmitting(true);
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+
+    try {
+      const res = await fetch('/api/v1/live-sessions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizCode,
+          participantId,
+          displayName,
+          questionIndex: session?.currentQuestionIndex || 0,
+          selectedOptionIndex: -1,
+          selectedSequence: sequence,
+          responseTimeMs,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStudentAnswer(json.data);
+      }
+    } catch (err) {
+      console.error('Error submitting sequence answer:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSubAnswersComplete = async (subAnswers: Record<number, any>) => {
+    if (submitting || studentAnswer) return;
+
+    setSubmitting(true);
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+
+    try {
+      const res = await fetch('/api/v1/live-sessions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizCode,
+          participantId,
+          displayName,
+          questionIndex: session?.currentQuestionIndex || 0,
+          selectedOptionIndex: -1,
+          selectedSubAnswers: subAnswers,
+          responseTimeMs,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStudentAnswer(json.data);
+      }
+    } catch (err) {
+      console.error('Error submitting scenario answer:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleToggleMute = () => {
     const muted = soundManager.toggleMute();
     setIsMuted(muted);
   };
 
-  const renderQuestionText = (text: string) => {
-    return text || '';
-  };
-
-  const optionLetters = ['A', 'B', 'C', 'D'];
+  const optionLetters = ['A', 'B', 'C', 'D', 'E', 'F'];
   const totalQuestions = session?.totalQuestions || 5;
   const currentIdx = (session?.currentQuestionIndex || 0) + 1;
   const stage = session?.stage || 'LOBBY';
@@ -354,7 +448,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
 
   if (isAnswered && stage !== 'SHOWING_RESULT') {
     const chosenIndex = studentAnswer?.selectedOptionIndex ?? selectedOption ?? 0;
-    const chosenText = currentQuestion?.options?.[chosenIndex] || 'Role / Persona';
+    const rawChosen = currentQuestion?.options?.[chosenIndex] || 'Submitted Response';
+    const chosenText = rawChosen.split('||')[0];
     const respTimeSec = ((studentAnswer?.responseTimeMs || Date.now() - startTimeMs) / 1000).toFixed(1);
 
     return (
@@ -387,14 +482,14 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
               Answer Submitted!
             </h1>
             <p className="text-xs text-emerald-200 font-bold uppercase tracking-wider">
-              You chose
+              Response recorded
             </p>
           </div>
 
           {/* Selected Choice Badge Card */}
           <div className="bg-white text-slate-900 p-4 rounded-2xl shadow-xl flex items-center space-x-3 text-left">
             <span className="w-8 h-8 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-sm shrink-0">
-              {optionLetters[chosenIndex % 4]}
+              ✓
             </span>
             <span className="text-base font-extrabold flex-1 text-slate-900 leading-snug">
               {chosenText}
@@ -514,6 +609,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
                 const letter = String.fromCharCode(65 + idx);
                 const isCorrectOpt = currentQuestion?.correctOptionIndex === idx;
                 const isStudentChoice = studentAnswer?.selectedOptionIndex === idx;
+                const cleanOptText = optText.split('||')[0];
 
                 let cardStyle = "bg-slate-50 border-slate-200 text-slate-700";
                 let badgeStyle = "bg-slate-200 text-slate-700";
@@ -535,7 +631,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
                       <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 ${badgeStyle}`}>
                         {letter}
                       </span>
-                      <span className="text-xs font-extrabold truncate">{optText}</span>
+                      <span className="text-xs font-extrabold truncate">{cleanOptText}</span>
                     </div>
 
                     <div className="flex items-center space-x-1.5 shrink-0">
@@ -628,54 +724,20 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
         </button>
       </div>
 
-      {/* Main Question Card */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-        <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-bold">
-          <Edit3 className="w-3.5 h-3.5 text-purple-600" />
-          <span>Multiple Choice</span>
-        </div>
-
-        <h2 className="text-base sm:text-lg font-black text-slate-900 leading-snug">
-          {currentQuestion?.questionText ? (
-            renderQuestionText(currentQuestion.questionText)
-          ) : (
-            'Which element of the RCTOF prompt engineering framework defines WHO the AI should act as during response generation?'
-          )}
-        </h2>
-      </div>
-
-      {/* Option Cards List (A, B, C, D) */}
-      <div className="space-y-3 flex-1">
-        {(currentQuestion?.options || [
-          'Role / Persona',
-          'Context',
-          'Task',
-          'Output Format',
-        ]).map((opt: string, i: number) => {
-          const isSelected = selectedOption === i;
-          return (
-            <button
-              key={i}
-              onClick={() => handleOptionSelect(i)}
-              disabled={submitting || timeLeft <= 0}
-              className={`w-full p-4 rounded-2xl border text-left font-bold text-sm transition-all flex items-center space-x-3.5 shadow-xs disabled:opacity-50 ${
-                isSelected
-                  ? 'bg-blue-50 border-blue-500 text-blue-950 ring-2 ring-blue-500/20 shadow-md'
-                  : 'bg-white border-slate-200 text-slate-800 hover:border-blue-300'
-              }`}
-            >
-              <span
-                className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                  isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
-                }`}
-              >
-                {optionLetters[i]}
-              </span>
-              <span className="flex-1 font-extrabold leading-snug">{opt}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Dynamic Question Renderer for all Question Types */}
+      <QuestionRenderer
+        question={currentQuestion}
+        mode="player"
+        questionIndex={session?.currentQuestionIndex || 0}
+        totalQuestions={totalQuestions}
+        selectedOptionIndex={selectedOption}
+        onSelectOption={(idx) => handleOptionSelect(idx)}
+        onSelectSequence={(seq) => handleSequenceSelect(seq)}
+        onSelectCategoryAssignments={(assignments) => handleCategoryAssignmentsSelect(assignments)}
+        onSubAnswersComplete={(subAns) => handleSubAnswersComplete(subAns)}
+        disabled={submitting || timeLeft <= 0 || Boolean(studentAnswer)}
+        isAnswerSubmitted={Boolean(studentAnswer)}
+      />
 
       {/* Bottom Footer Slogan */}
       <div className="text-center text-[10px] font-extrabold uppercase tracking-widest text-slate-400 pt-2">
