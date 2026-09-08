@@ -761,7 +761,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const subQuestions = scData.subQuestions;
     const totalSubQs = subQuestions.length;
     const answeredCount = Object.keys(scenarioSubAnswers).length;
-    const shouldShowAll = showCorrectAnswer || mode === 'trainer' || mode === 'projector';
+    const shouldShowAll = showCorrectAnswer;
 
     const renderSubQuestion = (subQ: any, subIdx: number) => {
       const sqType = subQ.questionType || 'MCQ';
@@ -774,7 +774,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           ? Array.isArray(selectedIndices) && selectedIndices.length > 0
           : true
       );
-      const isSubCorrect = (showCorrectAnswer || mode === 'trainer' || mode === 'projector') && (
+      const isSubCorrect = showCorrectAnswer && (
         sqType === 'CORRECT_SEQUENCE'
           ? Array.isArray(selectedSeq) && Array.isArray(subQ.correctOrder) &&
             selectedSeq.length === subQ.correctOrder.length &&
@@ -1271,7 +1271,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {options.map((optText, idx) => {
             const theme = optionThemes[idx % 4];
-            const isCorrect = actualCorrectIndex === idx;
+            const isCorrect = showCorrectAnswer && actualCorrectIndex === idx;
 
             return (
               <div
