@@ -95,6 +95,16 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         </div>
 
         <div className="flex items-center space-x-3 self-start md:self-auto">
+          {/* Full Screen Button */}
+          <button
+            onClick={() => setIsFullScreenQROpen(true)}
+            className="px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
+            title="Full Screen View"
+          >
+            <Maximize2 className="w-4 h-4 text-blue-600" />
+            <span className="hidden sm:inline">Full Screen</span>
+          </button>
+
           {/* Prominent Close/Exit Button */}
           <button
             onClick={onClose ? onClose : () => { window.location.href = '/trainer/dashboard'; }}
@@ -123,14 +133,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner">
             <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={200} />
           </div>
-
-          <button
-            onClick={() => setIsFullScreenQROpen(true)}
-            className="w-full py-3 bg-blue-50 hover:bg-blue-100/80 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center justify-center space-x-2 shadow-2xs"
-          >
-            <Maximize2 className="w-4 h-4 text-blue-600" />
-            <span>Full Screen Projector View</span>
-          </button>
         </div>
 
         {/* Right Column: Game Join Code & Start Quiz (6 cols) */}
