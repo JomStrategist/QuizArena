@@ -198,25 +198,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
               SESSION SETTINGS
             </p>
 
-            {/* Question Time Limit */}
-            <div className="space-y-1">
-              <label className="flex items-center space-x-1.5 text-xs font-extrabold text-slate-700">
-                <Clock className="w-3.5 h-3.5 text-blue-600" />
-                <span>Question Time Limit</span>
-              </label>
 
-              <select
-                value={questionTime}
-                onChange={(e) => setQuestionTime(Number(e.target.value))}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-bold text-slate-800 focus:outline-none"
-              >
-                <option value={10}>10 seconds</option>
-                <option value={20}>20 seconds</option>
-                <option value={30}>30 seconds (Recommended)</option>
-                <option value={45}>45 seconds</option>
-                <option value={60}>60 seconds</option>
-              </select>
-            </div>
 
             {/* Scoring Formula */}
             <div className="space-y-1 pt-1">
