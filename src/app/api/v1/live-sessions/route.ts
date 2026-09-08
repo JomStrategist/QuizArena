@@ -3,6 +3,8 @@ import { connectToDatabase } from '@/lib/db/connect';
 import { LiveSessionModel } from '@/models/LiveSession';
 import { QuizModel } from '@/models/Quiz';
 
+import { expandQuizQuestions } from '@/lib/game/expandQuizQuestions';
+
 function generateQuizCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -52,12 +54,12 @@ export async function POST(req: NextRequest) {
       attempts++;
     }
 
-    // Freeze snapshot
+    // Freeze snapshot with expanded scenario sub-questions
     const quizSnapshot = {
       _id: quiz._id.toString(),
       title: quiz.title,
       category: quiz.category,
-      questions: quiz.questionIds,
+      questions: expandQuizQuestions(quiz.questionIds),
     };
 
     const session = await LiveSessionModel.create({

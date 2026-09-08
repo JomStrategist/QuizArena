@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db/connect';
 import { AssignmentModel } from '@/models/Assignment';
 import { QuizModel } from '@/models/Quiz';
+import { expandQuizQuestions } from '@/lib/game/expandQuizQuestions';
 import { QuestionModel } from '@/models/Question';
 
 export async function GET(req: NextRequest) {
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
       description: quiz.description,
       category: quiz.category,
       instructions: quiz.instructions,
-      questions: quiz.questionIds,
+      questions: expandQuizQuestions(quiz.questionIds),
     };
 
     const cleanEmails = studentEmails.map((e: string) => e.trim().toLowerCase());

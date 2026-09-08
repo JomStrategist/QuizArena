@@ -1164,9 +1164,54 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       ? correctOptionIndex
       : question.correctOptionIndex;
 
+  const renderScenarioDetailsBanner = () => {
+    const sc = question.scenarioQuestionsData;
+    if (!sc || !sc.scenarioTitle) return null;
+
+    const subIdx = (question as any).subQuestionIndex;
+    const totalSub = (question as any).totalSubQuestions;
+
+    return (
+      <div className={`p-4 sm:p-5 rounded-3xl border space-y-2 mb-4 transition-all shadow-sm ${
+        mode === 'projector'
+          ? 'bg-purple-950/90 border-purple-500/40 text-purple-100'
+          : 'bg-purple-50 border-purple-200 text-purple-950'
+      }`}>
+        <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
+          <div className="flex items-center gap-1.5">
+            <BookOpen className="w-4 h-4 text-purple-600 shrink-0" />
+            <span>
+              SCENARIO CASE STUDY
+              {subIdx !== undefined ? ` • SUB-QUESTION ${subIdx + 1} OF ${totalSub}` : ''}
+            </span>
+          </div>
+          <span className="bg-purple-200/80 text-purple-900 px-2.5 py-0.5 rounded-lg text-[10px] font-black">
+            {sc.scenarioTitle}
+          </span>
+        </div>
+        {sc.scenarioText && (
+          <p className={`text-xs md:text-sm font-semibold leading-relaxed whitespace-pre-wrap ${mode === 'projector' ? 'text-slate-100' : 'text-purple-950'}`}>
+            {sc.scenarioText}
+          </p>
+        )}
+        {sc.instructions && (
+          <p className="text-[11px] font-bold text-amber-900 bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-200/80 mt-1 inline-block">
+            💡 {sc.instructions}
+          </p>
+        )}
+        {sc.backgroundContext && (
+          <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 pt-0.5">
+            <strong className="font-bold text-slate-900 dark:text-white">Key Context:</strong> {sc.backgroundContext}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   if (mode === 'projector') {
     return (
       <div className="space-y-8 w-full">
+        {renderScenarioDetailsBanner()}
         <div className="space-y-3">
           {question.category && (
             <span className="inline-block px-3 py-1 bg-amber-400/20 text-amber-300 border border-amber-400/30 rounded-full text-xs font-black uppercase tracking-wider">
@@ -1209,6 +1254,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   if (mode === 'trainer') {
     return (
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+        {renderScenarioDetailsBanner()}
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-black uppercase tracking-wider">
             {question.category || 'GENERAL QUIZ'}
@@ -1260,6 +1306,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // Player Mode MCQ / TRUE_FALSE
   return (
     <div className="space-y-6 w-full">
+      {renderScenarioDetailsBanner()}
       <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest">
