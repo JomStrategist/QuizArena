@@ -1253,22 +1253,22 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   if (mode === 'trainer') {
     return (
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
         {renderScenarioDetailsBanner()}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <span className="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-black uppercase tracking-wider">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <span className="px-3.5 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-xl text-xs font-black uppercase tracking-wider">
             {question.category || 'GENERAL QUIZ'}
           </span>
-          <span className="text-xs font-extrabold text-slate-500">
+          <span className="text-xs sm:text-sm font-extrabold text-slate-500">
             Points: {question.points || 1000}
           </span>
         </div>
 
-        <h3 className="text-lg md:text-xl font-extrabold text-slate-900 leading-snug">
+        <h3 className="text-2xl md:text-3xl lg:text-4xl font-black text-slate-900 leading-tight py-2">
           {renderQuestionText(question.questionText)}
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {options.map((optText, idx) => {
             const theme = optionThemes[idx % 4];
             const isCorrect = actualCorrectIndex === idx;
@@ -1276,22 +1276,22 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             return (
               <div
                 key={idx}
-                className={`p-4 rounded-2xl border flex items-center justify-between transition ${
+                className={`p-5 sm:p-6 rounded-2xl border flex items-center justify-between transition ${
                   isCorrect
                     ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-black shadow-xs'
-                    : 'bg-slate-50/80 border-slate-200 text-slate-700 font-extrabold'
+                    : 'bg-slate-50/80 border-slate-200 text-slate-800 font-extrabold'
                 }`}
               >
-                <div className="flex items-center space-x-3">
-                  <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black ${theme.badge}`}>
+                <div className="flex items-center space-x-4">
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-base font-black shrink-0 ${theme.badge}`}>
                     {theme.letter}
                   </span>
-                  <span className="text-xs font-extrabold">{optText}</span>
+                  <span className="text-base md:text-lg font-black text-slate-900 leading-snug">{optText}</span>
                 </div>
 
                 {isCorrect && (
-                  <span className="flex items-center space-x-1 px-2.5 py-0.5 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-wider">
-                    <CheckCircle2 className="w-3 h-3" />
+                  <span className="flex items-center space-x-1.5 px-3 py-1 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase tracking-wider shrink-0">
+                    <CheckCircle2 className="w-4 h-4" />
                     <span>CORRECT</span>
                   </span>
                 )}

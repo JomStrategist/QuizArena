@@ -292,7 +292,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
   const strokeDashoffset = circumference * (1 - timePercent);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto w-full font-sans text-slate-900">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-start p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto w-full font-sans text-slate-900">
       
 
 
