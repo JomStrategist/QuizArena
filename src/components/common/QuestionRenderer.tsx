@@ -98,6 +98,17 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   const questionId = question?._id ? String(question._id) : (question as any)?.id ? String((question as any).id) : question?.questionText || '';
 
+  // Shuffled options list per question instance (ensures random order in each game session)
+  const displayItems = React.useMemo(() => {
+    if (!question?.options || question.options.length === 0) return [];
+    const list = question.options.map((text, originalIndex) => ({ text, originalIndex }));
+    for (let i = list.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [list[i], list[j]] = [list[j], list[i]];
+    }
+    return list;
+  }, [questionId, question?.options?.length, qType]);
+
   useEffect(() => {
     if (question?.options) {
       setSequence(question.options.map((_, idx) => idx));
@@ -344,6 +355,22 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const isDropdownCases = items.some((it) => /^Case \d+:/i.test(it)) || question.questionText?.includes('Choose the AI Combination');
     const unassignedCount = items.filter((_, idx) => !categoryAssignments[idx.toString()]).length;
 
+    // Helper to get target correct category for item original index
+    const getCorrectCategory = (originalIdx: number) => {
+      const idxStr = originalIdx.toString();
+      const catId = question.categoryAssignments?.[idxStr];
+      if (catId) {
+        const found = categories.find((c) => c.id === catId);
+        if (found) return found;
+      }
+      const itemsPerCat = Math.max(1, Math.ceil(items.length / categories.length));
+      const catIdx = Math.floor(originalIdx / itemsPerCat);
+      return categories[catIdx] || categories[0] || { id: 'unknown', title: 'Default Category' };
+    };
+
+    // Determine if we should display the Grouped By Category Answer Key
+    const isShowingAnswerGrouped = showCorrectAnswer || isAnswerSubmitted || mode === 'trainer' || mode === 'projector';
+
     return (
       <div className="space-y-6 w-full font-sans">
         {renderScenarioDetailsBanner()}
@@ -353,8 +380,8 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </span>
           <h2 className="text-xl md:text-2xl font-black">{renderQuestionText(question.questionText)}</h2>
           <p className={`text-xs sm:text-sm opacity-85 mt-2 font-medium leading-relaxed ${mode === 'projector' ? 'text-slate-300' : 'text-slate-600'}`}>
-            {mode === 'trainer' || mode === 'projector'
-              ? `Categorization Challenge: ${items.length} solution cards categorized into ${categories.length} target categories.`
+            {isShowingAnswerGrouped
+              ? `Correct Answer Key — Solutions grouped by target category (${categories.length} categories).`
               : (question.explanation || (
                   items.length === 12
                     ? "Categorize each of the 12 solutions into the category that best describes it. Select a category directly on each card item."
@@ -366,20 +393,128 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </p>
         </div>
 
-        {/* If question items are Cases with Dropdowns (Activity 2) */}
-        {isDropdownCases ? (
+        {/* ------------------------------------------------------------- */}
+        {/* VIEW A: SHOW ANSWER / RESULTS — GROUPED BY CATEGORY           */}
+        {/* ------------------------------------------------------------- */}
+        {isShowingAnswerGrouped ? (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider">
+                  Correct Answer Key — By Category
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                  All {items.length} solution items classified under their correct target categories.
+                </p>
+              </div>
+              <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 rounded-xl text-xs font-black">
+                {categories.length} Categories
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {categories.map((cat) => {
+                // Find all items whose target correct category is cat.id
+                const correctItems = items
+                  .map((text, originalIndex) => ({ text, originalIndex }))
+                  .filter(({ originalIndex }) => getCorrectCategory(originalIndex).id === cat.id);
+
+                return (
+                  <div
+                    key={cat.id}
+                    className={`p-5 rounded-3xl border space-y-3 shadow-sm ${
+                      mode === 'projector'
+                        ? 'bg-slate-900 border-white/20 text-white'
+                        : 'bg-white border-slate-200 text-slate-900'
+                    }`}
+                  >
+                    {/* Category Header */}
+                    <div className="flex items-center justify-between border-b pb-2 border-slate-100 dark:border-slate-800">
+                      <div>
+                        <h4 className="text-xs font-black uppercase text-purple-600 dark:text-purple-400">
+                          {cat.title}
+                        </h4>
+                        {cat.description && (
+                          <p className="text-[10px] text-slate-500 font-medium mt-0.5">{cat.description}</p>
+                        )}
+                      </div>
+                      <span className="px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-lg text-[10px] font-black">
+                        {correctItems.length} {correctItems.length === 1 ? 'item' : 'items'}
+                      </span>
+                    </div>
+
+                    {/* Solutions List */}
+                    <div className="space-y-2.5 pt-1">
+                      {correctItems.length === 0 ? (
+                        <p className="text-xs text-slate-400 italic font-medium">No items assigned to this category.</p>
+                      ) : (
+                        correctItems.map(({ text, originalIndex }) => {
+                          const idxStr = originalIndex.toString();
+                          const { title: itemTitle, desc: itemDesc } = parseItem(text);
+                          const userAssignedCatId = categoryAssignments[idxStr];
+                          const userAssignedCat = categories.find((c) => c.id === userAssignedCatId);
+                          const isUserCorrect = userAssignedCatId === cat.id;
+
+                          return (
+                            <div
+                              key={originalIndex}
+                              className={`p-3.5 rounded-2xl border transition space-y-1.5 ${
+                                mode === 'projector'
+                                  ? 'bg-slate-800/80 border-slate-700 text-white'
+                                  : 'bg-slate-50 border-slate-200 text-slate-900'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <h5 className="text-xs font-black leading-snug">{itemTitle}</h5>
+                                
+                                {mode === 'player' && (isAnswerSubmitted || showCorrectAnswer) && (
+                                  <div className="shrink-0">
+                                    {isUserCorrect ? (
+                                      <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-black flex items-center space-x-1">
+                                        <span>✓</span> <span>Correct</span>
+                                      </span>
+                                    ) : userAssignedCat ? (
+                                      <span className="px-2 py-0.5 bg-rose-100 text-rose-800 border border-rose-300 rounded-lg text-[10px] font-black flex items-center space-x-1">
+                                        <span>✗</span> <span>You chose: {userAssignedCat.title}</span>
+                                      </span>
+                                    ) : (
+                                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 border border-amber-300 rounded-lg text-[10px] font-black">
+                                        Unassigned
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                              {itemDesc && (
+                                <p className="text-[11px] font-medium opacity-75 leading-relaxed">{itemDesc}</p>
+                              )}
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : isDropdownCases ? (
+          /* ------------------------------------------------------------- */
+          /* VIEW B: ACTIVE PLAY — DROPDOWN CASES (SHUFFLED OPTIONS)       */
+          /* ------------------------------------------------------------- */
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {items.map((itemText, idx) => {
-                const selectedCat = categoryAssignments[idx.toString()] || '';
-                const caseTitle = `Case ${idx + 1}`;
+              {displayItems.map(({ text: itemText, originalIndex }, displayIdx) => {
+                const idxStr = originalIndex.toString();
+                const selectedCat = categoryAssignments[idxStr] || '';
+                const caseTitle = `Case ${displayIdx + 1}`;
                 const cleanText = itemText.replace(/^Case \d+:\s*/i, '');
 
                 return (
                   <div
-                    key={idx}
+                    key={originalIndex}
                     className={`p-5 rounded-2xl border flex flex-col justify-between space-y-4 shadow-sm transition ${
-                      mode === 'projector'
+                      (mode as string) === 'projector'
                         ? 'bg-slate-900 border-white/20 text-white'
                         : 'bg-white border-slate-200 text-slate-900'
                     }`}
@@ -400,9 +535,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                       <select
                         disabled={disabled}
                         value={selectedCat}
-                        onChange={(e) => handleAssignCategory(idx.toString(), e.target.value)}
+                        onChange={(e) => handleAssignCategory(idxStr, e.target.value)}
                         className={`w-full p-3 rounded-xl border text-xs md:text-sm font-bold transition focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer ${
-                          mode === 'projector'
+                          (mode as string) === 'projector'
                             ? 'bg-slate-800 border-slate-700 text-white'
                             : 'bg-slate-50 border-slate-300 text-slate-900 hover:border-blue-400'
                         }`}
@@ -437,8 +572,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               </div>
             )}
           </div>
-        ) : mode === 'player' ? (
-          /* Mobile-Optimized Direct Category Selection for Players */
+        ) : (
+          /* ------------------------------------------------------------- */
+          /* VIEW C: ACTIVE PLAY — SOLUTION CARDS (SHUFFLED OPTIONS)      */
+          /* ------------------------------------------------------------- */
           <div className="space-y-6">
             {/* Progress Header */}
             <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-white shadow-sm">
@@ -465,17 +602,17 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               </div>
             </div>
 
-            {/* Cards List with Integrated Category Selectors */}
+            {/* Cards List with Integrated Category Selectors (Shuffled Order) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {items.map((itemText, idx) => {
-                const idxStr = idx.toString();
+              {displayItems.map(({ text: itemText, originalIndex }, displayIdx) => {
+                const idxStr = originalIndex.toString();
                 const assignedCatId = categoryAssignments[idxStr] || '';
                 const assignedCat = categories.find((c) => c.id === assignedCatId);
                 const { title: itemTitle, desc: itemDesc } = parseItem(itemText);
 
                 return (
                   <div
-                    key={idx}
+                    key={originalIndex}
                     className={`p-5 rounded-2xl border transition space-y-4 shadow-sm ${
                       assignedCat
                         ? 'bg-slate-900/90 border-purple-500/50 ring-1 ring-purple-500/30'
@@ -485,7 +622,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     {/* Item Header & Status Badge */}
                     <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
                       <span className="text-[11px] font-black uppercase tracking-wider text-purple-400">
-                        Item {idx + 1}
+                        Item {displayIdx + 1}
                       </span>
                       {assignedCat ? (
                         <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xl text-[11px] font-bold flex items-center space-x-1">
@@ -574,133 +711,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 </button>
               </div>
             )}
-          </div>
-        ) : (
-          /* Trainer & Projector Category Columns Grid Overview + All Solutions List */
-          <div className="space-y-6">
-            {/* Category Buckets */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {categories.map((cat, catIdx) => {
-                const assignedIndices = items
-                  .map((_, i) => i.toString())
-                  .filter((idxStr) => {
-                    const idx = parseInt(idxStr, 10);
-                    const localAssigned = categoryAssignments[idxStr];
-                    const correctAssigned = question.categoryAssignments?.[idxStr];
-                    if (correctAssigned) return correctAssigned === cat.id;
-                    if (localAssigned) return localAssigned === cat.id;
-
-                    // Fallback distribution matching N categories
-                    const itemsPerCat = Math.max(1, Math.ceil(items.length / categories.length));
-                    return Math.floor(idx / itemsPerCat) === catIdx;
-                  });
-
-                return (
-                  <div
-                    key={cat.id}
-                    className={`p-4 rounded-2xl border min-h-[120px] space-y-3 transition ${
-                      mode === 'projector'
-                        ? 'bg-slate-900 border-white/20 text-white'
-                        : 'bg-slate-50 border-slate-200 text-slate-900 shadow-xs'
-                    }`}
-                  >
-                    <div className="border-b pb-2 border-slate-200/50 flex items-center justify-between">
-                      <div>
-                        <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
-                        {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
-                      </div>
-                      <span className="px-2.5 py-0.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black">
-                        {assignedIndices.length} items
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 pt-1">
-                      {assignedIndices.length === 0 ? (
-                        <p className="text-[11px] text-slate-400 italic font-medium pt-1">
-                          No items assigned yet
-                        </p>
-                      ) : (
-                        assignedIndices.map((idxStr) => {
-                          const idx = parseInt(idxStr, 10);
-                          const { title: itemTitle, desc: itemDesc } = parseItem(items[idx]);
-                          return (
-                            <div
-                              key={idxStr}
-                              className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs shadow-2xs space-y-0.5"
-                            >
-                              <p className="font-black leading-snug text-slate-900">{itemTitle}</p>
-                              {itemDesc && <p className="text-[10px] text-slate-500 font-medium leading-snug">{itemDesc}</p>}
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Complete Solutions Reference Cards for Trainer / Projector */}
-            <div className={`p-5 rounded-3xl border space-y-4 ${
-              mode === 'projector'
-                ? 'bg-slate-900 border-slate-800 text-white'
-                : 'bg-white border-slate-200 text-slate-900 shadow-xs'
-            }`}>
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h4 className="text-xs font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                  Question Solutions Overview ({items.length} Cards)
-                </h4>
-                <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400">
-                  Target Answer Key
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {items.map((itemText, idx) => {
-                  const idxStr = idx.toString();
-                  let targetCatId = question.categoryAssignments?.[idxStr] || categoryAssignments[idxStr];
-                  if (!targetCatId) {
-                    const itemsPerCat = Math.max(1, Math.ceil(items.length / categories.length));
-                    const catIdx = Math.floor(idx / itemsPerCat);
-                    targetCatId = categories[catIdx]?.id || categories[0]?.id;
-                  }
-                  const targetCat = categories.find((c) => c.id === targetCatId);
-                  const { title: itemTitle, desc: itemDesc } = parseItem(itemText);
-
-                  return (
-                    <div
-                      key={idx}
-                      className={`p-3.5 rounded-2xl border transition space-y-2 ${
-                        mode === 'projector'
-                          ? 'bg-slate-800/80 border-slate-700/80 text-white'
-                          : 'bg-slate-50/90 border-slate-200 text-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2 border-b border-slate-200/50 dark:border-slate-700/60 pb-2">
-                        <span className="text-[10px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                          Item {idx + 1}
-                        </span>
-                        {targetCat ? (
-                          <span className="px-2.5 py-0.5 bg-purple-100 dark:bg-purple-500/20 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-500/30 rounded-lg text-[10px] font-bold">
-                            Category: {targetCat.title}
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-[10px] font-bold">
-                            Unassigned
-                          </span>
-                        )}
-                      </div>
-                      <div className="space-y-0.5">
-                        <p className="text-xs font-black leading-snug">{itemTitle}</p>
-                        {itemDesc && (
-                          <p className="text-[11px] font-medium opacity-75 leading-snug">{itemDesc}</p>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         )}
       </div>

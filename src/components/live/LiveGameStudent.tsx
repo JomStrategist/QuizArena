@@ -599,8 +599,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           </div>
         )}
 
-        {/* Dynamic Answer Breakdown Card based on actual options */}
-        {currentQuestion?.options && currentQuestion.options.length > 0 && (
+        {/* Dynamic Answer Breakdown Card for MCQ & Standard Questions */}
+        {currentQuestion?.options && currentQuestion.options.length > 0 && currentQuestion?.questionType !== 'DRAG_AND_DROP' && (
           <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
             <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Answer Breakdown</h3>
 
@@ -651,6 +651,18 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* Category-Grouped Answer Key for DRAG_AND_DROP Questions */}
+        {currentQuestion?.questionType === 'DRAG_AND_DROP' && (
+          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+            <QuestionRenderer
+              question={currentQuestion}
+              mode="player"
+              isAnswerSubmitted={true}
+              showCorrectAnswer={true}
+            />
           </div>
         )}
 
