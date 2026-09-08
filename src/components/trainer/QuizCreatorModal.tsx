@@ -52,6 +52,17 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
   // Questions List in this Quiz (Full Question objects for direct editing)
   const [quizQuestions, setQuizQuestions] = useState<IQuestion[]>([]);
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
+  const [draggedQIdx, setDraggedQIdx] = useState<number | null>(null);
+  const [dragOverQIdx, setDragOverQIdx] = useState<number | null>(null);
+
+  const moveQuestion = (fromIdx: number, toIdx: number) => {
+    if (fromIdx < 0 || toIdx < 0 || fromIdx >= quizQuestions.length || toIdx >= quizQuestions.length || fromIdx === toIdx) return;
+    const updated = [...quizQuestions];
+    const [moved] = updated.splice(fromIdx, 1);
+    updated.splice(toIdx, 0, moved);
+    setQuizQuestions(updated);
+    setActiveQuestionIndex(toIdx);
+  };
 
   const [submitting, setSubmitting] = useState(false);
   const { showToast } = useToast();
@@ -553,17 +564,52 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                 <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">
                   {quizQuestions.map((q, idx) => {
                     const isActive = idx === activeQuestionIndex;
+                    const isDragging = draggedQIdx === idx;
+                    const isOver = dragOverQIdx === idx;
+
                     return (
                       <div
                         key={q._id || idx}
+                        draggable={true}
+                        onDragStart={(e) => {
+                          setDraggedQIdx(idx);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          if (draggedQIdx !== null && draggedQIdx !== idx) setDragOverQIdx(idx);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          if (draggedQIdx !== null) moveQuestion(draggedQIdx, idx);
+                          setDraggedQIdx(null);
+                          setDragOverQIdx(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedQIdx(null);
+                          setDragOverQIdx(null);
+                        }}
                         onClick={() => setActiveQuestionIndex(idx)}
                         className={`p-3 rounded-2xl border transition cursor-pointer flex items-center justify-between group ${
-                          isActive
+                          isDragging
+                            ? 'opacity-40 bg-blue-50 border-dashed border-blue-400 scale-[0.98]'
+                            : isOver
+                            ? 'bg-blue-100/70 border-blue-500 ring-2 ring-blue-400'
+                            : isActive
                             ? 'bg-blue-50 border-blue-500 shadow-sm'
                             : 'bg-slate-50 border-slate-200 hover:border-blue-300 hover:bg-slate-100'
                         }`}
                       >
-                        <div className="flex items-center space-x-3 overflow-hidden">
+                        <div className="flex items-center space-x-2.5 overflow-hidden">
+                          {/* Drag Grip Handle ☰ */}
+                          <div
+                            className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-blue-600 transition shrink-0"
+                            title="Drag to reorder question"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+
+                          {/* Index Number Badge */}
                           <span
                             className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${
                               isActive ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700'
@@ -571,6 +617,8 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                           >
                             {idx + 1}
                           </span>
+
+                          {/* Title & Type */}
                           <div className="truncate">
                             <p className="text-xs font-bold text-slate-900 truncate">
                               {q.questionText || 'Untitled Question'}
@@ -581,18 +629,49 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                           </div>
                         </div>
 
-                        {quizQuestions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeleteCurrentQuestion(idx);
-                            }}
-                            className="p-1 text-slate-400 hover:text-rose-600 rounded-lg opacity-0 group-hover:opacity-100 transition"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+                        {/* Right Controls: Reorder Up/Down & Delete */}
+                        <div className="flex items-center space-x-1 shrink-0">
+                          <div className="flex items-center space-x-0.5 opacity-70 group-hover:opacity-100 transition">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveQuestion(idx, idx - 1);
+                              }}
+                              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-100/60 disabled:opacity-20 rounded-lg transition"
+                              title="Move Question Up"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === quizQuestions.length - 1}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                moveQuestion(idx, idx + 1);
+                              }}
+                              className="p-1 text-slate-400 hover:text-blue-600 hover:bg-blue-100/60 disabled:opacity-20 rounded-lg transition"
+                              title="Move Question Down"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {quizQuestions.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteCurrentQuestion(idx);
+                              }}
+                              className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition"
+                              title="Delete Question"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
