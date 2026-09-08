@@ -167,24 +167,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
           
           <div className="space-y-6">
-            {/* Game Join Code Box */}
-            <div className="bg-blue-50/70 border border-blue-200 p-8 rounded-3xl text-center relative space-y-2">
-              <span className="text-xs font-black uppercase tracking-widest text-blue-600 block">
-                GAME JOIN CODE
-              </span>
-              <div className="flex items-center justify-center space-x-4">
-                <span className="text-6xl sm:text-7xl font-black font-mono tracking-widest text-blue-600">
-                  {quizCode}
-                </span>
-                <button
-                  onClick={handleCopyCode}
-                  className="p-2.5 text-blue-600 hover:bg-blue-100 rounded-2xl transition"
-                  title="Copy Join Code"
-                >
-                  {copied ? <Check className="w-6 h-6 text-emerald-600" /> : <Copy className="w-6 h-6" />}
-                </button>
-              </div>
-            </div>
 
             {/* Participants Count Badge */}
             <div className="flex items-center justify-between p-5 bg-slate-50 border border-slate-200 rounded-3xl">
