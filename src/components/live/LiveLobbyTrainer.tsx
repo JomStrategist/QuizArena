@@ -130,29 +130,11 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch flex-1">
         
         {/* Left Column: SCAN TO JOIN QR Card (6 cols) */}
-        <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-between text-center space-y-6">
+        <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-center text-center space-y-6">
 
-          <div className="p-5 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner my-2">
-            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={260} />
+          <div className="p-5 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner my-auto">
+            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={280} />
           </div>
-
-          {/* Copy URL / Link Button */}
-          <button
-            onClick={handleCopyLink}
-            className="w-full py-4 bg-blue-100/70 hover:bg-blue-200/80 text-blue-600 border border-blue-200 rounded-2xl text-sm font-bold transition flex items-center justify-center space-x-2 shadow-xs cursor-pointer"
-          >
-            {copiedLink ? (
-              <>
-                <Check className="w-5 h-5 text-emerald-600" />
-                <span className="text-emerald-700 font-black">URL Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-5 h-5 text-blue-600" />
-                <span>Copy URL</span>
-              </>
-            )}
-          </button>
         </div>
 
         {/* Right Column: Game Join Code & Start Quiz (6 cols) */}
