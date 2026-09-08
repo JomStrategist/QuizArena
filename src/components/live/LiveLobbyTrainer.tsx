@@ -105,11 +105,11 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             </span>
           </div>
           <button
-            onClick={handleCopyCode}
+            onClick={handleCopyLink}
             className="p-2.5 text-slate-400 hover:text-amber-400 hover:bg-slate-900 rounded-xl transition cursor-pointer flex items-center"
-            title="Copy Code"
+            title="Copy URL"
           >
-            {copied ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
+            {copiedLink ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
           </button>
         </div>
 

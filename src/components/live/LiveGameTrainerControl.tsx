@@ -177,9 +177,10 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
   };
 
   const handleCopyCode = () => {
-    navigator.clipboard.writeText(quizCode);
+    const url = `${window.location.origin}/quiz/join?code=${quizCode}`;
+    navigator.clipboard.writeText(url);
     setCopied(true);
-    showToast('Session Quiz Code copied!', 'info');
+    showToast('Session URL copied to clipboard!', 'info');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -326,7 +327,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           <button
             onClick={handleCopyCode}
             className="p-2.5 text-slate-400 hover:text-amber-400 hover:bg-slate-900 rounded-xl transition cursor-pointer flex items-center"
-            title="Copy Code"
+            title="Copy URL"
           >
             {copied ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
           </button>
