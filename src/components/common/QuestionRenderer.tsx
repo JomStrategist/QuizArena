@@ -195,7 +195,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       const h2Match = line.match(/^##\s+(.*)/);
       const content = h1Match ? h1Match[1] : h2Match ? h2Match[1] : line;
 
-      // Parse inline formatting: **bold**, _italic_, and WHO/WHAT/HOW keywords
+      // Parse inline formatting: **bold** and _italic_
       const parseInline = (str: string): React.ReactNode[] => {
         const tokens: React.ReactNode[] = [];
         let remaining = str;
@@ -204,13 +204,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           // Bold
           const boldIdx = remaining.indexOf('**');
           const italicIdx = remaining.indexOf('_');
-          const kwMatch = remaining.match(/\b(WHO|WHAT|HOW|WHY|WHERE|WHEN)\b/i);
-          const kwIdx = kwMatch ? remaining.indexOf(kwMatch[0]) : Infinity;
 
           const nextIdx = Math.min(
             boldIdx >= 0 ? boldIdx : Infinity,
-            italicIdx >= 0 ? italicIdx : Infinity,
-            kwIdx
+            italicIdx >= 0 ? italicIdx : Infinity
           );
 
           if (nextIdx === Infinity) { tokens.push(remaining); break; }
@@ -229,13 +226,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             if (end === -1) { tokens.push(remaining); break; }
             tokens.push(<em key={key++} className="italic">{remaining.slice(1, end)}</em>);
             remaining = remaining.slice(end + 1);
-          } else if (kwMatch && nextIdx === kwIdx) {
-            tokens.push(
-              <span key={key++} className={mode === 'projector' ? 'text-amber-400 font-black underline decoration-amber-400 decoration-wavy' : 'text-blue-600 font-black underline decoration-blue-400 decoration-wavy'}>
-                {kwMatch[0]}
-              </span>
-            );
-            remaining = remaining.slice(kwMatch[0].length);
           }
         }
         return tokens;

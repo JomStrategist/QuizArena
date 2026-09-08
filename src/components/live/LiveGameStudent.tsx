@@ -203,18 +203,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   };
 
   const renderQuestionText = (text: string) => {
-    if (!text) return null;
-    const parts = text.split(/(WHO|WHAT|HOW|WHY|WHERE|WHEN)/gi);
-    return parts.map((part, index) => {
-      if (['WHO', 'WHAT', 'HOW', 'WHY', 'WHERE', 'WHEN'].includes(part.toUpperCase())) {
-        return (
-          <span key={index} className="text-amber-500 font-black underline decoration-amber-400 decoration-wavy">
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
+    return text || '';
   };
 
   const optionLetters = ['A', 'B', 'C', 'D'];
