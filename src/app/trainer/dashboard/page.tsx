@@ -113,13 +113,7 @@ export default function ProtectedTrainerDashboardPage() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-slate-50">
-      {viewState !== 'DASHBOARD' && (
-        <BrandHeader
-          subtitle="Trainer Dashboard"
-          user={user}
-          onLogout={handleLogout}
-        />
-      )}
+
 
       <main className="flex-1 p-4 md:p-6 w-full max-w-[96%] mx-auto">
         {viewState === 'DASHBOARD' && (

@@ -944,7 +944,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
 
                                   <button
-                                    onClick={() => handleOpenConductSetup(quiz)}
+                                    onClick={() => handleLaunchLiveSession(quiz._id)}
                                     className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold rounded-lg transition flex items-center space-x-1 shadow-xs"
                                   >
                                     <Play className="w-3 h-3 fill-current" />
@@ -1293,7 +1293,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                               Edit
                             </button>
                             <button
-                              onClick={() => handleOpenConductSetup(quiz)}
+                              onClick={() => handleLaunchLiveSession(quiz._id)}
                               className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold rounded-md transition flex items-center space-x-1"
                             >
                               <Play className="w-3 h-3 fill-current" />
