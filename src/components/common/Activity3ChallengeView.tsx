@@ -20,6 +20,7 @@ import { IQuestion, ISolutionChallengeData, ISolutionChallengeCapability, ISolut
 
 interface Activity3ChallengeViewProps {
   question: Partial<IQuestion>;
+  mode?: 'player' | 'trainer' | 'projector';
   questionIndex?: number;
   totalQuestions?: number;
   onNavigateQuestion?: (idx: number) => void;
@@ -67,6 +68,7 @@ function shuffleArray<T>(array: T[]): T[] {
 
 export const Activity3ChallengeView: React.FC<Activity3ChallengeViewProps> = ({
   question,
+  mode = 'player',
   questionIndex = 0,
   totalQuestions = 5,
   onNavigateQuestion,

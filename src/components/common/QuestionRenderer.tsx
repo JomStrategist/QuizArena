@@ -251,18 +251,73 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     { badge: 'bg-purple-600 text-white', playerBg: 'bg-purple-50 border-purple-300 text-purple-950', playerSelected: 'bg-purple-600 text-white border-purple-700 shadow-lg ring-2 ring-purple-500', projectorBg: 'bg-purple-600/90 border-purple-400/40 text-white', letter: 'D' },
   ];
 
+  const renderScenarioDetailsBanner = () => {
+    const sc = question.scenarioQuestionsData || (question as any).scenarioData || {};
+    const scenarioTitle = sc.scenarioTitle || (question as any).scenarioTitle || '';
+    const scenarioText = sc.scenarioText || (question as any).scenarioText || '';
+    const instructions = sc.instructions || (question as any).instructions || '';
+    const backgroundContext = sc.backgroundContext || (question as any).backgroundContext || '';
+
+    if (!scenarioTitle && !scenarioText && !backgroundContext) return null;
+
+    const subIdx = (question as any).subQuestionIndex;
+    const totalSub = (question as any).totalSubQuestions;
+
+    return (
+      <div className={`p-4 sm:p-5 rounded-3xl border space-y-2 mb-4 transition-all shadow-sm ${
+        mode === 'projector'
+          ? 'bg-purple-950/90 border-purple-500/40 text-purple-100'
+          : 'bg-purple-50 border-purple-200 text-purple-950'
+      }`}>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
+          <div className="flex items-center gap-1.5">
+            <BookOpen className="w-4 h-4 text-purple-600 shrink-0" />
+            <span>
+              SCENARIO CASE STUDY
+              {subIdx !== undefined ? ` • SUB-QUESTION ${subIdx + 1} OF ${totalSub}` : ''}
+            </span>
+          </div>
+          {scenarioTitle && (
+            <span className="bg-purple-200/80 text-purple-900 px-2.5 py-0.5 rounded-lg text-[10px] font-black">
+              {scenarioTitle}
+            </span>
+          )}
+        </div>
+        {scenarioText && (
+          <p className={`text-xs md:text-sm font-semibold leading-relaxed whitespace-pre-wrap ${mode === 'projector' ? 'text-slate-100' : 'text-purple-950'}`}>
+            {scenarioText}
+          </p>
+        )}
+        {instructions && (
+          <p className="text-[11px] font-bold text-amber-900 bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-200/80 mt-1 inline-block">
+            💡 {instructions}
+          </p>
+        )}
+        {backgroundContext && (
+          <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 pt-0.5">
+            <strong className="font-bold text-slate-900 dark:text-white">Key Context:</strong> {backgroundContext}
+          </p>
+        )}
+      </div>
+    );
+  };
+
   // -------------------------------------------------------------
   // TYPE 1: CORRECT_SEQUENCE (Re-order Steps)
   // -------------------------------------------------------------
   if (qType === 'CORRECT_SEQUENCE') {
     return (
-      <SequenceChallengeView
-        question={question}
-        questionIndex={questionIndex}
-        totalQuestions={totalQuestions}
-        onNavigateQuestion={onNavigateQuestion}
-        disabled={disabled}
-      />
+      <div className="space-y-6 w-full font-sans">
+        {renderScenarioDetailsBanner()}
+        <SequenceChallengeView
+          question={question}
+          mode={mode}
+          questionIndex={questionIndex}
+          totalQuestions={totalQuestions}
+          onNavigateQuestion={onNavigateQuestion}
+          disabled={disabled}
+        />
+      </div>
     );
   }
 
@@ -292,6 +347,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
     return (
       <div className="space-y-6 w-full font-sans">
+        {renderScenarioDetailsBanner()}
         <div className={`p-6 rounded-3xl border shadow-sm ${mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-white border-slate-200 text-slate-900'}`}>
           <span className="px-3 py-1 bg-purple-100 text-purple-900 rounded-xl text-[10px] font-black uppercase tracking-widest inline-block mb-2">
             {isDropdownCases ? 'AI COMBINATION CHALLENGE' : 'SOLUTION CATEGORIZATION'}
@@ -543,13 +599,17 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // -------------------------------------------------------------
   if (qType === 'SOLUTION_CHALLENGE') {
     return (
-      <Activity3ChallengeView
-        question={question}
-        questionIndex={questionIndex}
-        totalQuestions={totalQuestions}
-        onNavigateQuestion={onNavigateQuestion}
-        disabled={disabled}
-      />
+      <div className="space-y-6 w-full font-sans">
+        {renderScenarioDetailsBanner()}
+        <Activity3ChallengeView
+          question={question}
+          mode={mode}
+          questionIndex={questionIndex}
+          totalQuestions={totalQuestions}
+          onNavigateQuestion={onNavigateQuestion}
+          disabled={disabled}
+        />
+      </div>
     );
   }
 
@@ -564,6 +624,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
     return (
       <div className="space-y-6 w-full font-sans text-slate-900 dark:text-slate-100">
+        {renderScenarioDetailsBanner()}
         {/* Header Section */}
         <div className={`p-6 rounded-3xl border shadow-sm ${mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-slate-900 border-slate-800 text-white'}`}>
           <div className="flex items-center justify-between mb-3">
@@ -954,35 +1015,62 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 const stepText = subQ.options[optIdx] || `Step ${optIdx + 1}`;
                 const correctPos = shouldShowAll ? subQ.correctOrder?.indexOf(optIdx) : null;
                 return (
-                  <div key={optIdx} className={`p-3 rounded-2xl border flex items-center justify-between transition ${
+                  <div key={optIdx} className={`p-3.5 rounded-2xl border flex items-center justify-between transition ${
                     shouldShowAll
                       ? pos === correctPos ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'
-                      : 'bg-white border-slate-200'
+                      : 'bg-white border-slate-200 text-slate-900 shadow-xs'
                   }`}>
                     <div className="flex items-center space-x-3">
-                      <span className="w-7 h-7 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">{pos + 1}</span>
-                      <span className="text-sm font-bold text-slate-900">{stepText}</span>
+                      <span className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">{pos + 1}</span>
+                      <span className="text-xs sm:text-sm font-bold text-slate-900">{stepText}</span>
                     </div>
                     {mode === 'player' && !disabled && !shouldShowAll && (
-                      <div className="flex items-center space-x-1">
-                        <button type="button" disabled={pos === 0}
-                          onClick={() => {
-                            const newSeq = [...selectedSeq];
-                            [newSeq[pos], newSeq[pos - 1]] = [newSeq[pos - 1], newSeq[pos]];
-                            handleSubSeqChange(subIdx, newSeq);
-                          }}
-                          className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-xl text-slate-700 transition">
-                          <ArrowUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button type="button" disabled={pos === selectedSeq.length - 1}
-                          onClick={() => {
-                            const newSeq = [...selectedSeq];
-                            [newSeq[pos], newSeq[pos + 1]] = [newSeq[pos + 1], newSeq[pos]];
-                            handleSubSeqChange(subIdx, newSeq);
-                          }}
-                          className="p-1.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-30 rounded-xl text-slate-700 transition">
-                          <ArrowDown className="w-3.5 h-3.5" />
-                        </button>
+                      <div className="flex items-center space-x-2">
+                        {/* Position Picker Dropdown for Mobile 1-Tap Reordering */}
+                        <div className="flex items-center space-x-1">
+                          <span className="text-[10px] font-black uppercase text-slate-400">Pos:</span>
+                          <select
+                            disabled={disabled}
+                            value={pos + 1}
+                            onChange={(e) => {
+                              const targetPos = parseInt(e.target.value, 10) - 1;
+                              if (targetPos < 0 || targetPos >= selectedSeq.length || targetPos === pos) return;
+                              const newSeq = [...selectedSeq];
+                              const [moved] = newSeq.splice(pos, 1);
+                              newSeq.splice(targetPos, 0, moved);
+                              handleSubSeqChange(subIdx, newSeq);
+                            }}
+                            className="p-1.5 rounded-xl border bg-slate-50 border-slate-300 text-blue-700 font-extrabold text-xs outline-none cursor-pointer hover:border-blue-500"
+                          >
+                            {selectedSeq.map((_: any, pIdx: number) => (
+                              <option key={pIdx} value={pIdx + 1}>
+                                {pIdx + 1}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Touch-Friendly Move Up / Down Buttons */}
+                        <div className="flex items-center space-x-1">
+                          <button type="button" disabled={pos === 0}
+                            onClick={() => {
+                              const newSeq = [...selectedSeq];
+                              [newSeq[pos], newSeq[pos - 1]] = [newSeq[pos - 1], newSeq[pos]];
+                              handleSubSeqChange(subIdx, newSeq);
+                            }}
+                            className="p-2 min-w-[34px] min-h-[34px] flex items-center justify-center bg-slate-100 hover:bg-blue-600 hover:text-white disabled:opacity-30 rounded-xl text-slate-700 transition">
+                            <ArrowUp className="w-4 h-4" />
+                          </button>
+                          <button type="button" disabled={pos === selectedSeq.length - 1}
+                            onClick={() => {
+                              const newSeq = [...selectedSeq];
+                              [newSeq[pos], newSeq[pos + 1]] = [newSeq[pos + 1], newSeq[pos]];
+                              handleSubSeqChange(subIdx, newSeq);
+                            }}
+                            className="p-2 min-w-[34px] min-h-[34px] flex items-center justify-center bg-slate-100 hover:bg-blue-600 hover:text-white disabled:opacity-30 rounded-xl text-slate-700 transition">
+                            <ArrowDown className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1179,50 +1267,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     correctOptionIndex !== undefined && correctOptionIndex !== null
       ? correctOptionIndex
       : question.correctOptionIndex;
-
-  const renderScenarioDetailsBanner = () => {
-    const sc = question.scenarioQuestionsData;
-    if (!sc || !sc.scenarioTitle) return null;
-
-    const subIdx = (question as any).subQuestionIndex;
-    const totalSub = (question as any).totalSubQuestions;
-
-    return (
-      <div className={`p-4 sm:p-5 rounded-3xl border space-y-2 mb-4 transition-all shadow-sm ${
-        mode === 'projector'
-          ? 'bg-purple-950/90 border-purple-500/40 text-purple-100'
-          : 'bg-purple-50 border-purple-200 text-purple-950'
-      }`}>
-        <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
-          <div className="flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-purple-600 shrink-0" />
-            <span>
-              SCENARIO CASE STUDY
-              {subIdx !== undefined ? ` • SUB-QUESTION ${subIdx + 1} OF ${totalSub}` : ''}
-            </span>
-          </div>
-          <span className="bg-purple-200/80 text-purple-900 px-2.5 py-0.5 rounded-lg text-[10px] font-black">
-            {sc.scenarioTitle}
-          </span>
-        </div>
-        {sc.scenarioText && (
-          <p className={`text-xs md:text-sm font-semibold leading-relaxed whitespace-pre-wrap ${mode === 'projector' ? 'text-slate-100' : 'text-purple-950'}`}>
-            {sc.scenarioText}
-          </p>
-        )}
-        {sc.instructions && (
-          <p className="text-[11px] font-bold text-amber-900 bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-200/80 mt-1 inline-block">
-            💡 {sc.instructions}
-          </p>
-        )}
-        {sc.backgroundContext && (
-          <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 pt-0.5">
-            <strong className="font-bold text-slate-900 dark:text-white">Key Context:</strong> {sc.backgroundContext}
-          </p>
-        )}
-      </div>
-    );
-  };
 
   if (mode === 'projector') {
     return (
