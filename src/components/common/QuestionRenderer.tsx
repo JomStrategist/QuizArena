@@ -745,35 +745,34 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // TYPE 5: SCENARIO_QUESTIONS (Scenario & Sub-Questions Challenge)
   // -------------------------------------------------------------
   if (qType === 'SCENARIO_QUESTIONS') {
-    const scData = question.scenarioQuestionsData || {
-      scenarioTitle: question.questionText || 'Executive Business Scenario',
-      scenarioText: question.explanation || 'Review the business scenario details carefully before answering.',
-      backgroundContext: (question as any).backgroundContext || '',
-      instructions: (question as any).instructions || '',
-      subQuestions: (question as any).subQuestions || [],
+    const rawScData = question.scenarioQuestionsData || (question as any).scenarioData || {};
+    const scData = {
+      scenarioTitle: rawScData.scenarioTitle || (question as any).scenarioTitle || question.questionText || 'Executive Business Scenario',
+      scenarioText: rawScData.scenarioText || (question as any).scenarioText || question.explanation || 'Review the business scenario details carefully before answering.',
+      backgroundContext: rawScData.backgroundContext || (question as any).backgroundContext || '',
+      instructions: rawScData.instructions || (question as any).instructions || '',
+      subQuestions: (rawScData.subQuestions && rawScData.subQuestions.length > 0)
+        ? rawScData.subQuestions
+        : ((question as any).subQuestions || []),
     };
 
-    const subQuestions = scData.subQuestions && scData.subQuestions.length > 0
-      ? scData.subQuestions
-      : ((question as any).subQuestions || []);
+    const subQuestions = scData.subQuestions;
     const totalSubQs = subQuestions.length;
     const answeredCount = Object.keys(scenarioSubAnswers).length;
-    const isReviewMode = showCorrectAnswer;
-    // In review mode show all sub-Qs; in play mode show one at a time
-    const displayIdx = isReviewMode ? null : activeSubQIdx;
+    const shouldShowAll = showCorrectAnswer || mode === 'trainer' || mode === 'projector';
 
     const renderSubQuestion = (subQ: any, subIdx: number) => {
       const sqType = subQ.questionType || 'MCQ';
       const currentAnswer = scenarioSubAnswers[subIdx];
       const selectedOpt = currentAnswer?.selectedOptionIndex;
       const selectedIndices: number[] = currentAnswer?.selectedOptionIndices || [];
-      const selectedSeq = currentAnswer?.selectedSequence || subSeqMap[subIdx] || subQ.options.map((_: any, i: number) => i);
+      const selectedSeq = currentAnswer?.selectedSequence || subSeqMap[subIdx] || (subQ.options ? subQ.options.map((_: any, i: number) => i) : []);
       const isSubAnswered = currentAnswer !== undefined && (
         sqType === 'MULTIPLE_SELECT'
           ? Array.isArray(selectedIndices) && selectedIndices.length > 0
           : true
       );
-      const isSubCorrect = isReviewMode && (
+      const isSubCorrect = (showCorrectAnswer || mode === 'trainer' || mode === 'projector') && (
         sqType === 'CORRECT_SEQUENCE'
           ? Array.isArray(selectedSeq) && Array.isArray(subQ.correctOrder) &&
             selectedSeq.length === subQ.correctOrder.length &&
@@ -798,10 +797,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
                 {subQ.points !== undefined ? subQ.points : 250} pts
               </span>
-              {isSubAnswered && !isReviewMode && (
+              {isSubAnswered && !shouldShowAll && (
                 <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">✓ Answered</span>
               )}
-              {isReviewMode && (
+              {shouldShowAll && (
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${
                   isSubCorrect ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
                 }`}>
@@ -820,10 +819,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             <div className="grid grid-cols-2 gap-3">
               {['True', 'False'].map((label, optIdx) => {
                 const isSelected = selectedOpt === optIdx;
-                const isCorrectOpt = isReviewMode && subQ.correctOptionIndex === optIdx;
-                const isWrongOpt = isReviewMode && selectedOpt === optIdx && !isCorrectOpt;
+                const isCorrectOpt = shouldShowAll && subQ.correctOptionIndex === optIdx;
+                const isWrongOpt = shouldShowAll && selectedOpt === optIdx && !isCorrectOpt;
                 return (
-                  <button key={label} type="button" disabled={disabled || isReviewMode}
+                  <button key={label} type="button" disabled={disabled || shouldShowAll}
                     onClick={() => handleSubQuestionSelect(subIdx, optIdx)}
                     className={`py-4 rounded-2xl font-black text-sm border-2 transition ${
                       isCorrectOpt ? 'bg-emerald-500 text-white border-emerald-500' :
@@ -839,16 +838,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           )}
 
           {/* MULTIPLE_SELECT */}
-          {sqType === 'MULTIPLE_SELECT' && (
+          {sqType === 'MULTIPLE_SELECT' && subQ.options && (
             <div className="grid grid-cols-1 gap-2.5">
               {subQ.options.map((optText: string, optIdx: number) => {
                 const isSelected = selectedIndices.includes(optIdx);
                 const correctIndices: number[] = subQ.correctOptionIndices || [];
-                const isCorrectOpt = isReviewMode && correctIndices.includes(optIdx);
-                const isWrongOpt = isReviewMode && isSelected && !isCorrectOpt;
+                const isCorrectOpt = shouldShowAll && correctIndices.includes(optIdx);
+                const isWrongOpt = shouldShowAll && isSelected && !isCorrectOpt;
                 const letter = String.fromCharCode(65 + optIdx);
                 return (
-                  <button key={optIdx} type="button" disabled={disabled || isReviewMode}
+                  <button key={optIdx} type="button" disabled={disabled || shouldShowAll}
                     onClick={() => handleSubQuestionMultiSelect(subIdx, optIdx)}
                     className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition flex items-start space-x-3 ${
                       isCorrectOpt ? 'bg-emerald-500 text-white border-emerald-600 shadow-md' :
@@ -869,15 +868,15 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           )}
 
           {/* MCQ */}
-          {(sqType === 'MCQ' || (!sqType)) && (
+          {(sqType === 'MCQ' || (!sqType)) && subQ.options && (
             <div className="grid grid-cols-1 gap-2.5">
               {subQ.options.map((optText: string, optIdx: number) => {
                 const isSelected = selectedOpt === optIdx;
-                const isCorrectOpt = isReviewMode && subQ.correctOptionIndex === optIdx;
-                const isWrongOpt = isReviewMode && selectedOpt === optIdx && !isCorrectOpt;
+                const isCorrectOpt = shouldShowAll && subQ.correctOptionIndex === optIdx;
+                const isWrongOpt = shouldShowAll && selectedOpt === optIdx && !isCorrectOpt;
                 const letter = String.fromCharCode(65 + optIdx);
                 return (
-                  <button key={optIdx} type="button" disabled={disabled || isReviewMode}
+                  <button key={optIdx} type="button" disabled={disabled || shouldShowAll}
                     onClick={() => handleSubQuestionSelect(subIdx, optIdx)}
                     className={`w-full text-left p-3.5 rounded-2xl border text-xs font-bold transition flex items-start space-x-3 ${
                       isCorrectOpt ? 'bg-emerald-500 text-white border-emerald-600 shadow-md' :
@@ -898,14 +897,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           )}
 
           {/* CORRECT_SEQUENCE */}
-          {sqType === 'CORRECT_SEQUENCE' && (
+          {sqType === 'CORRECT_SEQUENCE' && subQ.options && (
             <div className="space-y-2">
               {selectedSeq.map((optIdx: number, pos: number) => {
                 const stepText = subQ.options[optIdx] || `Step ${optIdx + 1}`;
-                const correctPos = isReviewMode ? subQ.correctOrder?.indexOf(optIdx) : null;
+                const correctPos = shouldShowAll ? subQ.correctOrder?.indexOf(optIdx) : null;
                 return (
                   <div key={optIdx} className={`p-3 rounded-2xl border flex items-center justify-between transition ${
-                    isReviewMode
+                    shouldShowAll
                       ? pos === correctPos ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'
                       : 'bg-white border-slate-200'
                   }`}>
@@ -913,7 +912,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                       <span className="w-7 h-7 rounded-full bg-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">{pos + 1}</span>
                       <span className="text-sm font-bold text-slate-900">{stepText}</span>
                     </div>
-                    {mode === 'player' && !disabled && !isReviewMode && (
+                    {mode === 'player' && !disabled && !shouldShowAll && (
                       <div className="flex items-center space-x-1">
                         <button type="button" disabled={pos === 0}
                           onClick={() => {
@@ -942,7 +941,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           )}
 
           {/* Explanation feedback */}
-          {isReviewMode && subQ.explanation && (
+          {shouldShowAll && subQ.explanation && (
             <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-700 leading-relaxed">
               <span className="font-black text-slate-900 block mb-1">Explanation</span>
               {subQ.explanation}
@@ -983,22 +982,30 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               </div>
             )}
 
-            {/* Progress dots */}
-            {!isReviewMode && totalSubQs > 0 && (
-              <div className="space-y-2">
+            {/* Progress dots / sub-question switcher */}
+            {totalSubQs > 0 && (
+              <div className="space-y-2 pt-2 border-t border-slate-800">
                 <div className="flex items-center justify-between text-[10px] font-bold text-purple-300">
-                  <span>Progress</span>
+                  <span>Sub-Questions Navigation</span>
                   <span>{answeredCount} / {totalSubQs} answered</span>
                 </div>
                 <div className="flex gap-2 flex-wrap">
                   {subQuestions.map((_: any, i: number) => (
-                    <div key={i} className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-black border-2 transition ${
-                      i === activeSubQIdx ? 'bg-purple-500 border-purple-400 text-white' :
-                      scenarioSubAnswers[i] !== undefined ? 'bg-emerald-500 border-emerald-400 text-white' :
-                      'bg-slate-800 border-slate-700 text-slate-400'
-                    }`}>
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setActiveSubQIdx(i)}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black border-2 transition ${
+                        i === activeSubQIdx
+                          ? 'bg-purple-500 border-purple-400 text-white shadow-md ring-2 ring-purple-400/30'
+                          : scenarioSubAnswers[i] !== undefined
+                          ? 'bg-emerald-500 border-emerald-400 text-white'
+                          : 'bg-slate-800 border-slate-700 text-slate-300 hover:border-purple-400'
+                      }`}
+                      title={`Go to Sub-Question ${i + 1}`}
+                    >
                       {i + 1}
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -1007,11 +1014,11 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
           {/* Right Panel */}
           <div className="lg:col-span-7 space-y-5">
-            {isReviewMode ? (
-              // Review mode: show all sub-Qs with feedback
+            {shouldShowAll ? (
+              // Trainer, Projector, or Review mode: show all sub-Qs
               subQuestions.map((subQ: any, subIdx: number) => renderSubQuestion(subQ, subIdx))
             ) : (
-              // Play mode: show one sub-Q at a time
+              // Student Play mode: show current active sub-Q
               <>
                 {totalSubQs > 0 && renderSubQuestion(subQuestions[activeSubQIdx], activeSubQIdx)}
 
@@ -1026,7 +1033,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     }`}
                     disabled={scenarioSubAnswers[activeSubQIdx] === undefined}
                   >
-                    {activeSubQIdx < totalSubQs - 1 ? `Next Question (${activeSubQIdx + 2} of ${totalSubQs}) →` : 'Finish & Submit Scenario ✓'}
+                    {activeSubQIdx < totalSubQs - 1 ? `Next Sub-Question (${activeSubQIdx + 2} of ${totalSubQs}) →` : 'Finish & Submit Scenario ✓'}
                   </button>
                 )}
               </>

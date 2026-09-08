@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import { Users, Crown, Zap, X } from 'lucide-react';
+import { QuestionRenderer } from '../common/QuestionRenderer';
 
 interface ProjectorViewModalProps {
   isOpen: boolean;
@@ -111,7 +112,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
       </div>
 
       {/* Main Center Stage */}
-      <div className="my-auto py-6 max-w-[96%] mx-auto w-full space-y-8">
+      <div className="my-auto py-6 max-w-[96%] mx-auto w-full space-y-8 max-h-[80vh] overflow-y-auto pr-1">
         
         {/* Progress & Circular Timer Row */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
@@ -132,20 +133,11 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-
-            {/* Question Text */}
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight pt-4 tracking-tight drop-shadow-md">
-              {currentQuestion?.questionText ? (
-                renderQuestionText(currentQuestion.questionText)
-              ) : (
-                'Which element of the RCTOF prompt engineering framework defines WHO the AI should act as during response generation?'
-              )}
-            </h1>
           </div>
 
           {/* Right Column: Giant Circular Timer (3 cols) */}
           <div className="md:col-span-3 flex justify-center md:justify-end">
-            <div className="relative w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center">
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32 flex items-center justify-center">
               <svg className="w-full h-full transform -rotate-90" viewBox="0 0 120 120">
                 {/* Background Circle */}
                 <circle
@@ -174,43 +166,60 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-4xl sm:text-5xl font-black font-mono tracking-tight text-white drop-shadow-lg">
+                <span className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-white drop-shadow-lg">
                   {timeLeft}
                 </span>
-                <span className="text-xs font-bold text-slate-300 uppercase tracking-widest mt-0.5">
-                  seconds
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">
+                  sec
                 </span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* 2x2 Option Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
-          {(currentQuestion?.options || [
-            'Role / Persona',
-            'Context',
-            'Task',
-            'Output Format',
-          ]).map((optionText: string, idx: number) => {
-            const style = optionColors[idx % 4];
-            return (
-              <div
-                key={idx}
-                className={`p-6 sm:p-8 rounded-3xl border shadow-xl flex items-center space-x-5 transition-transform duration-200 ${style.bg}`}
-              >
-                <div
-                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black shadow-inner shrink-0 border border-white/30 ${style.circleBg}`}
-                >
-                  {style.letter}
-                </div>
-                <span className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-snug">
-                  {optionText}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        {/* Question Display Stage */}
+        {currentQuestion?.questionType && currentQuestion.questionType !== 'MCQ' && currentQuestion.questionType !== 'TRUE_FALSE' ? (
+          <div className="bg-slate-900/90 p-6 rounded-3xl border border-white/10 shadow-2xl">
+            <QuestionRenderer question={currentQuestion} mode="projector" />
+          </div>
+        ) : (
+          <div className="space-y-6">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-white leading-tight tracking-tight drop-shadow-md">
+              {currentQuestion?.questionText ? (
+                renderQuestionText(currentQuestion.questionText)
+              ) : (
+                'Which element of the RCTOF prompt engineering framework defines WHO the AI should act as during response generation?'
+              )}
+            </h1>
+
+            {/* 2x2 Option Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+              {(currentQuestion?.options || [
+                'Role / Persona',
+                'Context',
+                'Task',
+                'Output Format',
+              ]).map((optionText: string, idx: number) => {
+                const style = optionColors[idx % 4];
+                return (
+                  <div
+                    key={idx}
+                    className={`p-6 sm:p-8 rounded-3xl border shadow-xl flex items-center space-x-5 transition-transform duration-200 ${style.bg}`}
+                  >
+                    <div
+                      className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-2xl sm:text-3xl font-black shadow-inner shrink-0 border border-white/30 ${style.circleBg}`}
+                    >
+                      {style.letter}
+                    </div>
+                    <span className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-snug">
+                      {optionText}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Footer Bar */}

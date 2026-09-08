@@ -29,6 +29,7 @@ import { Top5Leaderboard } from './Top5Leaderboard';
 import { LiveLobbyTrainer } from './LiveLobbyTrainer';
 import { LivePodiumFinale } from './LivePodiumFinale';
 import { ProjectorViewModal } from './ProjectorViewModal';
+import { QuestionRenderer } from '../common/QuestionRenderer';
 import { soundManager } from '@/lib/game/soundManager';
 
 interface LiveGameTrainerControlProps {
@@ -505,57 +506,12 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
             </div>
 
             {/* Active Question Content Box */}
-            <div className="space-y-4 pt-2">
-              <div className="inline-flex items-center space-x-1.5 px-3 py-1 bg-purple-50 text-purple-700 border border-purple-200 rounded-full text-xs font-bold">
-                <Edit3 className="w-3.5 h-3.5 text-purple-600" />
-                <span>Multiple Choice</span>
-              </div>
-
-              <h2 className="text-lg md:text-xl font-black text-slate-900 leading-snug">
-                {currentQuestion?.questionText ||
-                  'Which element of the RCTOF prompt engineering framework defines WHO the AI should act as during response generation?'}
-              </h2>
-
-              {/* 2x2 Option Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
-                {(currentQuestion?.options || [
-                  'Role / Persona',
-                  'Context',
-                  'Task',
-                  'Output Format',
-                ]).map((opt: string, i: number) => {
-                  const letters = ['A', 'B', 'C', 'D'];
-                  const isSelected = i === 0; // Role / Persona selected state in design
-                  const isCorrectChoice = (isTimeUp || showCorrectAnswerToggle) && i === (currentQuestion?.correctOptionIndex || 0);
-
-                  return (
-                    <div
-                      key={i}
-                      className={`p-4 rounded-2xl border text-sm font-bold flex items-center space-x-3 transition-all ${
-                        isCorrectChoice
-                          ? 'bg-emerald-50 border-emerald-400 text-emerald-950 ring-2 ring-emerald-500/20 shadow-md'
-                          : isSelected
-                          ? 'bg-blue-50/70 border-blue-500 text-blue-950 ring-2 ring-blue-500/20 shadow-xs'
-                          : 'bg-white border-slate-200 text-slate-800 hover:border-slate-300'
-                      }`}
-                    >
-                      <span
-                        className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black ${
-                          isCorrectChoice
-                            ? 'bg-emerald-600 text-white'
-                            : isSelected
-                            ? 'bg-blue-600 text-white'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}
-                      >
-                        {letters[i]}
-                      </span>
-                      <span className="flex-1 font-extrabold">{opt}</span>
-                      {isCorrectChoice && <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />}
-                    </div>
-                  );
-                })}
-              </div>
+            <div className="pt-2">
+              <QuestionRenderer
+                question={currentQuestion}
+                mode="trainer"
+                showCorrectAnswer={isTimeUp || showCorrectAnswerToggle}
+              />
             </div>
           </div>
 
