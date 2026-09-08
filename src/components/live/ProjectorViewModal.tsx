@@ -345,63 +345,6 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
         )}
       </div>
 
-      {/* Bottom Footer Bar */}
-      <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-[96%] mx-auto shrink-0 pt-4 border-t border-white/10 gap-4">
-        {/* Left: Participants Badge */}
-        <div className="flex items-center space-x-3 text-slate-200">
-          <div className="p-2.5 rounded-2xl bg-indigo-600/30 border border-indigo-400/30 text-indigo-300">
-            <Users className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="text-xl font-black text-white leading-none block">
-              {count}
-            </span>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-              Participants
-            </span>
-          </div>
-        </div>
-
-        {/* Center: Slogan with Crown */}
-        <div className="flex items-center space-x-2 text-slate-300 text-sm font-extrabold tracking-wide">
-          <Crown className="w-5 h-5 text-amber-400" />
-          <span>Think • Choose • Be the Champion!</span>
-        </div>
-
-        {/* Right: Live Quiz Session Badge */}
-        <div className="flex items-center space-x-2 text-slate-300 text-xs font-bold bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
-          <Zap className="w-4 h-4 text-pink-400 fill-pink-400" />
-          <div>
-            <p className="text-[10px] text-slate-400 uppercase tracking-widest">Live Quiz Session</p>
-            <p className="text-xs font-black text-white">{quizTitle}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Branding & Handwritten Tagline */}
-      <div className="flex items-end justify-between w-full max-w-[96%] mx-auto shrink-0 pt-2 text-xs">
-        {/* Left: Parent Org Logo */}
-        <div className="flex items-center space-x-2 opacity-90">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">BY</span>
-          <img src="/KVJ analytics Logo.png" alt="KVJ Analytics" className="h-6 object-contain" />
-        </div>
-
-        {/* Right: Handwritten Script Slogan */}
-        <div className="relative text-right">
-          <p className="font-serif italic text-xl sm:text-2xl font-bold tracking-wide text-white drop-shadow-sm">
-            Same Questions <br className="sm:hidden" />
-            <span className="text-amber-300">Bigger Minds!</span>
-          </p>
-          <svg className="w-48 h-3 text-amber-400 ml-auto mt-0.5" viewBox="0 0 200 12" fill="none">
-            <path
-              d="M 5 6 Q 100 12 195 4"
-              stroke="currentColor"
-              strokeWidth="3"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
-      </div>
     </div>
   );
 };
