@@ -436,7 +436,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
             </button>
 
             {isUserMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-[9999] animate-in fade-in slide-in-from-top-2">
                 <div className="px-4 py-2 border-b border-slate-100">
                   <p className="text-xs font-bold text-slate-900">{user?.name || 'Admin Trainer'}</p>
                   <p className="text-[10px] text-slate-500 truncate">{user?.email || 'admin@quizarena.com'}</p>
