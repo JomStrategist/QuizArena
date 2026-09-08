@@ -12,6 +12,7 @@ import {
   FileCode,
   Check,
   BookOpen,
+  Clock,
 } from 'lucide-react';
 import { IQuestion } from '@/types';
 import { Activity3ChallengeView } from './Activity3ChallengeView';
@@ -798,6 +799,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               {sqType === 'PROMPT_BUILDER' && ' • Prompt Builder'}
             </span>
             <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-blue-700 bg-blue-50 border border-blue-200/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                <Clock className="w-3 h-3 text-blue-600 shrink-0" />
+                {subQ.timeLimit !== undefined ? subQ.timeLimit : 20}s timer
+              </span>
               <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
                 {subQ.points !== undefined ? subQ.points : 250} pts
               </span>

@@ -972,7 +972,15 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       subQuestions: [] as any[],
                     };
                     const updateScenario = (patch: Partial<typeof sData>) => {
-                      updateCurrentQuestion({ scenarioQuestionsData: { ...sData, ...patch } });
+                      const updatedScenario = { ...sData, ...patch };
+                      const totalTime = (updatedScenario.subQuestions || []).reduce(
+                        (sum: number, sq: any) => sum + (sq.timeLimit !== undefined ? sq.timeLimit : 20),
+                        0
+                      );
+                      updateCurrentQuestion({
+                        scenarioQuestionsData: updatedScenario,
+                        timeLimit: totalTime > 0 ? totalTime : 20,
+                      });
                     };
                     const updateSubQ = (sqIdx: number, patch: any) => {
                       const copy = [...sData.subQuestions];
@@ -989,6 +997,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                           correctOptionIndex: 0,
                           correctOrder: [0, 1, 2, 3],
                           points: 250,
+                          timeLimit: 20,
                           explanation: '',
                         }],
                       });
@@ -1108,6 +1117,19 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                       onChange={(e) => updateSubQ(sqIdx, { points: Number(e.target.value) || 0 })}
                                       className="w-14 p-0.5 bg-white border border-amber-300 rounded text-center text-[10px] font-black text-amber-900 focus:outline-none focus:ring-1 focus:ring-amber-500"
                                     />
+                                  </div>
+
+                                  <div className="flex items-center gap-1 shrink-0 bg-blue-50 border border-blue-200 px-2 py-1 rounded-lg">
+                                    <span className="text-[10px] font-black text-blue-700 uppercase">Timer:</span>
+                                    <input
+                                      type="number"
+                                      min={5}
+                                      step={5}
+                                      value={sq.timeLimit !== undefined ? sq.timeLimit : 20}
+                                      onChange={(e) => updateSubQ(sqIdx, { timeLimit: Number(e.target.value) || 20 })}
+                                      className="w-12 p-0.5 bg-white border border-blue-300 rounded text-center text-[10px] font-black text-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                    />
+                                    <span className="text-[9px] font-extrabold text-blue-700">s</span>
                                   </div>
 
                                   <div className="flex items-center gap-1 shrink-0">
@@ -1287,16 +1309,23 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                   <div className="grid grid-cols-3 gap-3 pt-2">
                     <div>
                       <label className="block text-xs font-extrabold text-slate-700 mb-1">Time Limit</label>
-                      <div className="flex items-center gap-1.5">
-                        <input
-                          type="number"
-                          min={5}
-                          value={currentQuestion.timeLimit || 20}
-                          onChange={(e) => updateCurrentQuestion({ timeLimit: Number(e.target.value) })}
-                          className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
-                        />
-                        <span className="text-xs font-bold text-slate-500 shrink-0">sec</span>
-                      </div>
+                      {currentQuestion.questionType === 'SCENARIO_QUESTIONS' ? (
+                        <div className="p-2 bg-blue-50 border border-blue-200 rounded-xl text-[11px] font-bold text-blue-900 flex items-center justify-between">
+                          <span className="text-[10px] text-blue-700 uppercase">Sum of Sub-Qs:</span>
+                          <span className="text-xs font-black text-blue-800">{currentQuestion.timeLimit || 20}s</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min={5}
+                            value={currentQuestion.timeLimit || 20}
+                            onChange={(e) => updateCurrentQuestion({ timeLimit: Number(e.target.value) })}
+                            className="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-1 focus:ring-blue-400"
+                          />
+                          <span className="text-xs font-bold text-slate-500 shrink-0">sec</span>
+                        </div>
+                      )}
                     </div>
 
                     <div>

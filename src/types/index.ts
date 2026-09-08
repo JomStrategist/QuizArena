@@ -85,6 +85,7 @@ export interface ISubQuestion {
   categoryAssignments?: Record<string, string>;
   promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
   points?: number;
+  timeLimit?: number;
   explanation?: string;
 }
 
