@@ -295,49 +295,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
       
 
 
-      {/* Top Header Bar */}
-      <header className="w-full flex items-center justify-between px-2 py-1">
-        {/* Left Logo Identity */}
-        <div className="flex items-center space-x-3">
-          <img src="/QuizArena Icon.png" alt="QuizArena" className="w-9 h-9 object-contain" />
-          <div className="flex items-center space-x-2">
-            <span className="font-black text-xl text-slate-900 tracking-tight">
-              Quiz<span className="text-blue-600">Arena</span>
-            </span>
-            <span className="px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider bg-blue-100 text-blue-700 rounded-md">
-              PRO
-            </span>
-          </div>
-        </div>
 
-        {/* Right Action Controls (NOTE: NO Admin/Trainer user avatar dropdown as requested) */}
-        <div className="flex items-center space-x-3">
-          <button
-            onClick={handleToggleMute}
-            className="p-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition border border-slate-200 shadow-xs"
-            title={isMuted ? 'Unmute Audio' : 'Mute Audio'}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-slate-700" />}
-          </button>
-
-          <button
-            onClick={() => setIsProjectorOpen(true)}
-            className="px-4 py-2 bg-white hover:bg-blue-50/50 text-blue-600 border border-blue-200 rounded-2xl text-xs font-bold transition flex items-center space-x-2 shadow-2xs"
-          >
-            <Maximize2 className="w-4 h-4 text-blue-600" />
-            <span>Projector View</span>
-          </button>
-
-          {/* Next Question Button */}
-          <button
-            onClick={handleNextQuestion}
-            className="px-4.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/25 active:scale-95"
-          >
-            <span>NEXT QUESTION</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
 
       {/* Top Session Live Banner Card */}
       <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
