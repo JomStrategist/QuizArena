@@ -56,6 +56,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
 
   const isLobby = stage === 'LOBBY' || (!currentQuestion && stage !== 'QUESTION_ACTIVE');
   const count = participants.length || totalParticipants || 0;
+  const shouldShowCorrectAnswer = stage === 'REVEAL_ANSWER' || stage === 'SHOWING_RESULT' || stage === 'GAME_OVER' || (timeLeft !== undefined && timeLeft <= 0);
 
   const avatarColors = [
     'bg-blue-600 text-white',
@@ -290,7 +291,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
             {/* Question Display Stage */}
             {currentQuestion?.questionType && currentQuestion.questionType !== 'MCQ' && currentQuestion.questionType !== 'TRUE_FALSE' ? (
               <div className="bg-slate-900/90 p-6 rounded-3xl border border-white/10 shadow-2xl">
-                <QuestionRenderer question={currentQuestion} mode="projector" />
+                <QuestionRenderer question={currentQuestion} mode="projector" showCorrectAnswer={shouldShowCorrectAnswer} />
               </div>
             ) : (
               <div className="space-y-6">

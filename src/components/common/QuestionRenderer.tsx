@@ -383,8 +383,8 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
       return categories[catIdx] || categories[0] || { id: 'unknown', title: 'Default Category' };
     };
 
-    // Determine if we should display the Grouped By Category Answer Key
-    const isShowingAnswerGrouped = showCorrectAnswer || isAnswerSubmitted || mode === 'trainer' || mode === 'projector';
+    // Determine if we should display the Grouped By Category Answer Key (only when answers are explicitly revealed)
+    const isShowingAnswerGrouped = Boolean(showCorrectAnswer);
 
     return (
       <div className="space-y-6 w-full font-sans">
@@ -491,7 +491,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                                   )}
                                 </div>
                                 
-                                {mode === 'player' && (isAnswerSubmitted || showCorrectAnswer) && (
+                                {mode === 'player' && showCorrectAnswer && (
                                   <div className="shrink-0">
                                     {isUserCorrect ? (
                                       <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-black flex items-center space-x-1">
@@ -928,7 +928,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         </div>
 
         {/* Evaluation Feedback & Target Correct Prompt Reveal */}
-        {(showCorrectAnswer || mode === 'trainer' || mode === 'projector') && (
+        {showCorrectAnswer && (
           <div className="p-6 bg-slate-900 border border-emerald-500/40 rounded-3xl space-y-5 shadow-xl">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div>
