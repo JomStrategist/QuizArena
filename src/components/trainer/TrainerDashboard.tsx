@@ -1047,22 +1047,8 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
       {/* QUIZZES TAB View matching reference image */}
       {activeTab === 'QUIZZES' && (
         <div className="space-y-6">
-          {/* Header Banner */}
-          <div className="bg-white/90 backdrop-blur-md p-6 rounded-3xl border border-slate-200 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-500/30">
-                <BookOpen className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-black tracking-tight text-slate-900">Quizzes</h1>
-                <p className="text-xs text-slate-500 font-medium">
-                  Create, manage, and deliver engaging quizzes for your learners.
-                </p>
-              </div>
-            </div>
 
 
-          </div>
 
           {/* KPI cards removed for V1 */}
           <div className="hidden">
