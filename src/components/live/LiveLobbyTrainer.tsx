@@ -103,6 +103,25 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </div>
         </div>
 
+        {/* Center: Game Join Code Card */}
+        <div className="bg-slate-950 text-white px-6 py-2 rounded-2xl border border-slate-800 shadow-md flex items-center space-x-4 self-center md:self-auto">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">
+              GAME CODE
+            </p>
+            <p className="text-2xl md:text-3xl font-black font-mono tracking-widest text-amber-400">
+              {quizCode}
+            </p>
+          </div>
+          <button
+            onClick={handleCopyCode}
+            className="p-2 text-slate-400 hover:text-white rounded-lg transition cursor-pointer"
+            title="Copy Code"
+          >
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+          </button>
+        </div>
+
         <div className="flex items-center space-x-3 self-start md:self-auto">
           {/* Prominent Close/Exit Button */}
           <button
