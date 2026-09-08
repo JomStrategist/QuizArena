@@ -100,7 +100,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 whitespace-nowrap hidden sm:inline">
               GAME CODE
             </span>
-            <span className="text-3xl sm:text-4xl md:text-5xl font-black font-mono tracking-[0.25em] text-amber-400">
+            <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-mono tracking-[0.2em] text-amber-400">
               {quizCode}
             </span>
           </div>
