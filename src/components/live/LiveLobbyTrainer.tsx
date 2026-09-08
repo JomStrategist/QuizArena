@@ -74,7 +74,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 w-full max-w-[96%] mx-auto font-sans text-slate-900 space-y-6">
+    <div className="min-h-[88vh] bg-slate-50 p-2 sm:p-4 w-full max-w-[99%] mx-auto font-sans text-slate-900 space-y-6 flex flex-col justify-between">
       
       {/* Full Screen QR Modal — triggers native browser fullscreen */}
       <FullScreenQRModal
@@ -87,20 +87,19 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
       />
 
       {/* Header Bar */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <img src="/QuizArena Icon.png" alt="QuizArena" className="w-10 h-10 object-contain" />
+          <img src="/QuizArena Icon.png" alt="QuizArena" className="w-12 h-12 object-contain" />
           <div className="space-y-1">
             <div className="flex items-center space-x-2">
-              <span className="font-black text-xl text-slate-900">QuizArena</span>
-              <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 rounded-md">
+              <span className="font-black text-2xl text-slate-900">QuizArena</span>
+              <span className="px-3 py-1 text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 rounded-lg">
                 LIVE GAME LOBBY
               </span>
             </div>
-            <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
+            <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
               {quizTitle}
             </h1>
-
           </div>
         </div>
 
@@ -108,45 +107,45 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           {/* Prominent Close/Exit Button */}
           <button
             onClick={onClose ? onClose : () => { window.location.href = '/trainer/dashboard'; }}
-            className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
+            className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-2 shadow-xs cursor-pointer"
             title="Close & Exit Lobby"
           >
             <X className="w-4 h-4 stroke-[2.5]" />
-            <span className="hidden sm:inline">Close Lobby</span>
+            <span>Close Lobby</span>
           </button>
         </div>
       </div>
 
       {/* Main 2-Column Grid (SCAN TO JOIN + JOIN CODE & START) */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch flex-1">
         
         {/* Left Column: SCAN TO JOIN QR Card (6 cols) */}
-        <div className="md:col-span-6 bg-white p-7 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-between text-center space-y-6">
-          <div className="space-y-1">
-            <h3 className="text-xs font-black uppercase tracking-widest text-slate-500 flex items-center justify-center space-x-2">
-              <QrCode className="w-4 h-4 text-blue-600" />
+        <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center justify-between text-center space-y-6">
+          <div className="space-y-1.5">
+            <h3 className="text-sm font-black uppercase tracking-widest text-slate-500 flex items-center justify-center space-x-2">
+              <QrCode className="w-5 h-5 text-blue-600" />
               <span>SCAN TO JOIN</span>
             </h3>
-            <p className="text-xs text-slate-400 font-semibold">Point camera to enter live session</p>
+            <p className="text-xs sm:text-sm text-slate-400 font-semibold">Point phone camera to enter live session instantly</p>
           </div>
 
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner">
-            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={200} />
+          <div className="p-5 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner my-2">
+            <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={260} />
           </div>
 
           {/* Copy URL / Link Button */}
           <button
             onClick={handleCopyLink}
-            className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center justify-center space-x-2 shadow-2xs"
+            className="w-full py-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center justify-center space-x-2 shadow-xs"
           >
             {copiedLink ? (
               <>
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span className="text-emerald-700">URL Copied!</span>
+                <Check className="w-4.5 h-4.5 text-emerald-600" />
+                <span className="text-emerald-700 font-black">URL Copied!</span>
               </>
             ) : (
               <>
-                <Copy className="w-4 h-4 text-blue-600" />
+                <Copy className="w-4.5 h-4.5 text-blue-600" />
                 <span>Copy URL</span>
               </>
             )}
@@ -154,51 +153,50 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         </div>
 
         {/* Right Column: Game Join Code & Start Quiz (6 cols) */}
-        <div className="md:col-span-6 bg-white p-7 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
+        <div className="md:col-span-6 bg-white p-8 sm:p-10 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-6">
           
-          <div className="space-y-4">
+          <div className="space-y-6">
             {/* Game Join Code Box */}
-            <div className="bg-blue-50/60 border border-blue-200/80 p-6 rounded-3xl text-center relative space-y-1">
-              <span className="text-[10px] font-black uppercase tracking-widest text-blue-600 block">
+            <div className="bg-blue-50/70 border border-blue-200 p-8 rounded-3xl text-center relative space-y-2">
+              <span className="text-xs font-black uppercase tracking-widest text-blue-600 block">
                 GAME JOIN CODE
               </span>
-              <div className="flex items-center justify-center space-x-3">
-                <span className="text-5xl font-black font-mono tracking-widest text-blue-600">
+              <div className="flex items-center justify-center space-x-4">
+                <span className="text-6xl sm:text-7xl font-black font-mono tracking-widest text-blue-600">
                   {quizCode}
                 </span>
                 <button
                   onClick={handleCopyCode}
-                  className="p-2 text-blue-600 hover:bg-blue-100 rounded-xl transition"
+                  className="p-2.5 text-blue-600 hover:bg-blue-100 rounded-2xl transition"
                   title="Copy Join Code"
                 >
-                  {copied ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5" />}
+                  {copied ? <Check className="w-6 h-6 text-emerald-600" /> : <Copy className="w-6 h-6" />}
                 </button>
               </div>
             </div>
 
             {/* Participants Count Badge */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
-              <div className="flex items-center space-x-3 text-slate-700">
-                <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                  <Users className="w-5 h-5" />
+            <div className="flex items-center justify-between p-5 bg-slate-50 border border-slate-200 rounded-3xl">
+              <div className="flex items-center space-x-4 text-slate-700">
+                <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                  <Users className="w-6 h-6" />
                 </div>
                 <div>
-                  <p className="text-xs font-extrabold text-slate-900">LOBBY PARTICIPANTS</p>
-                  <p className="text-[11px] text-slate-500 font-medium">Updating in real-time...</p>
+                  <p className="text-xs font-black uppercase tracking-wider text-slate-900">LOBBY PARTICIPANTS</p>
+                  <p className="text-xs text-slate-500 font-semibold">Updating in real-time...</p>
                 </div>
               </div>
-              <span className="text-3xl font-black text-slate-900 font-mono">
+              <span className="text-4xl font-black text-slate-900 font-mono">
                 {participants.length}
               </span>
             </div>
           </div>
 
-          {/* Big Orange/Amber Start Quiz Button */}
           <button
             onClick={onStartGame}
-            className="w-full py-4 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-black text-base rounded-2xl transition shadow-xl shadow-orange-500/20 flex items-center justify-center space-x-2 active:scale-98"
+            className="w-full py-5 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 hover:from-amber-300 hover:to-orange-300 text-slate-950 font-black text-lg rounded-2xl transition shadow-xl shadow-orange-500/25 flex items-center justify-center space-x-3 active:scale-98"
           >
-            <Play className="w-5 h-5 fill-current" />
+            <Play className="w-6 h-6 fill-current" />
             <span>START QUIZ NOW</span>
           </button>
         </div>
