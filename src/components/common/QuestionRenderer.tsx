@@ -360,155 +360,179 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               );
             })}
           </div>
-        ) : (
-          /* Standard Solution Categorization Categories Grid (Activity 1) */
-          <>
+        ) : mode === 'player' ? (
+          /* Mobile-Optimized Direct Category Selection for Players */
+          <div className="space-y-6">
+            {/* Progress Header */}
+            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-white shadow-sm">
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center font-black text-purple-400 text-sm shrink-0">
+                  {items.length - unassignedCount}/{items.length}
+                </div>
+                <div>
+                  <h4 className="text-xs font-black uppercase text-slate-300 tracking-wider">Categorization Progress</h4>
+                  <p className="text-xs text-slate-400 font-medium">
+                    {unassignedCount === 0
+                      ? '🎉 All items categorized!'
+                      : `${unassignedCount} item${unassignedCount > 1 ? 's' : ''} remaining`}
+                  </p>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full sm:w-48 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
+                <div
+                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-full transition-all duration-300 rounded-full"
+                  style={{ width: `${Math.round(((items.length - unassignedCount) / items.length) * 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Cards List with Integrated Category Selectors */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {categories.map((cat) => {
-                const assignedIndices = items
-                  .map((_, i) => i.toString())
-                  .filter((idxStr) => categoryAssignments[idxStr] === cat.id);
+              {items.map((itemText, idx) => {
+                const idxStr = idx.toString();
+                const assignedCatId = categoryAssignments[idxStr] || '';
+                const assignedCat = categories.find((c) => c.id === assignedCatId);
+                const { title: itemTitle, desc: itemDesc } = parseItem(itemText);
 
                 return (
                   <div
-                    key={cat.id}
-                    onClick={() => {
-                      if (activeItem !== null && mode === 'player' && !disabled) {
-                        handleAssignCategory(activeItem, cat.id);
-                        setActiveItem(null);
-                      }
-                    }}
-                    className={`p-4 rounded-2xl border min-h-[140px] space-y-3 transition ${
-                      activeItem !== null
-                        ? 'cursor-pointer ring-2 ring-blue-500/50 bg-blue-50/40 border-blue-400 hover:bg-blue-100/50'
-                        : mode === 'projector'
-                        ? 'bg-slate-900 border-white/20 text-white'
-                        : 'bg-slate-50 border-slate-200 text-slate-900'
+                    key={idx}
+                    className={`p-5 rounded-2xl border transition space-y-4 shadow-sm ${
+                      assignedCat
+                        ? 'bg-slate-900/90 border-purple-500/50 ring-1 ring-purple-500/30'
+                        : 'bg-slate-900 border-slate-800 text-white hover:border-slate-700'
                     }`}
                   >
-                    <div className="border-b pb-2 border-slate-200/50 flex items-center justify-between">
-                      <div>
-                        <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
-                        {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
-                      </div>
-                      <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black">
-                        {assignedIndices.length} items
+                    {/* Item Header & Status Badge */}
+                    <div className="flex items-start justify-between gap-2 border-b border-slate-800 pb-3">
+                      <span className="text-[11px] font-black uppercase tracking-wider text-purple-400">
+                        Item {idx + 1}
                       </span>
+                      {assignedCat ? (
+                        <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-xl text-[11px] font-bold flex items-center space-x-1">
+                          <span>✓</span>
+                          <span>{assignedCat.title}</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-slate-800 text-slate-400 rounded-xl text-[11px] font-bold">
+                          Unassigned
+                        </span>
+                      )}
                     </div>
 
-                    <div className="space-y-2 pt-1">
-                      {assignedIndices.length === 0 ? (
-                        <p className="text-[11px] text-slate-400 italic font-medium pt-1">
-                          {activeItem !== null ? 'Click here to place selected card' : 'No items assigned yet'}
-                        </p>
-                      ) : (
-                        assignedIndices.map((idxStr) => {
-                          const idx = parseInt(idxStr, 10);
-                          const { title: itemTitle, desc: itemDesc } = parseItem(items[idx]);
-                          return (
-                            <div
-                              key={idxStr}
-                              className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs shadow-xs"
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div className="space-y-0.5">
-                                  <p className="font-black leading-snug text-slate-900">{itemTitle}</p>
-                                  {itemDesc && <p className="text-[10px] text-slate-500 font-medium leading-snug">{itemDesc}</p>}
-                                </div>
-                                {mode === 'player' && !disabled && (
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleAssignCategory(idxStr, '');
-                                    }}
-                                    className="text-[10px] text-rose-600 font-extrabold hover:underline shrink-0 mt-0.5"
-                                  >
-                                    ✕
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
+                    {/* Item Title & Desc */}
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-black leading-snug text-white">{itemTitle}</h4>
+                      {itemDesc && (
+                        <p className="text-xs font-medium leading-relaxed text-slate-300">{itemDesc}</p>
                       )}
+                    </div>
+
+                    {/* Direct Category Controls */}
+                    <div className="space-y-2.5 pt-2 border-t border-slate-800">
+                      <label className="block text-[11px] font-black uppercase text-slate-400 tracking-wider">
+                        Select Category
+                      </label>
+
+                      {/* Dropdown Selector */}
+                      <select
+                        disabled={disabled}
+                        value={assignedCatId}
+                        onChange={(e) => handleAssignCategory(idxStr, e.target.value)}
+                        className="w-full p-3 rounded-xl border text-xs sm:text-sm font-bold transition focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer bg-slate-800 border-slate-700 text-white hover:border-purple-500"
+                      >
+                        <option value="">Choose Category...</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>
+                            {cat.title}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Quick-Select Category Pill Buttons */}
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {categories.map((cat) => {
+                          const isSelected = assignedCatId === cat.id;
+                          return (
+                            <button
+                              key={cat.id}
+                              type="button"
+                              disabled={disabled}
+                              onClick={() => handleAssignCategory(idxStr, isSelected ? '' : cat.id)}
+                              className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition flex items-center space-x-1 ${
+                                isSelected
+                                  ? 'bg-purple-600 text-white border border-purple-400 shadow-sm'
+                                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                              }`}
+                            >
+                              {isSelected && <span>✓</span>}
+                              <span>{cat.title}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 );
               })}
             </div>
+          </div>
+        ) : (
+          /* Trainer & Projector Category Columns Grid Overview */
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {categories.map((cat) => {
+              const assignedIndices = items
+                .map((_, i) => i.toString())
+                .filter((idxStr) => categoryAssignments[idxStr] === cat.id);
 
-            {/* Available Items Cards Pool */}
-            {mode === 'player' && !disabled && (
-              <div className="bg-slate-950 p-6 rounded-3xl border border-slate-800 space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400">
-                    Unassigned Solutions ({unassignedCount} Remaining)
-                  </h4>
-                  {activeItem !== null && (
-                    <span className="text-[11px] font-bold text-blue-400 bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded-lg">
-                      1 card selected — Click a category box above to place
+              return (
+                <div
+                  key={cat.id}
+                  className={`p-4 rounded-2xl border min-h-[140px] space-y-3 transition ${
+                    mode === 'projector'
+                      ? 'bg-slate-900 border-white/20 text-white'
+                      : 'bg-slate-50 border-slate-200 text-slate-900'
+                  }`}
+                >
+                  <div className="border-b pb-2 border-slate-200/50 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-black uppercase text-blue-600">{cat.title}</h4>
+                      {cat.description && <p className="text-[10px] opacity-75">{cat.description}</p>}
+                    </div>
+                    <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-lg text-[10px] font-black">
+                      {assignedIndices.length} items
                     </span>
-                  )}
+                  </div>
+
+                  <div className="space-y-2 pt-1">
+                    {assignedIndices.length === 0 ? (
+                      <p className="text-[11px] text-slate-400 italic font-medium pt-1">
+                        No items assigned yet
+                      </p>
+                    ) : (
+                      assignedIndices.map((idxStr) => {
+                        const idx = parseInt(idxStr, 10);
+                        const { title: itemTitle, desc: itemDesc } = parseItem(items[idx]);
+                        return (
+                          <div
+                            key={idxStr}
+                            className="p-2.5 bg-white border border-slate-200 text-slate-900 rounded-xl text-xs shadow-xs"
+                          >
+                            <div className="space-y-0.5">
+                              <p className="font-black leading-snug text-slate-900">{itemTitle}</p>
+                              {itemDesc && <p className="text-[10px] text-slate-500 font-medium leading-snug">{itemDesc}</p>}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {items.map((itemText, idx) => {
-                    const idxStr = idx.toString();
-                    const currentCat = categoryAssignments[idxStr];
-                    if (currentCat) return null;
-                    const isSelected = activeItem === idxStr;
-                    const { title: itemTitle, desc: itemDesc } = parseItem(itemText);
-
-                    return (
-                      <div
-                        key={idx}
-                        onClick={() => setActiveItem(isSelected ? null : idxStr)}
-                        className={`p-4 rounded-2xl border transition cursor-pointer space-y-3 ${
-                          isSelected
-                            ? 'bg-blue-50/80 border-blue-500 ring-2 ring-blue-500 shadow-md'
-                            : 'bg-slate-900 border-slate-700 text-white hover:border-blue-500'
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <p className={`text-sm font-black leading-snug ${
-                            isSelected ? 'text-blue-900' : 'text-white'
-                          }`}>
-                            {itemTitle}
-                          </p>
-                          {itemDesc && (
-                            <p className={`text-xs font-medium leading-relaxed ${
-                              isSelected ? 'text-blue-700' : 'text-slate-300'
-                            }`}>
-                              {itemDesc}
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex flex-wrap gap-1.5 pt-1 border-t border-white/10">
-                          {categories.map((cat) => (
-                            <button
-                              key={cat.id}
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleAssignCategory(idxStr, cat.id);
-                                if (activeItem === idxStr) setActiveItem(null);
-                              }}
-                              className="px-2.5 py-1.5 bg-white/10 hover:bg-blue-600 hover:text-white text-slate-200 border border-white/20 rounded-xl text-[10px] font-black transition shadow-xs flex items-center space-x-1"
-                            >
-                              <span>+</span>
-                              <span>{cat.title}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </>
+              );
+            })}
+          </div>
         )}
       </div>
     );
