@@ -192,7 +192,7 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
                 {participants.length > 0 ? (
                   <div className="flex flex-wrap gap-2.5">
                     {participants.map((p, idx) => {
-                      const name = typeof p === 'string' ? p : p?.name || `Player ${idx + 1}`;
+                      const name = typeof p === 'string' ? p : p?.displayName || p?.name || p?.participantId || `Player ${idx + 1}`;
                       const colorClass = avatarColors[idx % avatarColors.length];
                       return (
                         <div

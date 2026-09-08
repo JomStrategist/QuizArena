@@ -234,7 +234,8 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
             <p className="text-xs text-slate-400 italic">No participants yet. Waiting for players to join using 6-digit code or QR code...</p>
           ) : (
             participants.map((p, idx) => {
-              const letter = p.displayName?.charAt(0).toUpperCase() || 'A';
+              const name = typeof p === 'string' ? p : p?.displayName || p?.name || `Player ${idx + 1}`;
+              const letter = name.charAt(0).toUpperCase();
               const style = avatarColors[idx % avatarColors.length];
 
               return (
@@ -245,7 +246,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
                   <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${style}`}>
                     {letter}
                   </span>
-                  <span>{p.displayName}</span>
+                  <span>{name}</span>
                 </div>
               );
             })
