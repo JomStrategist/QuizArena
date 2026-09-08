@@ -51,6 +51,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const [timeLeft, setTimeLeft] = useState<number>(16);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [selectedOptionIndicesState, setSelectedOptionIndicesState] = useState<number[]>([]);
   const [startTimeMs, setStartTimeMs] = useState<number>(Date.now());
   const [hasTimedOut, setHasTimedOut] = useState<boolean>(false);
   useEffect(() => {
@@ -147,6 +148,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   useEffect(() => {
     if (session?.currentQuestionIndex !== undefined) {
       setSelectedOption(null);
+      setSelectedOptionIndicesState([]);
       setHasTimedOut(false);
       setStartTimeMs(Date.now());
     }
@@ -194,6 +196,39 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
       }
     } catch (err) {
       console.error('Error submitting answer:', err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleMultiSelectSubmit = async (indices: number[]) => {
+    if (submitting || studentAnswer) return;
+
+    setSelectedOptionIndicesState(indices);
+    setSubmitting(true);
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+
+    try {
+      const res = await fetch('/api/v1/live-sessions/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quizCode,
+          participantId,
+          displayName,
+          questionIndex: session?.currentQuestionIndex || 0,
+          selectedOptionIndex: -1,
+          selectedOptionIndices: indices,
+          responseTimeMs,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success && json.data) {
+        setStudentAnswer(json.data);
+      }
+    } catch (err) {
+      console.error('Error submitting multi-select answer:', err);
     } finally {
       setSubmitting(false);
     }
@@ -444,7 +479,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   // ==========================================
   // SCREEN 4: ANSWER LOCKED / SUBMITTED (Stage: QUESTION_ACTIVE & Answer submitted)
   // ==========================================
-  const isAnswered = !!studentAnswer || selectedOption !== null;
+  const isAnswered = !!studentAnswer || selectedOption !== null || selectedOptionIndicesState.length > 0;
 
   if (isAnswered && stage !== 'SHOWING_RESULT') {
     const chosenIndex = studentAnswer?.selectedOptionIndex ?? selectedOption ?? 0;
@@ -578,11 +613,11 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           </div>
 
           <h2 className="text-2xl font-black">
-            {isCorrect ? 'Correct!' : 'Incorrect'}
+            {pointsEarned > 0 ? (isCorrect ? 'Correct!' : 'Partial Marks!') : 'Incorrect'}
           </h2>
 
           <p className="text-sm font-extrabold text-emerald-700">
-            {isCorrect ? `+${pointsEarned} Points` : '+0 Points'}
+            {pointsEarned > 0 ? `+${pointsEarned} Points` : '+0 Points'}
           </p>
         </div>
 
@@ -607,8 +642,15 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
             <div className="space-y-2.5 text-xs font-bold">
               {currentQuestion.options.map((optText: string, idx: number) => {
                 const letter = String.fromCharCode(65 + idx);
-                const isCorrectOpt = currentQuestion?.correctOptionIndex === idx;
-                const isStudentChoice = studentAnswer?.selectedOptionIndex === idx;
+                const correctIndices: number[] = Array.isArray(currentQuestion?.correctOptionIndices) && currentQuestion.correctOptionIndices.length > 0
+                  ? currentQuestion.correctOptionIndices
+                  : (currentQuestion?.correctOptionIndex !== undefined ? [currentQuestion.correctOptionIndex] : []);
+                const isCorrectOpt = correctIndices.includes(idx);
+
+                const studentSelectedList: number[] = Array.isArray(studentAnswer?.selectedOptionIndices)
+                  ? studentAnswer.selectedOptionIndices
+                  : (studentAnswer?.selectedOptionIndex !== undefined && studentAnswer.selectedOptionIndex >= 0 ? [studentAnswer.selectedOptionIndex] : []);
+                const isStudentChoice = studentSelectedList.includes(idx);
                 const cleanOptText = optText.split('||')[0];
 
                 let cardStyle = "bg-slate-50 border-slate-200 text-slate-700";
@@ -743,7 +785,9 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
         questionIndex={session?.currentQuestionIndex || 0}
         totalQuestions={totalQuestions}
         selectedOptionIndex={selectedOption}
+        selectedOptionIndices={selectedOptionIndicesState}
         onSelectOption={(idx) => handleOptionSelect(idx)}
+        onSelectMultipleOptions={(indices) => handleMultiSelectSubmit(indices)}
         onSelectSequence={(seq) => handleSequenceSelect(seq)}
         onSelectCategoryAssignments={(assignments) => handleCategoryAssignmentsSelect(assignments)}
         onSubAnswersComplete={(subAns) => handleSubAnswersComplete(subAns)}

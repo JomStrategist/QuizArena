@@ -14,6 +14,7 @@ export async function POST(req: NextRequest) {
       displayName,
       questionIndex,
       selectedOptionIndex,
+      selectedOptionIndices,
       selectedSequence,
       selectedCategoryAssignments,
       selectedPromptBlocks,
@@ -118,13 +119,37 @@ export async function POST(req: NextRequest) {
     }
 
     const qType = question.questionType || 'MCQ';
+    const maxPts = question.points || 1000;
     let isCorrect = false;
-    let isTimeout = selectedOptionIndex === -1 && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks && !selectedSubAnswers;
+    let isTimeout = selectedOptionIndex === -1 && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks && !selectedSubAnswers && (!selectedOptionIndices || selectedOptionIndices.length === 0);
     let scenarioEarnedPoints = 0;
 
     if (!isTimeout) {
       if (qType === 'MCQ' || qType === 'TRUE_FALSE') {
         isCorrect = selectedOptionIndex >= 0 && selectedOptionIndex === question.correctOptionIndex;
+      } else if (qType === 'MULTIPLE_SELECT') {
+        const selected: number[] = Array.isArray(selectedOptionIndices) ? selectedOptionIndices : [];
+        const correct: number[] = Array.isArray(question.correctOptionIndices) && question.correctOptionIndices.length > 0
+          ? question.correctOptionIndices
+          : (question.correctOptionIndex !== undefined ? [question.correctOptionIndex] : []);
+        
+        if (correct.length > 0) {
+          const correctSelectedCount = selected.filter((idx: number) => correct.includes(idx)).length;
+          const wrongSelectedCount = selected.filter((idx: number) => !correct.includes(idx)).length;
+          
+          const scoreRatio = Math.max(0, (correctSelectedCount - wrongSelectedCount) / correct.length);
+          const fullScore = session.speedScoring !== false
+            ? calculateQuestionScore({
+                isCorrect: true,
+                maxPoints: maxPts,
+                timeLimitSeconds: timeLimit,
+                responseTimeMs: actualResponseTimeMs,
+              })
+            : maxPts;
+          
+          scenarioEarnedPoints = Math.round(fullScore * scoreRatio);
+          isCorrect = correctSelectedCount === correct.length && wrongSelectedCount === 0;
+        }
       } else if (qType === 'CORRECT_SEQUENCE') {
         if (Array.isArray(selectedSequence) && Array.isArray(question.correctOrder)) {
           isCorrect =
@@ -212,10 +237,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const maxPts = question.points || 1000;
-
     let pointsEarned = 0;
-    if (qType === 'SCENARIO_QUESTIONS' && selectedSubAnswers) {
+    if ((qType === 'SCENARIO_QUESTIONS' && selectedSubAnswers) || qType === 'MULTIPLE_SELECT') {
       pointsEarned = scenarioEarnedPoints;
     } else if (isCorrect && !isTimeout) {
       if (session.speedScoring !== false) {
@@ -235,6 +258,7 @@ export async function POST(req: NextRequest) {
       displayName: targetParticipant.displayName || displayName,
       questionIndex: qIdx,
       selectedOptionIndex,
+      selectedOptionIndices,
       selectedSequence,
       selectedCategoryAssignments,
       selectedPromptBlocks,

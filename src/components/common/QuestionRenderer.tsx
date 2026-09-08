@@ -25,7 +25,9 @@ interface QuestionRendererProps {
   totalQuestions?: number;
   onNavigateQuestion?: (idx: number) => void;
   selectedOptionIndex?: number | null;
+  selectedOptionIndices?: number[];
   onSelectOption?: (index: number) => void;
+  onSelectMultipleOptions?: (indices: number[]) => void;
   onSelectSequence?: (sequence: number[]) => void;
   onSelectCategoryAssignments?: (assignments: Record<string, string>) => void;
   onSelectPromptBlocks?: (blocks: { role?: string; context?: string; task?: string; outputFormat?: string }) => void;
@@ -44,7 +46,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   totalQuestions = 5,
   onNavigateQuestion,
   selectedOptionIndex,
+  selectedOptionIndices,
   onSelectOption,
+  onSelectMultipleOptions,
   onSelectSequence,
   onSelectCategoryAssignments,
   onSelectPromptBlocks,
@@ -96,6 +100,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // Per-sub-question sequence ordering (for CORRECT_SEQUENCE sub-Qs)
   const [subSeqMap, setSubSeqMap] = useState<Record<number, number[]>>({});
 
+  // State for Multiple Select Questions
+  const [localMultiSelected, setLocalMultiSelected] = useState<number[]>(selectedOptionIndices || []);
+
   const questionId = question?._id ? String(question._id) : (question as any)?.id ? String((question as any).id) : question?.questionText || '';
 
   // Shuffled options list per question instance (ensures random order in each game session)
@@ -117,7 +124,15 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     setScenarioSubAnswers({});
     setActiveSubQIdx(0);
     setSubSeqMap({});
-  }, [questionId]);
+    setLocalMultiSelected(selectedOptionIndices || []);
+  }, [questionId, selectedOptionIndices]);
+
+  const toggleMultiOption = (idx: number) => {
+    if (disabled) return;
+    setLocalMultiSelected((prev) =>
+      prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
+    );
+  };
 
   const handleSubQuestionSelect = (subIdx: number, optIdx: number) => {
     if (disabled) return;
@@ -465,7 +480,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                               }`}
                             >
                               <div className="flex items-start justify-between gap-2">
-                                <h5 className="text-xs font-black leading-snug">{itemTitle}</h5>
+                                <div className="space-y-1 min-w-0 flex-1">
+                                  <p className="text-xs font-medium">
+                                    <strong className="font-bold">• Title:</strong> {itemTitle}
+                                  </p>
+                                  {itemDesc && (
+                                    <p className="text-xs font-medium opacity-85 leading-relaxed pl-3">
+                                      <strong className="font-bold">Description:</strong> {itemDesc}
+                                    </p>
+                                  )}
+                                </div>
                                 
                                 {mode === 'player' && (isAnswerSubmitted || showCorrectAnswer) && (
                                   <div className="shrink-0">
@@ -485,9 +509,6 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                                   </div>
                                 )}
                               </div>
-                              {itemDesc && (
-                                <p className="text-[11px] font-medium opacity-75 leading-relaxed">{itemDesc}</p>
-                              )}
                             </div>
                           );
                         })
@@ -1380,7 +1401,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   }
 
   // -------------------------------------------------------------
-  // DEFAULT: MCQ & TRUE_FALSE
+  // DEFAULT: MCQ, MULTIPLE_SELECT & TRUE_FALSE
   // -------------------------------------------------------------
   const options = question.options && question.options.length > 0
     ? question.options
@@ -1390,6 +1411,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     correctOptionIndex !== undefined && correctOptionIndex !== null
       ? correctOptionIndex
       : question.correctOptionIndex;
+
+  const correctIndicesList = Array.isArray(question.correctOptionIndices) && question.correctOptionIndices.length > 0
+    ? question.correctOptionIndices
+    : (actualCorrectIndex !== undefined && actualCorrectIndex !== null ? [actualCorrectIndex] : []);
 
   // Helper to parse "Title||Description" for standard options
   const parseOpt = (text: string): { title: string; desc: string } => {
@@ -1416,7 +1441,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {options.map((optText, idx) => {
             const theme = optionThemes[idx % 4];
-            const isCorrect = showCorrectAnswer && actualCorrectIndex === idx;
+            const isCorrect = showCorrectAnswer && correctIndicesList.includes(idx);
             const { title: optTitle, desc: optDesc } = parseOpt(optText);
 
             return (
@@ -1469,7 +1494,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
           {options.map((optText, idx) => {
             const theme = optionThemes[idx % 4];
-            const isCorrect = showCorrectAnswer && actualCorrectIndex === idx;
+            const isCorrect = showCorrectAnswer && correctIndicesList.includes(idx);
             const { title: optTitle, desc: optDesc } = parseOpt(optText);
 
             return (
@@ -1505,6 +1530,124 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     );
   }
 
+  // -------------------------------------------------------------
+  // PLAYER MODE: MULTIPLE_SELECT
+  // -------------------------------------------------------------
+  if (qType === 'MULTIPLE_SELECT' && mode === 'player') {
+    return (
+      <div className="space-y-6 w-full">
+        {renderScenarioDetailsBanner()}
+        <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="px-3 py-1 bg-amber-100 text-amber-900 rounded-xl text-[10px] font-black uppercase tracking-widest">
+              MULTIPLE SELECT (CHECKBOXES)
+            </span>
+            {disabled && (
+              <span className="px-2.5 py-0.5 bg-slate-200 text-slate-700 rounded-md text-[10px] font-extrabold">
+                {isAnswerSubmitted ? 'SUBMITTED' : 'TIME EXPIRED'}
+              </span>
+            )}
+          </div>
+
+          <h2 className="text-xl md:text-2xl font-black text-slate-900 leading-snug">
+            {renderQuestionText(question.questionText)}
+          </h2>
+          <p className="text-xs font-bold text-amber-800">
+            💡 Select all correct options that apply, then click Submit.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3.5">
+          {options.map((optText, idx) => {
+            const isSelected = localMultiSelected.includes(idx);
+            const isCorrect = showCorrectAnswer && correctIndicesList.includes(idx);
+            const isUserWrong = showCorrectAnswer && isSelected && !isCorrect;
+            const { title: optTitle, desc: optDesc } = parseOpt(optText);
+
+            let cardStyle = "bg-white border-slate-200 text-slate-800 hover:border-amber-400";
+            if (isSelected) {
+              cardStyle = "bg-amber-50/90 border-2 border-amber-500 text-amber-950 shadow-md";
+            }
+            if (showCorrectAnswer) {
+              if (isCorrect) {
+                cardStyle = "bg-emerald-50 border-2 border-emerald-500 text-emerald-950 font-black";
+              } else if (isUserWrong) {
+                cardStyle = "bg-rose-50 border-2 border-rose-400 text-rose-950";
+              } else {
+                cardStyle = "bg-slate-100 border-slate-200 text-slate-400 opacity-60";
+              }
+            }
+
+            return (
+              <button
+                key={idx}
+                type="button"
+                disabled={disabled || showCorrectAnswer}
+                onClick={() => toggleMultiOption(idx)}
+                className={`p-5 rounded-2xl font-extrabold text-left transition-all flex items-center justify-between space-x-4 shadow-xs ${cardStyle} ${
+                  disabled ? 'cursor-not-allowed opacity-90' : 'cursor-pointer'
+                }`}
+              >
+                <div className="flex items-start space-x-3.5 min-w-0 flex-1">
+                  <div
+                    className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center font-black shrink-0 transition-all ${
+                      isSelected
+                        ? 'bg-amber-500 border-amber-500 text-white'
+                        : 'border-slate-300 bg-white text-transparent'
+                    }`}
+                  >
+                    ✓
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-base font-black tracking-tight leading-snug block">
+                      {optTitle}
+                    </span>
+                    {optDesc && (
+                      <span className="text-xs font-semibold opacity-85 leading-snug block">
+                        {optDesc}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {showCorrectAnswer && isCorrect && (
+                  <span className="px-2.5 py-1 bg-emerald-600 text-white rounded-lg text-xs font-black flex items-center space-x-1 shrink-0">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>CORRECT</span>
+                  </span>
+                )}
+                {showCorrectAnswer && isUserWrong && (
+                  <span className="px-2.5 py-1 bg-rose-600 text-white rounded-lg text-xs font-black flex items-center space-x-1 shrink-0">
+                    <XCircle className="w-3.5 h-3.5" />
+                    <span>WRONG</span>
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {!disabled && !isAnswerSubmitted && (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => onSelectMultipleOptions && onSelectMultipleOptions(localMultiSelected)}
+              disabled={localMultiSelected.length === 0}
+              className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg ${
+                localMultiSelected.length > 0
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-amber-500/25 active:scale-[0.98] cursor-pointer'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+              }`}
+            >
+              <CheckCircle2 className="w-5 h-5 text-amber-200" />
+              <span>Submit Multiple Answers ({localMultiSelected.length} Selected) ✓</span>
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Player Mode MCQ / TRUE_FALSE
   return (
     <div className="space-y-6 w-full">
@@ -1530,9 +1673,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         {options.map((optText, idx) => {
           const theme = optionThemes[idx % 4];
           const isSelected = selectedOptionIndex === idx;
-          const isCorrect = showCorrectAnswer && actualCorrectIndex === idx;
+          const isCorrect = showCorrectAnswer && correctIndicesList.includes(idx);
           const isUserWrong =
-            showCorrectAnswer && userAnswerIndex === idx && actualCorrectIndex !== idx;
+            showCorrectAnswer && userAnswerIndex === idx && !isCorrect;
 
           let btnClass = `${theme.playerBg} border`;
           if (isSelected) {
