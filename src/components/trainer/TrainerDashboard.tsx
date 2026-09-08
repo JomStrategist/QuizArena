@@ -535,18 +535,18 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   </div>
                 </button>
 
-                {/* 4. Conduct Quiz */}
+                {/* 4. Start Game */}
                 <button
                   onClick={() => handleOpenConductSetup()}
-                  className="bg-gradient-to-b from-amber-400 to-orange-500 text-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border border-amber-300/30 flex flex-col justify-between h-36 group"
+                  className="bg-gradient-to-b from-blue-600 to-indigo-600 text-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all cursor-pointer border border-blue-500/30 flex flex-col justify-between h-36 group"
                 >
                   <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white">
-                    <ClipboardList className="w-4 h-4 group-hover:scale-125 transition-transform" />
+                    <Play className="w-4 h-4 group-hover:scale-125 transition-transform" />
                   </div>
                   <div>
-                    <h3 className="text-xs font-bold text-left leading-tight">Conduct Quiz</h3>
-                    <p className="text-[10px] text-amber-100 text-left line-clamp-2 mt-0.5 opacity-90">
-                      Run structured assessment
+                    <h3 className="text-xs font-bold text-left leading-tight">Start Game</h3>
+                    <p className="text-[10px] text-blue-100 text-left line-clamp-2 mt-0.5 opacity-90">
+                      Launch interactive live quiz game
                     </p>
                   </div>
                   <div className="flex justify-end">
@@ -945,18 +945,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
                                   <button
                                     onClick={() => handleOpenConductSetup(quiz)}
-                                    className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-lg transition flex items-center space-x-1 shadow-xs"
+                                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold rounded-lg transition flex items-center space-x-1 shadow-xs"
                                   >
-                                    <ClipboardList className="w-3 h-3" />
-                                    <span>Conduct</span>
-                                  </button>
-
-                                  <button
-                                    onClick={() => handleLaunchLiveSession(quiz._id)}
-                                    className="px-2.5 py-1 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-slate-950 text-[11px] font-extrabold rounded-lg transition flex items-center space-x-1 shadow-xs"
-                                  >
-                                    <Radio className="w-3 h-3" />
-                                    <span>Live</span>
+                                    <Play className="w-3 h-3 fill-current" />
+                                    <span>Start Game</span>
                                   </button>
 
                                   <button
@@ -1302,15 +1294,10 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                             </button>
                             <button
                               onClick={() => handleOpenConductSetup(quiz)}
-                              className="px-2.5 py-1 bg-blue-600 text-white text-[11px] font-bold rounded-md"
+                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold rounded-md transition flex items-center space-x-1"
                             >
-                              Conduct
-                            </button>
-                            <button
-                              onClick={() => handleLaunchLiveSession(quiz._id)}
-                              className="px-2.5 py-1 bg-amber-400 text-slate-950 text-[11px] font-extrabold rounded-md"
-                            >
-                              Live
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>Start Game</span>
                             </button>
                           </div>
                         </td>
