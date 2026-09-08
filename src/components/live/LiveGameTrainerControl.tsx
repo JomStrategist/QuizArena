@@ -311,23 +311,6 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
             {quizTitle}
           </h1>
-
-          <div className="flex flex-wrap items-center gap-2 pt-1 text-xs font-semibold text-slate-600">
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl">
-              <BookOpen className="w-3.5 h-3.5 text-blue-600" />
-              <span>{totalQuestions} Questions</span>
-            </span>
-
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-xl">
-              <Heart className="w-3.5 h-3.5 text-orange-500 fill-orange-500" />
-              <span>{sessionData?.quizSnapshot?.category || 'Prompt Engineering'}</span>
-            </span>
-
-            <span className="inline-flex items-center space-x-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-xl">
-              <Clock className="w-3.5 h-3.5 text-slate-500" />
-              <span>Started at 10:24 AM</span>
-            </span>
-          </div>
         </div>
 
         {/* Center: Game Code Card */}
