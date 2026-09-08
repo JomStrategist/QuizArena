@@ -444,43 +444,6 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
               />
             </div>
           </div>
-
-          {/* Bottom Question Controls Bar */}
-          <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center space-x-2">
-              <button
-                disabled={currentIdx <= 1}
-                className="px-4 py-2 bg-slate-100 text-slate-400 rounded-2xl text-xs font-bold flex items-center space-x-1.5 disabled:opacity-50"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Previous</span>
-              </button>
-
-              <button
-                onClick={handleNextQuestion}
-                className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-blue-500/25"
-              >
-                <span>Next Question</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Toggle Switch Controls */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Show Correct Answer Toggle */}
-              <button
-                onClick={() => setShowCorrectAnswerToggle(!showCorrectAnswerToggle)}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition flex items-center space-x-1.5 ${
-                  showCorrectAnswerToggle
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                    : 'bg-slate-50 border-slate-200 text-slate-600'
-                }`}
-              >
-                <Eye className="w-3.5 h-3.5" />
-                <span>Show Answer</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
