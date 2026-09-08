@@ -199,20 +199,22 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-4 max-w-md mx-auto pt-2">
-          <button
-            onClick={handleDownloadReport}
-            className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl text-xs font-black transition flex items-center space-x-2 backdrop-blur-md"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download Report</span>
-          </button>
+          {isTrainer && (
+            <button
+              onClick={handleDownloadReport}
+              className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl text-xs font-black transition flex items-center space-x-2 backdrop-blur-md"
+            >
+              <Download className="w-4 h-4" />
+              <span>Download Report</span>
+            </button>
+          )}
 
           <button
             onClick={onBackToDashboard}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl text-xs font-black transition shadow-xl shadow-blue-600/30 flex items-center space-x-2"
           >
             <RotateCcw className="w-4 h-4" />
-            <span>Play Again</span>
+            <span>{isTrainer ? 'Back to Dashboard' : 'Play Again'}</span>
           </button>
         </div>
       </div>

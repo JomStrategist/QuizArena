@@ -182,6 +182,7 @@ export default function ProtectedTrainerDashboardPage() {
             quizTitle={activeQuizTitle}
             rankings={participants}
             onBackToDashboard={() => setViewState('DASHBOARD')}
+            isTrainer={true}
           />
         )}
       </main>
