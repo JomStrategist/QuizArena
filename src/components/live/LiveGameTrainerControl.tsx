@@ -29,7 +29,6 @@ import { useToast } from '../ui/ToastNotification';
 import { Top5Leaderboard } from './Top5Leaderboard';
 import { LiveLobbyTrainer } from './LiveLobbyTrainer';
 import { LivePodiumFinale } from './LivePodiumFinale';
-import { ProjectorViewModal } from './ProjectorViewModal';
 import { QuestionRenderer } from '../common/QuestionRenderer';
 import { soundManager } from '@/lib/game/soundManager';
 
@@ -294,21 +293,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 md:p-6 space-y-6 max-w-[1400px] mx-auto w-full font-sans text-slate-900">
       
-      {/* Projector View Full-Screen Modal */}
-      <ProjectorViewModal
-        isOpen={isProjectorOpen}
-        onClose={() => setIsProjectorOpen(false)}
-        quizCode={quizCode}
-        quizTitle={quizTitle}
-        currentQuestion={currentQuestion}
-        currentIdx={currentIdx}
-        totalQuestions={totalQuestions}
-        timeLeft={timeLeft}
-        totalTime={totalTime}
-        totalParticipants={rankings.length || liveStats.totalParticipants || 0}
-        stage={stage}
-        participants={rankings}
-      />
+
 
       {/* Top Header Bar */}
       <header className="w-full flex items-center justify-between px-2 py-1">

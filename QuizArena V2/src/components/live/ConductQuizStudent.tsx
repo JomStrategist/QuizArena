@@ -57,7 +57,11 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [startTimeMs, setStartTimeMs] = useState<number>(Date.now());
   const [hasTimedOut, setHasTimedOut] = useState<boolean>(false);
-  const [isMuted, setIsMuted] = useState<boolean>(soundManager.getMuted());
+  useEffect(() => {
+    soundManager.setMuted(true);
+  }, []);
+
+  const [isMuted, setIsMuted] = useState<boolean>(true);
 
   const { showToast } = useToast();
 

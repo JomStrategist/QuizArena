@@ -942,13 +942,6 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                                     <span>Edit</span>
                                   </button>
 
-                                  <button
-                                    onClick={() => setIsAssignOpen(true)}
-                                    className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-800 text-[11px] font-bold rounded-lg transition flex items-center space-x-1"
-                                  >
-                                    <Send className="w-3 h-3 text-purple-600" />
-                                    <span>Assign</span>
-                                  </button>
 
                                   <button
                                     onClick={() => handleOpenConductSetup(quiz)}
@@ -1306,12 +1299,6 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                               className="px-2 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-md"
                             >
                               Edit
-                            </button>
-                            <button
-                              onClick={() => setIsAssignOpen(true)}
-                              className="px-2 py-1 bg-purple-50 text-purple-800 text-[11px] font-bold rounded-md"
-                            >
-                              Assign
                             </button>
                             <button
                               onClick={() => handleOpenConductSetup(quiz)}

@@ -104,15 +104,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         </div>
 
         <div className="flex items-center space-x-3 self-start md:self-auto">
-          {/* Projector View Trigger */}
-          <button
-            onClick={() => setIsProjectorViewOpen(true)}
-            className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-2"
-          >
-            <Tv className="w-4 h-4 text-indigo-600" />
-            <span>Projector View (Full Screen)</span>
-          </button>
-
           {/* Prominent Close/Exit Button */}
           <button
             onClick={onClose ? onClose : () => { window.location.href = '/trainer/dashboard'; }}
