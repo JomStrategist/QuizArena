@@ -3,8 +3,20 @@
 @tailwind utilities;
 
 @layer base {
+  html, body {
+    touch-action: manipulation;
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-slate-50 text-slate-900 antialiased font-sans min-h-screen selection:bg-blue-500 selection:text-white;
+  }
+
+  /* Prevent iOS Safari auto-zoom when tapping inputs */
+  @media screen and (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
   }
 }
 

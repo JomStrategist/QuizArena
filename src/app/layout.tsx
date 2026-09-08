@@ -6,6 +6,10 @@ const siteUrl = 'https://quizarena-sable-rho.vercel.app';
 
 export const viewport: Viewport = {
   themeColor: '#1e3a8a',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export const metadata: Metadata = {
