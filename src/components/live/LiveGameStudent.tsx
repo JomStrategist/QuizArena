@@ -731,8 +731,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto w-full font-sans text-slate-900 space-y-4">
       
-      {/* Mobile Top Header: Question count, 16s Timer ring, Audio button */}
-      <div className="flex items-center justify-between bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-2xs">
+      {/* Mobile Top Header: Question count, 16s Timer ring, Audio button (Sticky on Scroll) */}
+      <div className="sticky top-2 z-40 bg-white/95 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-200 shadow-md flex items-center justify-between transition-all">
         <span className="text-xs font-black uppercase tracking-wider text-slate-500">
           Q {currentIdx} of {totalQuestions}
         </span>

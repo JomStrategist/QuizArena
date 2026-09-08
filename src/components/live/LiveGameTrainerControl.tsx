@@ -382,8 +382,8 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         <div className="w-full space-y-5">
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
             
-            {/* Question Progress Header & Timer Box */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            {/* Question Progress Header & Timer Box (Sticky on Scroll) */}
+            <div className="sticky top-2 z-40 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
               <div className="flex-1 space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-600">
                   <span>Question {currentIdx} of {totalQuestions}</span>

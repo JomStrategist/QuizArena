@@ -489,8 +489,8 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   return (
     <div className="min-h-screen bg-slate-50 p-4 sm:p-6 w-full max-w-[96%] mx-auto font-sans text-slate-900 space-y-6">
       
-      {/* Player Header Bar */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between">
+      {/* Player Header Bar (Sticky on Scroll) */}
+      <div className="sticky top-2 z-40 bg-white/95 backdrop-blur-md p-5 rounded-3xl border border-slate-200 shadow-md flex items-center justify-between transition-all">
         <div className="flex items-center space-x-3">
           <img src="/QuizArena Icon.png" alt="QuizArena" className="w-8 h-8 object-contain" />
           <div>

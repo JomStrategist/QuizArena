@@ -289,8 +289,8 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
 
       {/* Main Question Card Container */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-        {/* Top Card Row: Question X of Y + Progress Bar + % Completed + Timer */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Top Card Row: Question X of Y + Progress Bar + % Completed + Timer (Sticky on Scroll) */}
+        <div className="sticky top-2 z-40 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all">
           <div className="flex-1 space-y-2">
             <div className="flex items-center justify-between text-xs font-black text-slate-500 uppercase tracking-wider">
               <span>Question {currentIdx} of {totalQuestions}</span>
