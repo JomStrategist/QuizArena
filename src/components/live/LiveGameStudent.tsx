@@ -502,88 +502,72 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           </p>
         </div>
 
-        {/* Explanation Card */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-2">
-          <div className="flex items-center space-x-2 text-xs font-black text-amber-600">
-            <Lightbulb className="w-4 h-4 text-amber-500 fill-amber-500" />
-            <span>Explanation</span>
+        {/* Explanation Card (only rendered if question has an explanation) */}
+        {currentQuestion?.explanation && (
+          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-2">
+            <div className="flex items-center space-x-2 text-xs font-black text-amber-600">
+              <Lightbulb className="w-4 h-4 text-amber-500 fill-amber-500" />
+              <span>Explanation</span>
+            </div>
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              {currentQuestion.explanation}
+            </p>
           </div>
-          <p className="text-xs text-slate-600 font-medium leading-relaxed">
-            {currentQuestion?.explanation ||
-              'Role / Persona defines WHO the AI should act as, including its identity, expertise, and style during response generation.'}
-          </p>
-        </div>
+        )}
 
-        {/* Answer Breakdown */}
-        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-          <h3 className="text-xs font-black text-slate-900">Answer Breakdown</h3>
+        {/* Dynamic Answer Breakdown Card based on actual options */}
+        {currentQuestion?.options && currentQuestion.options.length > 0 && (
+          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
+            <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Answer Breakdown</h3>
 
-          <div className="space-y-2.5 text-xs font-bold">
-            {/* Option A */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="flex items-center space-x-1.5">
-                  <span className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center text-[10px] font-black">
-                    A
-                  </span>
-                  <span className="text-slate-900 font-extrabold">Role / Persona</span>
-                </span>
-                <span className="text-emerald-600 font-black">20 (83%)</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full w-[83%]" />
-              </div>
-            </div>
+            <div className="space-y-2.5 text-xs font-bold">
+              {currentQuestion.options.map((optText: string, idx: number) => {
+                const letter = String.fromCharCode(65 + idx);
+                const isCorrectOpt = currentQuestion?.correctOptionIndex === idx;
+                const isStudentChoice = studentAnswer?.selectedOptionIndex === idx;
 
-            {/* Option B */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="flex items-center space-x-1.5">
-                  <span className="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">
-                    B
-                  </span>
-                  <span className="text-slate-700">Context</span>
-                </span>
-                <span className="text-rose-500 font-black">3 (12%)</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-rose-400 h-full rounded-full w-[12%]" />
-              </div>
-            </div>
+                let cardStyle = "bg-slate-50 border-slate-200 text-slate-700";
+                let badgeStyle = "bg-slate-200 text-slate-700";
 
-            {/* Option C */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="flex items-center space-x-1.5">
-                  <span className="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">
-                    C
-                  </span>
-                  <span className="text-slate-700">Task</span>
-                </span>
-                <span className="text-rose-500 font-black">1 (4%)</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-rose-400 h-full rounded-full w-[4%]" />
-              </div>
-            </div>
+                if (isCorrectOpt) {
+                  cardStyle = "bg-emerald-50 border-emerald-300 text-emerald-950 font-black shadow-xs";
+                  badgeStyle = "bg-emerald-600 text-white";
+                } else if (isStudentChoice) {
+                  cardStyle = "bg-rose-50 border-rose-300 text-rose-950 font-extrabold";
+                  badgeStyle = "bg-rose-600 text-white";
+                }
 
-            {/* Option D */}
-            <div className="space-y-1">
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="flex items-center space-x-1.5">
-                  <span className="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-[10px] font-black">
-                    D
-                  </span>
-                  <span className="text-slate-700">Output Format</span>
-                </span>
-                <span className="text-slate-400 font-black">0 (0%)</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-slate-300 h-full rounded-full w-[0%]" />
-              </div>
+                return (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-2xl border flex items-center justify-between transition ${cardStyle}`}
+                  >
+                    <div className="flex items-center space-x-3 min-w-0 pr-2">
+                      <span className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black shrink-0 ${badgeStyle}`}>
+                        {letter}
+                      </span>
+                      <span className="text-xs font-extrabold truncate">{optText}</span>
+                    </div>
+
+                    <div className="flex items-center space-x-1.5 shrink-0">
+                      {isStudentChoice && (
+                        <span className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded-md text-[9px] font-black uppercase tracking-wider">
+                          YOUR ANSWER
+                        </span>
+                      )}
+                      {isCorrectOpt && (
+                        <span className="flex items-center space-x-1 px-2 py-0.5 bg-emerald-600 text-white rounded-md text-[9px] font-black uppercase tracking-wider">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>CORRECT</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
+        )}
 
         {/* Next Question Action */}
         <div className="space-y-1.5 text-center pt-1">
