@@ -578,8 +578,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   // SCREEN 5: RESULT SCREEN (Stage: SHOWING_RESULT)
   // ==========================================
   if (stage === 'SHOWING_RESULT') {
-    const isCorrect = studentAnswer?.isCorrect ?? true;
-    const pointsEarned = studentAnswer?.pointsEarned ?? 100;
+    const isCorrect = studentAnswer?.isCorrect ?? false;
+    const pointsEarned = studentAnswer?.pointsEarned ?? 0;
 
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto w-full font-sans text-slate-900 animate-in zoom-in duration-200 space-y-4">

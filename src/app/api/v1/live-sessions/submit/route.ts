@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
     const qType = question.questionType || 'MCQ';
     const maxPts = question.points || 1000;
     let isCorrect = false;
-    let isTimeout = selectedOptionIndex === -1 && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks && !selectedSubAnswers && (!selectedOptionIndices || selectedOptionIndices.length === 0);
+    let isTimeout = (selectedOptionIndex === -1 || selectedOptionIndex === undefined || selectedOptionIndex === null) && !selectedSequence && !selectedCategoryAssignments && !selectedPromptBlocks && !selectedSubAnswers && (!selectedOptionIndices || selectedOptionIndices.length === 0);
     let scenarioEarnedPoints = 0;
 
     if (!isTimeout) {
@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
           const outputOk = !question.promptBlocks.outputFormat || question.promptBlocks.outputFormat.includes(selectedPromptBlocks.outputFormat);
           isCorrect = roleOk && contextOk && taskOk && outputOk;
         } else {
-          isCorrect = true;
+          isCorrect = false;
         }
       } else if (qType === 'SCENARIO_QUESTIONS') {
         const subQuestions = question.scenarioQuestionsData?.subQuestions || question.subQuestions || [];
@@ -226,13 +226,13 @@ export async function POST(req: NextRequest) {
         } else if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
           isCorrect = selectedOptionIndex === question.correctOptionIndex;
         } else {
-          isCorrect = true;
+          isCorrect = false;
         }
       } else if (qType === 'SOLUTION_CHALLENGE') {
         if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
           isCorrect = selectedOptionIndex === question.correctOptionIndex;
         } else {
-          isCorrect = true;
+          isCorrect = false;
         }
       }
     }
