@@ -28,6 +28,7 @@ interface SequenceChallengeViewProps {
   onNavigateQuestion?: (idx: number) => void;
   onCompleteChallenge?: (result: any) => void;
   disabled?: boolean;
+  showCorrectAnswer?: boolean;
 }
 
 // Shuffling helper
@@ -48,6 +49,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   onNavigateQuestion,
   onCompleteChallenge,
   disabled = false,
+  showCorrectAnswer = false,
 }) => {
   const isTrainerOrProjector = mode === 'trainer' || mode === 'projector';
   const questionId = question._id ? question._id.toString() : '';
@@ -78,14 +80,18 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   const [secondsSpent, setSecondsSpent] = useState<number>(0);
   const [timerRunning, setTimerRunning] = useState<boolean>(true);
 
-  // Initialize & shuffle on question change
+  // Initialize & shuffle on question change or answer reveal
   useEffect(() => {
-    setItemsSequence(isTrainerOrProjector ? initialItems : shuffleArray(initialItems));
+    if (showCorrectAnswer) {
+      setItemsSequence(initialItems);
+    } else {
+      setItemsSequence(isTrainerOrProjector ? initialItems : shuffleArray(initialItems));
+    }
     setEvaluationResult(null);
     setEvaluationError(null);
     setSecondsSpent(0);
     setTimerRunning(true);
-  }, [questionId, isTrainerOrProjector]);
+  }, [questionId, showCorrectAnswer, isTrainerOrProjector]);
 
   // Timer interval
   useEffect(() => {
@@ -278,7 +284,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
               mode === 'trainer' ? 'text-slate-600' : 'text-slate-400'
             }`}>
               <ListOrdered className="w-4 h-4 text-purple-500" />
-              <span>Correct Sequence Order ({itemsSequence.length} Steps)</span>
+              <span>{showCorrectAnswer ? 'Correct Sequence Order' : 'Sequence Ordering Steps'} ({itemsSequence.length} Steps)</span>
             </h3>
             {!isTrainerOrProjector && (
               <span className="text-xs text-slate-400 font-medium hidden sm:inline">
@@ -358,9 +364,15 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                   {/* Right Side: Reordering Controls (Player) or Status (Trainer) */}
                   <div className="flex items-center space-x-2 shrink-0">
                     {isTrainerOrProjector ? (
-                      <span className="px-2.5 py-1 bg-purple-100 text-purple-800 rounded-lg text-[10px] font-black">
-                        Step {idx + 1}
-                      </span>
+                      showCorrectAnswer ? (
+                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-black">
+                          Step {idx + 1}
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold">
+                          Step Item
+                        </span>
+                      )
                     ) : isEvaluated ? (
                       posEval?.isCorrectPosition ? (
                         <div className="flex items-center space-x-1.5 px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full text-emerald-300 text-xs font-black">
