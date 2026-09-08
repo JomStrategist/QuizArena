@@ -47,6 +47,16 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
     }
   }, [quizCode]);
 
+  const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleCopyLink = () => {
+    const url = joinUrl || `${window.location.origin}/quiz/join?code=${quizCode}`;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    showToast('Session URL copied to clipboard!', 'info');
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
+
   const handleCopyCode = () => {
     navigator.clipboard.writeText(quizCode);
     setCopied(true);
@@ -64,7 +74,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-between p-4 sm:p-6 max-w-6xl mx-auto w-full font-sans text-slate-900 space-y-6">
+    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 w-full max-w-[96%] mx-auto font-sans text-slate-900 space-y-6">
       
       {/* Full Screen QR Modal — triggers native browser fullscreen */}
       <FullScreenQRModal
@@ -76,7 +86,7 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         customUrl={joinUrl}
       />
 
-      {/* Top Banner Card */}
+      {/* Header Bar */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
           <img src="/QuizArena Icon.png" alt="QuizArena" className="w-10 h-10 object-contain" />
@@ -95,16 +105,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
         </div>
 
         <div className="flex items-center space-x-3 self-start md:self-auto">
-          {/* Full Screen Button */}
-          <button
-            onClick={() => setIsFullScreenQROpen(true)}
-            className="px-3.5 py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
-            title="Full Screen View"
-          >
-            <Maximize2 className="w-4 h-4 text-blue-600" />
-            <span className="hidden sm:inline">Full Screen</span>
-          </button>
-
           {/* Prominent Close/Exit Button */}
           <button
             onClick={onClose ? onClose : () => { window.location.href = '/trainer/dashboard'; }}
@@ -133,6 +133,24 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-3xl shadow-inner">
             <QRCodeImage value={joinUrl || `/quiz/join?code=${quizCode}`} size={200} />
           </div>
+
+          {/* Copy URL / Link Button */}
+          <button
+            onClick={handleCopyLink}
+            className="w-full py-3 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-2xl text-xs font-extrabold transition flex items-center justify-center space-x-2 shadow-2xs"
+          >
+            {copiedLink ? (
+              <>
+                <Check className="w-4 h-4 text-emerald-600" />
+                <span className="text-emerald-700">URL Copied!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-4 h-4 text-blue-600" />
+                <span>Copy URL</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Right Column: Game Join Code & Start Quiz (6 cols) */}
