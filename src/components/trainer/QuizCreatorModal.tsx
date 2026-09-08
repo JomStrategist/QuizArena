@@ -838,89 +838,188 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                   )}
 
                   {/* 3. DRAG_AND_DROP */}
-                  {currentQuestion.questionType === 'DRAG_AND_DROP' && (
-                    <div className="space-y-4 p-4 bg-purple-50/60 border border-purple-200 rounded-2xl">
-                      <h4 className="text-xs font-black uppercase text-purple-900">
-                        Drag & Drop Items & Category Assignments
-                      </h4>
+                  {currentQuestion.questionType === 'DRAG_AND_DROP' && (() => {
+                    const categories = (currentQuestion.categories && currentQuestion.categories.length > 0)
+                      ? currentQuestion.categories
+                      : [
+                          { id: 'ml', title: 'Traditional Machine Learning' },
+                          { id: 'dl', title: 'Deep Learning' },
+                          { id: 'nlp', title: 'Natural Language Processing' },
+                          { id: 'cv', title: 'Computer Vision' },
+                        ];
 
-                      <div className="space-y-3">
-                        {currentQuestion.options.map((opt, optIdx) => {
-                          const assignments = currentQuestion.categoryAssignments || {};
-                          const currentCat = assignments[optIdx.toString()] || 'ml';
-                          const sepIdx = opt.indexOf('||');
-                          const itemTitle = sepIdx === -1 ? opt : opt.slice(0, sepIdx);
-                          const itemDesc = sepIdx === -1 ? '' : opt.slice(sepIdx + 2);
+                    const handleAddCategory = () => {
+                      const newCatId = `cat_${Date.now()}`;
+                      const newCat = { id: newCatId, title: `Category ${categories.length + 1}` };
+                      updateCurrentQuestion({ categories: [...categories, newCat] });
+                    };
 
-                          const updateItem = (newTitle: string, newDesc: string) => {
-                            const copy = [...currentQuestion.options];
-                            copy[optIdx] = newDesc ? `${newTitle}||${newDesc}` : newTitle;
-                            updateCurrentQuestion({ options: copy });
-                          };
+                    const handleUpdateCategory = (catIdx: number, newTitle: string) => {
+                      const updated = categories.map((cat, i) =>
+                        i === catIdx ? { ...cat, title: newTitle } : cat
+                      );
+                      updateCurrentQuestion({ categories: updated });
+                    };
 
-                          return (
-                            <div key={optIdx} className="p-3 bg-white border border-purple-200 rounded-xl space-y-2">
-                              <div className="flex items-center gap-2">
-                                <div className="flex-1 space-y-1.5">
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black uppercase text-purple-600 tracking-wider w-16 shrink-0">Title</span>
-                                    <input
-                                      type="text"
-                                      value={itemTitle}
-                                      onChange={(e) => updateItem(e.target.value, itemDesc)}
-                                      placeholder="e.g. Customer churn prediction"
-                                      className="flex-1 text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"
-                                    />
+                    const handleRemoveCategory = (catIdx: number) => {
+                      if (categories.length <= 1) {
+                        alert('At least one category is required.');
+                        return;
+                      }
+                      const removedId = categories[catIdx].id;
+                      const updated = categories.filter((_, i) => i !== catIdx);
+                      const fallbackId = updated[0].id;
+
+                      const currentAssignments = { ...(currentQuestion.categoryAssignments || {}) };
+                      const updatedAssignments: Record<string, string> = {};
+                      Object.entries(currentAssignments).forEach(([optIdxStr, catId]) => {
+                        updatedAssignments[optIdxStr] = catId === removedId ? fallbackId : (catId as string);
+                      });
+
+                      updateCurrentQuestion({
+                        categories: updated,
+                        categoryAssignments: updatedAssignments,
+                      });
+                    };
+
+                    return (
+                      <div className="space-y-4 p-4 bg-purple-50/60 border border-purple-200 rounded-2xl">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-black uppercase text-purple-900">
+                            Drag & Drop Question Categories & Card Assignments
+                          </h4>
+                        </div>
+
+                        {/* Question Categories Management Box */}
+                        <div className="p-3.5 bg-white border border-purple-200 rounded-xl space-y-3 shadow-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-black uppercase text-purple-900 tracking-wider">
+                              Question Categories ({categories.length})
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleAddCategory}
+                              className="px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold rounded-lg transition flex items-center gap-1 cursor-pointer"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              <span>Add Category</span>
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {categories.map((cat, catIdx) => (
+                              <div key={cat.id || catIdx} className="flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                                <span className="text-[10px] font-black uppercase text-purple-600 shrink-0 w-5 text-center">
+                                  {catIdx + 1}
+                                </span>
+                                <input
+                                  type="text"
+                                  value={cat.title}
+                                  onChange={(e) => handleUpdateCategory(catIdx, e.target.value)}
+                                  placeholder="Category name..."
+                                  className="flex-1 text-xs font-bold text-slate-900 bg-white border border-slate-200 rounded-md px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveCategory(catIdx)}
+                                  className="p-1 text-slate-400 hover:text-rose-600 transition"
+                                  title="Remove Category"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Card Items & Category Assignments */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-black uppercase text-purple-900 tracking-wider">
+                              Card Items ({currentQuestion.options.length})
+                            </span>
+                          </div>
+
+                          {currentQuestion.options.map((opt, optIdx) => {
+                            const assignments = currentQuestion.categoryAssignments || {};
+                            const currentCat = assignments[optIdx.toString()] || categories[0]?.id || 'ml';
+                            const sepIdx = opt.indexOf('||');
+                            const itemTitle = sepIdx === -1 ? opt : opt.slice(0, sepIdx);
+                            const itemDesc = sepIdx === -1 ? '' : opt.slice(sepIdx + 2);
+
+                            const updateItem = (newTitle: string, newDesc: string) => {
+                              const copy = [...currentQuestion.options];
+                              copy[optIdx] = newDesc ? `${newTitle}||${newDesc}` : newTitle;
+                              updateCurrentQuestion({ options: copy });
+                            };
+
+                            return (
+                              <div key={optIdx} className="p-3 bg-white border border-purple-200 rounded-xl space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex-1 space-y-1.5">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-[10px] font-black uppercase text-purple-600 tracking-wider w-16 shrink-0">Title</span>
+                                      <input
+                                        type="text"
+                                        value={itemTitle}
+                                        onChange={(e) => updateItem(e.target.value, itemDesc)}
+                                        placeholder="e.g. Customer churn prediction"
+                                        className="flex-1 text-xs font-bold text-slate-900 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400"
+                                      />
+                                    </div>
+                                    <div className="flex items-start gap-2">
+                                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider w-16 shrink-0 mt-1.5">Desc</span>
+                                      <textarea
+                                        value={itemDesc}
+                                        onChange={(e) => updateItem(itemTitle, e.target.value)}
+                                        placeholder="e.g. A telecom company predicts which customers may leave..."
+                                        rows={2}
+                                        className="flex-1 text-[11px] font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 resize-none leading-relaxed"
+                                      />
+                                    </div>
                                   </div>
-                                  <div className="flex items-start gap-2">
-                                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider w-16 shrink-0 mt-1.5">Desc</span>
-                                    <textarea
-                                      value={itemDesc}
-                                      onChange={(e) => updateItem(itemTitle, e.target.value)}
-                                      placeholder="e.g. A telecom company predicts which customers may leave..."
-                                      rows={2}
-                                      className="flex-1 text-[11px] font-medium text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 resize-none leading-relaxed"
-                                    />
-                                  </div>
-                                </div>
 
-                                <div className="flex flex-col items-center gap-2 shrink-0">
-                                  <select
-                                    value={currentCat}
-                                    onChange={(e) => {
-                                      const updatedMap = { ...assignments, [optIdx.toString()]: e.target.value };
-                                      updateCurrentQuestion({ categoryAssignments: updatedMap });
-                                    }}
-                                    className="px-2 py-1.5 bg-purple-100 text-purple-900 rounded-lg text-[10px] font-bold"
-                                  >
-                                    <option value="ml">Traditional ML</option>
-                                    <option value="dl">Deep Learning</option>
-                                    <option value="nlp">NLP</option>
-                                    <option value="cv">Computer Vision</option>
-                                  </select>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleRemoveOption(optIdx)}
-                                    className="p-1 text-rose-500 hover:text-rose-700"
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5" />
-                                  </button>
+                                  <div className="flex flex-col items-center gap-2 shrink-0">
+                                    <select
+                                      value={currentCat}
+                                      onChange={(e) => {
+                                        const updatedMap = { ...assignments, [optIdx.toString()]: e.target.value };
+                                        updateCurrentQuestion({ categoryAssignments: updatedMap });
+                                      }}
+                                      className="px-2.5 py-1.5 bg-purple-100 text-purple-900 border border-purple-200 rounded-lg text-xs font-bold cursor-pointer focus:outline-none focus:ring-1 focus:ring-purple-400 max-w-[160px] truncate"
+                                    >
+                                      {categories.map((cat) => (
+                                        <option key={cat.id} value={cat.id}>
+                                          {cat.title}
+                                        </option>
+                                      ))}
+                                    </select>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleRemoveOption(optIdx)}
+                                      className="p-1 text-rose-500 hover:text-rose-700 transition"
+                                      title="Remove Card Item"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          );
-                        })}
-                      </div>
+                            );
+                          })}
+                        </div>
 
-                      <button
-                        type="button"
-                        onClick={handleAddOption}
-                        className="px-3 py-1 bg-purple-600 text-white text-xs font-bold rounded-lg"
-                      >
-                        + Add Card Item
-                      </button>
-                    </div>
-                  )}
+                        <button
+                          type="button"
+                          onClick={handleAddOption}
+                          className="px-3.5 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Add Card Item</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
 
                   {/* 4. SCENARIO_QUESTIONS */}
                   {currentQuestion.questionType === 'SCENARIO_QUESTIONS' && (() => {

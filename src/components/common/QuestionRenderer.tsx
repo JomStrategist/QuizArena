@@ -281,12 +281,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
   // -------------------------------------------------------------
   if (qType === 'DRAG_AND_DROP') {
     const items = question.options || [];
-    const categories = question.categories || [
-      { id: 'ml', title: 'Traditional Machine Learning' },
-      { id: 'dl', title: 'Deep Learning' },
-      { id: 'nlp', title: 'Natural Language Processing' },
-      { id: 'cv', title: 'Computer Vision' },
-    ];
+    const categories = (question.categories && question.categories.length > 0)
+      ? question.categories
+      : [
+          { id: 'ml', title: 'Traditional Machine Learning' },
+          { id: 'dl', title: 'Deep Learning' },
+          { id: 'nlp', title: 'Natural Language Processing' },
+          { id: 'cv', title: 'Computer Vision' },
+        ];
 
     // Parse "Title||Description" format — falls back to full text as title if no separator
     const parseItem = (text: string): { title: string; desc: string } => {
