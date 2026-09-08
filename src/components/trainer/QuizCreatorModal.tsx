@@ -230,6 +230,22 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+    } else if (type === 'MULTIPLE_SELECT') {
+      newQ = {
+        _id: `temp-${Date.now()}`,
+        trainerId: 'trainer-1',
+        questionText: 'Select all statements that apply',
+        questionType: 'MULTIPLE_SELECT',
+        options: ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctOptionIndices: [0, 1],
+        timeLimit: 25,
+        points: 1000,
+        category: category || 'General',
+        difficulty: 'MEDIUM',
+        tags: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
     } else {
       newQ = {
         _id: `temp-${Date.now()}`,
@@ -320,6 +336,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
           questionType: q.questionType || 'MCQ',
           options: q.options || [],
           correctOptionIndex: q.correctOptionIndex,
+          correctOptionIndices: q.correctOptionIndices,
           correctOrder: q.correctOrder,
           categories: q.categories,
           categoryAssignments: q.categoryAssignments,
@@ -523,7 +540,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                   <h3 className="text-sm font-black text-slate-900">Questions ({quizQuestions.length})</h3>
                   
                   {/* Add Question Menu */}
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 max-w-[280px]">
                     <button
                       type="button"
                       onClick={() => handleAddNewBlankQuestion('MCQ')}
@@ -533,10 +550,24 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                     </button>
                     <button
                       type="button"
+                      onClick={() => handleAddNewBlankQuestion('MULTIPLE_SELECT')}
+                      className="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + Multi
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('TRUE_FALSE')}
+                      className="px-2 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + True/False
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => handleAddNewBlankQuestion('DRAG_AND_DROP')}
                       className="px-2 py-1 bg-purple-600 hover:bg-purple-700 text-white text-[10px] font-bold rounded-lg transition"
                     >
-                      + Drag & Drop
+                      + Drag/Drop
                     </button>
                     <button
                       type="button"
@@ -544,6 +575,20 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       className="px-2 py-1 bg-amber-600 hover:bg-amber-700 text-white text-[10px] font-bold rounded-lg transition"
                     >
                       + Sequence
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('PROMPT_BUILDER')}
+                      className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + Prompt
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('SCENARIO_QUESTIONS')}
+                      className="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg transition"
+                    >
+                      + Scenario
                     </button>
                   </div>
                 </div>
@@ -705,15 +750,33 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
 
                   {/* DYNAMIC EDITOR PER QUESTION TYPE */}
                   
-                  {/* 1. MCQ & TRUE_FALSE */}
-                  {(currentQuestion.questionType === 'MCQ' || currentQuestion.questionType === 'TRUE_FALSE') && (
+                  {/* 1. MCQ, MULTIPLE_SELECT & TRUE_FALSE */}
+                  {(currentQuestion.questionType === 'MCQ' || currentQuestion.questionType === 'TRUE_FALSE' || currentQuestion.questionType === 'MULTIPLE_SELECT') && (
                     <div className="space-y-3">
                       <label className="block text-xs font-extrabold text-slate-700">
-                        Options (Mark radio button for Correct Answer)
+                        {currentQuestion.questionType === 'MULTIPLE_SELECT'
+                          ? 'Options (Mark checkboxes for all Correct Answers)'
+                          : 'Options (Mark radio button for Correct Answer)'}
                       </label>
                       <div className="space-y-2">
                         {currentQuestion.options.map((opt, optIdx) => {
-                          const isCorrect = currentQuestion.correctOptionIndex === optIdx;
+                          const isMultiple = currentQuestion.questionType === 'MULTIPLE_SELECT';
+                          const multiIndices: number[] = currentQuestion.correctOptionIndices || [];
+                          const isCorrect = isMultiple
+                            ? multiIndices.includes(optIdx)
+                            : currentQuestion.correctOptionIndex === optIdx;
+
+                          const toggleCorrect = () => {
+                            if (isMultiple) {
+                              const updated = isCorrect
+                                ? multiIndices.filter((i) => i !== optIdx)
+                                : [...multiIndices, optIdx];
+                              updateCurrentQuestion({ correctOptionIndices: updated });
+                            } else {
+                              updateCurrentQuestion({ correctOptionIndex: optIdx });
+                            }
+                          };
+
                           return (
                             <div key={optIdx} className="flex items-center space-x-2">
                               <div className="w-7 h-7 rounded-full bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0">
@@ -732,12 +795,14 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                               />
                               <button
                                 type="button"
-                                onClick={() => updateCurrentQuestion({ correctOptionIndex: optIdx })}
-                                className={`w-6 h-6 rounded-full border flex items-center justify-center shrink-0 ${
+                                onClick={toggleCorrect}
+                                className={`w-6 h-6 border flex items-center justify-center shrink-0 transition ${
+                                  isMultiple ? 'rounded-lg' : 'rounded-full'
+                                } ${
                                   isCorrect ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300 bg-white'
                                 }`}
                               >
-                                {isCorrect && <Check className="w-3.5 h-3.5" />}
+                                {isCorrect && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                               </button>
                               {currentQuestion.options.length > 2 && (
                                 <button
@@ -753,7 +818,7 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                         })}
                       </div>
 
-                      {currentQuestion.questionType === 'MCQ' && (
+                      {(currentQuestion.questionType === 'MCQ' || currentQuestion.questionType === 'MULTIPLE_SELECT') && (
                         <button
                           type="button"
                           onClick={handleAddOption}
@@ -1029,6 +1094,8 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                     <option value="MULTIPLE_SELECT">Multiple Select (Checkboxes)</option>
                                     <option value="TRUE_FALSE">True / False</option>
                                     <option value="CORRECT_SEQUENCE">Correct Sequence / Ordering</option>
+                                    <option value="DRAG_AND_DROP">Drag & Drop Categorization</option>
+                                    <option value="PROMPT_BUILDER">RCTOF Prompt Builder</option>
                                   </select>
 
                                   <div className="flex items-center gap-1 shrink-0 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">

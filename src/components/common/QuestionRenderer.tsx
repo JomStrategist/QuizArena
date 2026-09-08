@@ -11,6 +11,7 @@ import {
   Layers,
   FileCode,
   Check,
+  BookOpen,
 } from 'lucide-react';
 import { IQuestion } from '@/types';
 import { Activity3ChallengeView } from './Activity3ChallengeView';
@@ -786,12 +787,15 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
       return (
         <div key={subQ.id || subIdx} className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          {/* Sub-Question Header Badge */}
           <div className="flex items-center justify-between border-b pb-3 border-slate-100">
             <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-lg text-[10px] font-black uppercase tracking-wider">
               Question {subIdx + 1} of {totalSubQs}
               {sqType === 'CORRECT_SEQUENCE' && ' • Sequence'}
               {sqType === 'MULTIPLE_SELECT' && ' • Multiple Select'}
               {sqType === 'TRUE_FALSE' && ' • True / False'}
+              {sqType === 'DRAG_AND_DROP' && ' • Drag & Drop'}
+              {sqType === 'PROMPT_BUILDER' && ' • Prompt Builder'}
             </span>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black text-amber-700 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-md">
@@ -810,6 +814,32 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             </div>
           </div>
 
+          {/* Embedded Scenario Details Header at Each Sub-Question */}
+          {scData.scenarioTitle && (
+            <div className="p-3.5 bg-purple-50/90 border border-purple-200/90 rounded-2xl space-y-1 text-purple-950">
+              <div className="flex items-center space-x-1.5 text-[10px] font-black uppercase tracking-wider text-purple-700">
+                <BookOpen className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                <span>SCENARIO DETAILS: {scData.scenarioTitle}</span>
+              </div>
+              {scData.scenarioText && (
+                <p className="text-xs font-semibold text-purple-900 leading-relaxed">
+                  {scData.scenarioText}
+                </p>
+              )}
+              {scData.instructions && (
+                <p className="text-[11px] font-bold text-amber-800 bg-amber-50/80 px-2.5 py-1 rounded-xl border border-amber-200/60 mt-1">
+                  💡 {scData.instructions}
+                </p>
+              )}
+              {scData.backgroundContext && (
+                <p className="text-[11px] font-medium text-slate-700 pt-0.5">
+                  <strong className="font-bold text-slate-900">Key Context:</strong> {scData.backgroundContext}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Question Text */}
           <h3 className="text-sm md:text-base font-extrabold text-slate-900 leading-snug">
             {subQ.questionText}
           </h3>
@@ -937,6 +967,79 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* DRAG_AND_DROP inside Sub-Question */}
+          {sqType === 'DRAG_AND_DROP' && (
+            <div className="space-y-3 pt-1">
+              <p className="text-xs text-slate-500 font-bold">Assign each card to its matching category:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(subQ.categories || [
+                  { id: 'cat1', title: 'Category 1' },
+                  { id: 'cat2', title: 'Category 2' }
+                ]).map((cat: any) => (
+                  <div key={cat.id} className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2">
+                    <span className="text-xs font-black uppercase text-blue-600">{cat.title}</span>
+                    <select
+                      disabled={disabled || shouldShowAll}
+                      value={scenarioSubAnswers[subIdx]?.categoryAssignments?.[cat.id] || ''}
+                      onChange={(e) => {
+                        const current = scenarioSubAnswers[subIdx]?.categoryAssignments || {};
+                        const updated = { ...current, [cat.id]: e.target.value };
+                        setScenarioSubAnswers({
+                          ...scenarioSubAnswers,
+                          [subIdx]: { ...scenarioSubAnswers[subIdx], categoryAssignments: updated }
+                        });
+                      }}
+                      className="w-full p-2 bg-white border border-slate-300 rounded-lg text-xs font-bold text-slate-800"
+                    >
+                      <option value="">Choose item...</option>
+                      {(subQ.options || []).map((optText: string, oIdx: number) => (
+                        <option key={oIdx} value={optText}>{optText.split('||')[0]}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* PROMPT_BUILDER inside Sub-Question */}
+          {sqType === 'PROMPT_BUILDER' && (
+            <div className="space-y-3 pt-1">
+              <p className="text-xs text-slate-500 font-bold">Select the useful prompt pieces:</p>
+              <div className="space-y-2">
+                {(subQ.options || subQ.pieces || []).map((opt: any, optIdx: number) => {
+                  const pieceText = typeof opt === 'string' ? opt : opt.text;
+                  const selectedPieces = scenarioSubAnswers[subIdx]?.selectedPromptPieces || [];
+                  const isChecked = selectedPieces.includes(pieceText);
+                  return (
+                    <button
+                      key={optIdx}
+                      type="button"
+                      disabled={disabled || shouldShowAll}
+                      onClick={() => {
+                        const updated = isChecked
+                          ? selectedPieces.filter((p: string) => p !== pieceText)
+                          : [...selectedPieces, pieceText];
+                        setScenarioSubAnswers({
+                          ...scenarioSubAnswers,
+                          [subIdx]: { ...scenarioSubAnswers[subIdx], selectedPromptPieces: updated }
+                        });
+                      }}
+                      className={`w-full text-left p-3 rounded-xl border text-xs font-bold transition flex items-center space-x-2 ${
+                        isChecked ? 'bg-blue-50 border-blue-500 text-blue-900 ring-1 ring-blue-500' : 'bg-slate-50 border-slate-200 text-slate-800'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isChecked ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-400 bg-white'}`}>
+                        {isChecked && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                      <span>{pieceText}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 

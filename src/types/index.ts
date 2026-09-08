@@ -10,7 +10,7 @@ export interface IUser {
   createdAt: string;
 }
 
-export type QuestionType = 'MCQ' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER' | 'SOLUTION_CHALLENGE' | 'SCENARIO_QUESTIONS';
+export type QuestionType = 'MCQ' | 'MULTIPLE_SELECT' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER' | 'SOLUTION_CHALLENGE' | 'SCENARIO_QUESTIONS';
 export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
 
 export interface ISolutionChallengeCapability {
@@ -71,7 +71,7 @@ export interface IPromptBuilderData {
   pieces: { text: string; isCorrect: boolean }[];
 }
 
-export type SubQuestionType = 'MCQ' | 'MULTIPLE_SELECT' | 'TRUE_FALSE' | 'CORRECT_SEQUENCE';
+export type SubQuestionType = 'MCQ' | 'MULTIPLE_SELECT' | 'TRUE_FALSE' | 'CORRECT_SEQUENCE' | 'DRAG_AND_DROP' | 'PROMPT_BUILDER';
 
 export interface ISubQuestion {
   id: string;
@@ -83,6 +83,7 @@ export interface ISubQuestion {
   correctOrder?: number[];
   categories?: { id: string; title: string }[];
   categoryAssignments?: Record<string, string>;
+  promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
   points?: number;
   explanation?: string;
 }
@@ -121,6 +122,7 @@ export interface IQuestion {
   questionType: QuestionType;
   options: string[];
   correctOptionIndex?: number;
+  correctOptionIndices?: number[];
   correctOrder?: number[];
   categories?: { id: string; title: string; description?: string }[];
   categoryAssignments?: Record<string, string>;
