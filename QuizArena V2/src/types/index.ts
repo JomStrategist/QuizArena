@@ -1,0 +1,333 @@
+export type UserRole = 'TRAINER' | 'STUDENT' | 'ADMIN';
+
+export interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  avatarUrl?: string;
+  organization?: string;
+  createdAt: string;
+}
+
+export type QuestionType = 'MCQ' | 'MULTIPLE_SELECT' | 'TRUE_FALSE' | 'DRAG_AND_DROP' | 'CORRECT_SEQUENCE' | 'PROMPT_BUILDER' | 'SOLUTION_CHALLENGE' | 'SCENARIO_QUESTIONS';
+export type DifficultyLevel = 'EASY' | 'MEDIUM' | 'HARD';
+
+export interface ISolutionChallengeCapability {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+  description?: string;
+}
+
+export interface ISolutionChallengeWorkflowStep {
+  id: string;
+  text: string;
+  isCorrect: boolean;
+  correctOrder?: number;
+}
+
+export interface ISolutionChallengeAutonomy {
+  id: string;
+  title: string;
+  isCorrect: boolean;
+  description: string;
+}
+
+export interface ISolutionChallengeRiskQuestion {
+  title?: string;
+  text?: string;
+  options?: { id: string; text: string; isCorrect: boolean }[];
+  explanation?: string;
+}
+
+export interface ISolutionChallengeData {
+  icon: string;
+  dept: string;
+  answer: string;
+  objective?: string;
+  constraints?: string;
+  whyApproach?: string;
+  capabilities: ISolutionChallengeCapability[];
+  workflow: ISolutionChallengeWorkflowStep[];
+  autonomy: ISolutionChallengeAutonomy[];
+  controlTitle?: string;
+  why: string;
+  riskQuestion?: ISolutionChallengeRiskQuestion;
+  approachMarks?: number;
+  capabilityMarks?: number;
+  workflowMarks?: number;
+  workflowSequenceBonus?: number;
+  humanControlMarks?: number;
+  capabilityPenalty?: number;
+  workflowPenalty?: number;
+}
+
+
+export interface IPromptBuilderData {
+  scenarioTitle?: string;
+  scenarioText?: string;
+  instruction?: string;
+  pieces: { text: string; isCorrect: boolean }[];
+}
+
+export type SubQuestionType = 'MCQ' | 'MULTIPLE_SELECT' | 'TRUE_FALSE' | 'CORRECT_SEQUENCE' | 'DRAG_AND_DROP' | 'PROMPT_BUILDER';
+
+export interface ISubQuestion {
+  id: string;
+  questionType?: SubQuestionType;
+  questionText: string;
+  options: string[];
+  correctOptionIndex?: number;
+  correctOptionIndices?: number[];
+  correctOrder?: number[];
+  categories?: { id: string; title: string }[];
+  categoryAssignments?: Record<string, string>;
+  promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
+  points?: number;
+  timeLimit?: number;
+  explanation?: string;
+}
+
+export interface IScenarioQuestionsData {
+  scenarioTitle: string;
+  scenarioText: string;
+  backgroundContext?: string;
+  instructions?: string;
+  subQuestions: ISubQuestion[];
+}
+
+
+export interface ISequenceItem {
+  id: string;
+  text: string;
+  description?: string;
+  icon?: string;
+  correctPosition: number;
+}
+
+export interface ISequenceQuestionData {
+  scenarioTitle?: string;
+  scenarioText?: string;
+  instruction?: string;
+  items: ISequenceItem[];
+  correctSequenceIds: string[];
+  allowPartialScoring?: boolean;
+  feedback?: string;
+}
+
+export interface IQuestion {
+  _id: string;
+  trainerId: string;
+  questionText: string;
+  questionType: QuestionType;
+  options: string[];
+  correctOptionIndex?: number;
+  correctOptionIndices?: number[];
+  correctOrder?: number[];
+  categories?: { id: string; title: string; description?: string }[];
+  categoryAssignments?: Record<string, string>;
+  promptBlocks?: { role?: string[]; context?: string[]; task?: string[]; outputFormat?: string[] };
+  solutionChallengeData?: ISolutionChallengeData;
+  promptBuilderData?: IPromptBuilderData;
+  scenarioQuestionsData?: IScenarioQuestionsData;
+  sequenceData?: ISequenceQuestionData;
+  timeLimit: number; // Seconds
+  points: number;
+  explanation?: string;
+  category: string;
+  topic?: string;
+  difficulty: DifficultyLevel;
+  tags: string[];
+  mediaUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type QuizStatus = 'DRAFT' | 'READY' | 'ACTIVE' | 'ARCHIVED';
+
+export interface IQuiz {
+  _id: string;
+  trainerId: string;
+  title: string;
+  description?: string;
+  category: string;
+  instructions?: string;
+  questions: IQuestion[]; // Populated or embedded question snapshots
+  questionIds: string[];
+  status: QuizStatus;
+  defaultTimeLimit: number;
+  defaultPoints: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IAssignment {
+  _id: string;
+  quizId: string;
+  quizTitle: string;
+  trainerId: string;
+  trainerName: string;
+  title: string;
+  studentEmails: string[];
+  startDate: string;
+  dueDate: string;
+  maxAttempts: number;
+  showScoreImmediately: boolean;
+  showCorrectAnswers: boolean;
+  quizSnapshot: IQuiz;
+  createdAt: string;
+}
+
+export type AssignmentStatus = 'NOT_STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'EXPIRED';
+
+export interface IStudentResponse {
+  questionId: string;
+  questionText: string;
+  selectedOptionIndex: number;
+  correctOptionIndex: number;
+  isCorrect: boolean;
+  pointsEarned: number;
+  responseTimeMs: number;
+}
+
+export interface IStudentAttempt {
+  _id: string;
+  assignmentId: string;
+  studentEmail: string;
+  studentName: string;
+  quizSnapshot: IQuiz;
+  attemptNumber: number;
+  startTime: string;
+  completionTime?: string;
+  totalScore: number;
+  maxPossibleScore: number;
+  percentage: number;
+  correctCount: number;
+  wrongCount: number;
+  unansweredCount: number;
+  status: AssignmentStatus;
+  responses: IStudentResponse[];
+  createdAt: string;
+}
+
+export type LiveSessionStage = 
+  | 'LOBBY'
+  | 'STARTING'
+  | 'QUESTION_ACTIVE'
+  | 'QUESTION_LOCKED'
+  | 'SHOWING_RESULT'
+  | 'LEADERBOARD'
+  | 'PAUSED'
+  | 'FINAL_PODIUM'
+  | 'FINAL_SCOREBOARD'
+  | 'CLOSED';
+
+export interface ILiveParticipant {
+  participantId?: string;
+  socketId?: string;
+  email?: string;
+  displayName: string;
+  score: number;
+  rank: number;
+  previousRank: number;
+  correctAnswers: number;
+  wrongAnswers: number;
+  unansweredCount: number;
+  accuracy?: number;
+  avgResponseTimeMs?: number;
+  lastResponseTimeMs?: number;
+  lastPointsEarned?: number;
+  lastIsCorrect?: boolean;
+  lastRankDelta?: number;
+  joinedAt?: string;
+}
+
+export interface ILiveGameSettings {
+  maxParticipants?: number;
+  allowLateJoin?: boolean;
+  speedScoring?: boolean;
+  showCorrectAnswer?: boolean;
+  showScore?: boolean;
+  showLeaderboard?: boolean;
+  finalPodium?: boolean;
+}
+
+export interface ILiveSession {
+  _id: string;
+  quizCode: string; // 6-digit string
+  quizId: string;
+  quizTitle: string;
+  trainerId: string;
+  trainerName: string;
+  sessionType: 'CONDUCT' | 'LIVE_GAME';
+  questionTime: number;
+  maxParticipants?: number;
+  allowLateJoin?: boolean;
+  speedScoring?: boolean;
+  showCorrectAnswer?: boolean;
+  showScore?: boolean;
+  showLeaderboard?: boolean;
+  finalPodium?: boolean;
+  pointsMode: string;
+  stage: LiveSessionStage;
+  previousStage?: LiveSessionStage;
+  currentQuestionIndex: number;
+  totalQuestions: number;
+  quizSnapshot: IQuiz;
+  questionStartTimestamp?: number;
+  questionEndTimestamp?: number;
+  stageStartTimestamp?: number;
+  pauseStartTimestamp?: number;
+  totalPausedMs?: number;
+  participants: Record<string, ILiveParticipant>; // Keyed by participantId
+  answers?: Record<string, Record<string, any>>; // questionIndex -> participantId -> answerObject
+  createdAt: string;
+  closedAt?: string;
+}
+
+export interface ILiveSessionResult {
+  _id: string;
+  quizCode: string;
+  quizTitle: string;
+  trainerId: string;
+  totalParticipants: number;
+  averageScore: number;
+  rankings: {
+    rank: number;
+    displayName: string;
+    email?: string;
+    totalScore: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    unansweredCount: number;
+  }[];
+  questionStats: {
+    questionIndex: number;
+    questionText: string;
+    correctCount: number;
+    wrongCount: number;
+    optionDistribution: Record<number, number>; // index -> count
+    avgResponseTimeMs: number;
+  }[];
+  createdAt: string;
+}
+
+// Import Preview Diagnostic interface
+export interface IImportParseDiagnostic {
+  rowOrIndex: number;
+  questionText: string;
+  status: 'VALID' | 'ERROR';
+  errorMessage?: string;
+  parsedQuestion?: Partial<IQuestion>;
+}
+
+export interface IImportPreviewSummary {
+  fileName: string;
+  fileType: 'EXCEL' | 'WORD';
+  totalParsed: number;
+  validCount: number;
+  errorCount: number;
+  diagnostics: IImportParseDiagnostic[];
+  validQuestions: Partial<IQuestion>[];
+}
