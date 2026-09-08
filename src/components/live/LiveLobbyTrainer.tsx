@@ -89,7 +89,6 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
       {/* Header Bar */}
       <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center space-x-4">
-          <img src="/QuizArena Icon.png" alt="QuizArena" className="w-12 h-12 object-contain" />
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 leading-tight">
             {quizTitle}
           </h1>
