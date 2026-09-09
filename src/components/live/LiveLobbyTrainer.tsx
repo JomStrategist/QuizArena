@@ -113,8 +113,36 @@ export const LiveLobbyTrainer: React.FC<LiveLobbyTrainerProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center space-x-3 self-start md:self-auto">
-          {/* Start Quiz Button (Same size as Close Lobby) */}
+        <div className="flex items-center space-x-2 self-start md:self-auto flex-wrap gap-y-2">
+          {/* Scoreboard Visibility Live Toggle Button */}
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                const nextVis = (sessionType === 'TRAINER_ONLY' ? 'EVERYONE' : 'TRAINER_ONLY');
+                const res = await fetch('/api/v1/live-sessions/update-settings', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ quizCode, scoreboardVisibility: nextVis }),
+                });
+                const json = await res.json();
+                if (json.success) {
+                  showToast(
+                    `Scoreboard visibility: ${nextVis === 'EVERYONE' ? 'Show to Everyone 👥' : 'Trainer Screen Only 🔒'}`,
+                    'info'
+                  );
+                }
+              } catch (e) {
+                showToast('Error toggling scoreboard visibility.', 'error');
+              }
+            }}
+            className="px-3.5 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-2xs"
+            title="Choose whether the scoreboard is shown to everyone or trainer screen only"
+          >
+            <span>👥 Scoreboard: Show to Everyone</span>
+          </button>
+
+          {/* Start Quiz Button */}
           <button
             onClick={onStartGame}
             className="px-5 py-2.5 bg-amber-400 hover:bg-amber-500 text-slate-950 border border-amber-300 rounded-2xl text-xs font-black transition flex items-center space-x-2 shadow-xs cursor-pointer active:scale-95"

@@ -184,6 +184,29 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleToggleScoreboardVisibility = async () => {
+    if (!sessionData) return;
+    const currentVisibility = sessionData.scoreboardVisibility || 'EVERYONE';
+    const nextVisibility = currentVisibility === 'TRAINER_ONLY' ? 'EVERYONE' : 'TRAINER_ONLY';
+    try {
+      const res = await fetch('/api/v1/live-sessions/update-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quizCode, scoreboardVisibility: nextVisibility }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        showToast(
+          `Scoreboard visibility: ${nextVisibility === 'EVERYONE' ? 'Show to Everyone 👥' : 'Trainer Screen Only 🔒'}`,
+          'info'
+        );
+        fetchSyncData();
+      }
+    } catch (err) {
+      showToast('Error updating scoreboard visibility.', 'error');
+    }
+  };
+
   const handlePauseResumeToggle = async () => {
     if (!sessionData) return;
     setActionLoading(true);
@@ -338,8 +361,23 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           </button>
         </div>
 
-        {/* Right Controls: Next Question, Pause, End Game */}
-        <div className="flex items-center space-x-3 shrink-0">
+        {/* Right Controls: Scoreboard Visibility, Next Question, Pause, End Game */}
+        <div className="flex items-center space-x-2 shrink-0">
+          <button
+            onClick={handleToggleScoreboardVisibility}
+            className={`px-3.5 py-3 rounded-2xl text-xs font-black transition flex items-center space-x-1.5 border shadow-xs ${
+              sessionData?.scoreboardVisibility === 'TRAINER_ONLY'
+                ? 'bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200'
+                : 'bg-blue-100 text-blue-900 border-blue-300 hover:bg-blue-200'
+            }`}
+            title="Toggle whether participants see the scoreboard or only the trainer"
+          >
+            <Eye className="w-4 h-4 text-purple-700" />
+            <span>
+              {sessionData?.scoreboardVisibility === 'TRAINER_ONLY' ? '🔒 Scoreboard: Trainer Only' : '👥 Scoreboard: Everyone'}
+            </span>
+          </button>
+
           <button
             onClick={handleNextQuestion}
             className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/20 active:scale-95"

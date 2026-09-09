@@ -458,6 +458,45 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
                     )}
                   </div>
                 </div>
+
+                {/* Scoreboard Visibility Setting (Prominently rendered on Step 1 as requested) */}
+                <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="p-1.5 bg-purple-100 text-purple-700 rounded-lg">
+                      <Eye className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-900">Scoreboard Visibility</p>
+                      <p className="text-[10px] text-slate-500 font-medium">Choose who can see the live scoreboard after questions when starting the quiz</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setScoreboardVisibility('EVERYONE')}
+                      className={`p-2.5 rounded-xl border text-xs font-black transition flex items-center justify-center space-x-2 ${
+                        scoreboardVisibility === 'EVERYONE'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>👥 Show to Everyone</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setScoreboardVisibility('TRAINER_ONLY')}
+                      className={`p-2.5 rounded-xl border text-xs font-black transition flex items-center justify-center space-x-2 ${
+                        scoreboardVisibility === 'TRAINER_ONLY'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>🔒 Trainer Screen Only</span>
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
 
