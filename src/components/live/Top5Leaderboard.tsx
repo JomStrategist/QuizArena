@@ -36,10 +36,104 @@ interface Top5LeaderboardProps {
 }
 
 export type LeaderboardAnimPhase =
-  | 'PREVIOUS_SCOREBOARD' // Step 1: Show initial scores before points added
-  | 'COUNTING_POINTS' // Step 2: Animated points count-up (+pts)
-  | 'REORDERING_RANKS' // Step 3: FLIP row re-sorting / position changing
-  | 'EMOJI_REVEAL'; // Step 4: Emoji animations & callout badges reveal
+  | 'PREVIOUS_SCOREBOARD' // Step 1: Show initial scores before points added (0 - 1.2s)
+  | 'COUNTING_POINTS' // Step 2: Animated points count-up (+pts) (1.2s - 2.7s)
+  | 'REORDERING_RANKS' // Step 3: FLIP row re-sorting / position changing (2.7s - 3.9s)
+  | 'EMOJI_REVEAL' // Step 4: Cartoon emoji reveal & sunglasses drop animation (3.9s - 4.9s)
+  | 'POST_ANIMATION_COUNTDOWN'; // Step 5: 5-Second Countdown Timer for Next Question (4.9s - 9.9s)
+
+/**
+ * Cartoon Developer Avatar Smiley Component
+ * Features Cartoon Sunglasses Drop Animation for Rank 1:
+ * Displays face WITHOUT sunglasses first (😃), then sunglasses (🕶️) slide down onto face and transform into 😎!
+ */
+const CartoonSmileyAvatar: React.FC<{
+  rankNum: number;
+  trendDelta: number;
+  isEmojiPhase: boolean;
+}> = ({ rankNum, trendDelta, isEmojiPhase }) => {
+  const [glassesLanded, setGlassesLanded] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (isEmojiPhase && rankNum === 1) {
+      // 250ms cartoon delay: User sees face without sunglasses first, then sunglasses drop!
+      const timer = setTimeout(() => {
+        setGlassesLanded(true);
+      }, 250);
+      return () => clearTimeout(timer);
+    } else {
+      setGlassesLanded(false);
+    }
+  }, [isEmojiPhase, rankNum]);
+
+  if (!isEmojiPhase) return null;
+
+  // Rank 1: Cartoon Sunglasses Drop Animation (Without Sunglasses -> Glasses Drop -> 😎)
+  if (rankNum === 1) {
+    return (
+      <div className="relative inline-flex items-center justify-center">
+        {/* Base Smiley */}
+        <span className="text-sm select-none filter drop-shadow-xs transition-all duration-300">
+          {glassesLanded ? '😎' : '😃'}
+        </span>
+
+        {/* Cartoon Sunglasses Drop Effect */}
+        {!glassesLanded && (
+          <span
+            className="absolute -top-3.5 left-1/2 -translate-x-1/2 text-sm select-none animate-in slide-in-from-top-6 fade-in duration-500 transform -rotate-12 z-20"
+            style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }}
+          >
+            🕶️
+          </span>
+        )}
+
+        {/* Sparkle burst when sunglasses snap onto face */}
+        {glassesLanded && (
+          <span className="absolute -top-2 -right-2 text-[10px] animate-ping select-none">
+            ✨
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Rank 2: Star-Eyed Runner Up with Rotating Sparkle Stars
+  if (rankNum === 2) {
+    return (
+      <div className="relative inline-flex items-center justify-center animate-in zoom-in-75 duration-300">
+        <span className="text-sm select-none filter drop-shadow-xs">🤩</span>
+        <span className="absolute -top-1 -right-1 text-[9px] animate-spin">✨</span>
+      </div>
+    );
+  }
+
+  // Rank 3: Party Horn Podium Contender
+  if (rankNum === 3) {
+    return (
+      <div className="relative inline-flex items-center justify-center animate-in zoom-in-75 duration-300">
+        <span className="text-sm select-none filter drop-shadow-xs">🥳</span>
+        <span className="absolute -top-1 -right-1 text-[9px] animate-bounce">🎉</span>
+      </div>
+    );
+  }
+
+  // Rank Climber: Grinning Climber with Lightning Bolt
+  if (trendDelta > 0) {
+    return (
+      <div className="relative inline-flex items-center justify-center animate-in zoom-in-75 duration-300">
+        <span className="text-sm select-none filter drop-shadow-xs">😁</span>
+        <span className="absolute -top-1 -right-1 text-[9px] animate-bounce">⚡</span>
+      </div>
+    );
+  }
+
+  // Default Comeback Monocle Smiley
+  return (
+    <span className="text-sm select-none filter drop-shadow-xs animate-in zoom-in-75 duration-300">
+      🧐
+    </span>
+  );
+};
 
 /**
  * Animated Number Counter for smooth score transition (e.g. 100 -> 183)
@@ -96,10 +190,14 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   isPaused = false,
   onTogglePause,
   onNextQuestion,
-  timerDurationSec = LEADERBOARD_ANIMATION_CONFIG.intermediate.timerDurationSec || 8,
+  timerDurationSec = 8,
 }) => {
-  const [countdown, setCountdown] = useState<number>(timerDurationSec);
   const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
+  const [nextQCountdown, setNextQCountdown] = useState<number>(
+    LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 5
+  );
+
+  const hasTriggeredNextRef = useRef<boolean>(false);
 
   // Play leaderboard audio reveal sound on mount
   useEffect(() => {
@@ -113,6 +211,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     const p1Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.previousScoreboardPhaseMs || 1200;
     const p2Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.countingPointsPhaseMs || 1500;
     const p3Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.reorderingPhaseMs || 1200;
+    const p4Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.emojiRevealPhaseMs || 1000;
 
     // Step 1 -> Step 2: Start Counting Points
     const timer1 = setTimeout(() => {
@@ -124,26 +223,47 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
       setAnimPhase('REORDERING_RANKS');
     }, p1Time + p2Time);
 
-    // Step 3 -> Step 4: Reveal Emojis & Badges
+    // Step 3 -> Step 4: Reveal Emojis & Sunglasses Drop
     const timer3 = setTimeout(() => {
       setAnimPhase('EMOJI_REVEAL');
     }, p1Time + p2Time + p3Time);
+
+    // Step 4 -> Step 5: Start 5-Second Countdown Timer AFTER all animations complete!
+    const timer4 = setTimeout(() => {
+      setAnimPhase('POST_ANIMATION_COUNTDOWN');
+    }, p1Time + p2Time + p3Time + p4Time);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
+      clearTimeout(timer4);
     };
   }, []);
 
-  // Timer Countdown with Pause support
+  // Step 5: 5-Second Countdown Timer to Next Question (Runs AFTER all animations complete)
   useEffect(() => {
-    if (isPaused) return; // Freeze timer countdown when trainer pauses
+    if (animPhase !== 'POST_ANIMATION_COUNTDOWN') return;
+    if (isPaused) return; // Pause countdown timer when trainer clicks pause
+
     const interval = setInterval(() => {
-      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+      setNextQCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          if (!hasTriggeredNextRef.current) {
+            hasTriggeredNextRef.current = true;
+            if (onNextQuestion) {
+              onNextQuestion();
+            }
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
+
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [animPhase, isPaused, onNextQuestion]);
 
   // Compute previous scores & earnings for each participant
   const processedParticipants = rankings.map((p) => {
@@ -256,10 +376,15 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                 <Zap className="w-3.5 h-3.5" />
                 <span>STEP 3: REORDERING POSITIONS</span>
               </span>
+            ) : animPhase === 'EMOJI_REVEAL' ? (
+              <span className="text-amber-300 flex items-center space-x-1.5 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>STEP 4: CARTOON REVEAL & SUNGLASSES DROP</span>
+              </span>
             ) : (
-              <span className="text-amber-300 flex items-center space-x-1.5">
-                <Trophy className="w-3.5 h-3.5 fill-amber-300" />
-                <span>STEP 4: LIVE SCOREBOARD</span>
+              <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
+                <Clock className="w-3.5 h-3.5" />
+                <span>STEP 5: NEXT QUESTION IN {nextQCountdown}s</span>
               </span>
             )}
           </div>
@@ -272,7 +397,9 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                 ? 'Calculating Scores...'
                 : animPhase === 'REORDERING_RANKS'
                 ? 'Updating Standings!'
-                : 'Leaderboard Standings'}
+                : animPhase === 'EMOJI_REVEAL'
+                ? 'Coronation & Badges!'
+                : 'Get Ready for Next Question!'}
             </span>
           </h1>
 
@@ -290,13 +417,13 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">Participants</span>
           </div>
 
-          {/* Countdown Timer Badge */}
-          <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[110px] relative">
+          {/* Countdown Timer Badge (Shows 5-Second Timer in Phase 5) */}
+          <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[120px] relative">
             <span className={`text-xl sm:text-2xl font-black font-mono block ${isPaused ? 'text-amber-400 animate-pulse' : 'text-amber-300'}`}>
-              00:0{countdown}
+              {animPhase === 'POST_ANIMATION_COUNTDOWN' ? `00:0${nextQCountdown}` : 'ANIMATING'}
             </span>
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">
-              {isPaused ? 'PAUSED' : 'NEXT QUESTION'}
+              {isPaused ? 'PAUSED' : animPhase === 'POST_ANIMATION_COUNTDOWN' ? 'NEXT QUESTION IN' : 'LEADERBOARD'}
             </span>
           </div>
 
@@ -335,7 +462,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
         </div>
       </div>
 
-      {/* FULL-WIDTH LEADERBOARD TABLE WITH MULTI-STEP ANIMATED REVEAL SEQUENCE */}
+      {/* FULL-WIDTH LEADERBOARD TABLE WITH CARTOON SUNGLASSES & BADGES REVEAL */}
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden transition-all duration-300">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-semibold border-collapse">
@@ -364,7 +491,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                 const isPrevPhase = animPhase === 'PREVIOUS_SCOREBOARD';
                 const isCountingPhase = animPhase === 'COUNTING_POINTS';
                 const isReorderingPhase = animPhase === 'REORDERING_RANKS';
-                const isEmojiPhase = animPhase === 'EMOJI_REVEAL';
+                const isEmojiPhase = animPhase === 'EMOJI_REVEAL' || animPhase === 'POST_ANIMATION_COUNTDOWN';
 
                 const correctStr = `${p.correctAnswers || 0} / ${currentQNum}`;
                 const accuracyPct = p.accuracy !== undefined ? p.accuracy : 0;
@@ -378,13 +505,6 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
 
                 const isNewRankOneLeader = rankNum === 1 && trendDelta > 0;
                 const streakCount = p.correctAnswers !== undefined && p.correctAnswers >= 2 ? p.correctAnswers : 0;
-
-                // Select matching smiley for rank & trend (Only revealed in Phase 4: EMOJI_REVEAL)
-                let playerSmiley = '🧐'; // default comeback/focused
-                if (rankNum === 1) playerSmiley = '😎'; // Cool sunglasses leader
-                else if (rankNum === 2) playerSmiley = '🤩'; // Star-eyed runner-up
-                else if (rankNum === 3) playerSmiley = '🥳'; // Party podium contender
-                else if (trendDelta > 0) playerSmiley = '😁'; // Grinning rank climber
 
                 // Row highlight classes
                 let rowBgClass = 'hover:bg-slate-50 transition-all duration-300';
@@ -421,7 +541,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     className={`animate-in fade-in duration-300 ease-out ${rowBgClass}`}
                     style={{ animationDelay: `${idx * effectiveStaggerMs}ms` }}
                   >
-                    {/* Rank # with Cool Sunglasses / Trophy Badge */}
+                    {/* Rank # with Gold / Silver / Bronze Badge */}
                     <td className="py-3.5 px-4 text-center font-black">
                       {rankNum === 1 ? (
                         <span className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 text-xs inline-flex items-center justify-center font-black shadow-md border border-amber-300 transition-transform hover:scale-110">
@@ -440,10 +560,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                       )}
                     </td>
 
-                    {/* Name with Avatar & Animated Smiley Badge Overlay (Phase 4 reveal) */}
+                    {/* Name with Avatar & Cartoon Sunglasses Drop Animation */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        {/* Avatar with Smiley Overlay */}
+                        {/* Avatar Container with Cartoon Sunglasses Animation Overlay */}
                         <div className="relative shrink-0">
                           <div
                             className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shadow-md transition-transform hover:scale-105 ${
@@ -453,25 +573,14 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                             {displayName.charAt(0)}
                           </div>
 
-                          {/* Animated Smiley Badge Overlay (Revealed in Phase 4: EMOJI_REVEAL) */}
-                          {isEmojiPhase && (
-                            <span
-                              className="absolute -bottom-1 -right-1 text-sm select-none filter drop-shadow-xs transition-all duration-300 hover:scale-125 animate-in zoom-in-75 bounce-in"
-                              title={
-                                rankNum === 1
-                                  ? 'Cool Leader 😎'
-                                  : rankNum === 2
-                                  ? 'Superstar 🤩'
-                                  : rankNum === 3
-                                  ? 'Podium Contender 🥳'
-                                  : trendDelta > 0
-                                  ? 'Rank Climber 😁'
-                                  : 'Comeback Mode 🧐'
-                              }
-                            >
-                              {playerSmiley}
-                            </span>
-                          )}
+                          {/* Cartoon Sunglasses Drop & Smiley Overlay (Phase 4 & 5) */}
+                          <div className="absolute -bottom-1 -right-1">
+                            <CartoonSmileyAvatar
+                              rankNum={rankNum}
+                              trendDelta={trendDelta}
+                              isEmojiPhase={isEmojiPhase}
+                            />
+                          </div>
                         </div>
 
                         <div className="flex items-center space-x-2 flex-wrap gap-y-1">
@@ -484,10 +593,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                             </span>
                           )}
 
-                          {/* Phase 4 Emoji & Badge Callouts */}
+                          {/* Phase 4 & 5 Cartoon Badges */}
                           {isEmojiPhase && (
                             <>
-                              {/* New Rank 1 Leader Animated Badge */}
+                              {/* New Rank 1 Leader Animated Callout Badge */}
                               {isNewRankOneLeader && (
                                 <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 text-slate-950 font-black text-[10px] rounded-full shadow-md animate-bounce border border-amber-300">
                                   <span className="text-xs">😎✨</span>

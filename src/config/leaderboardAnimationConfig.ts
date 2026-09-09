@@ -19,6 +19,8 @@ export interface ILeaderboardAnimationConfig {
     previousScoreboardPhaseMs: number; // Phase 1: Show initial scores before points added (1200ms)
     countingPointsPhaseMs: number; // Phase 2: Animated points count-up (1500ms)
     reorderingPhaseMs: number; // Phase 3: FLIP row re-sorting (1200ms)
+    emojiRevealPhaseMs: number; // Phase 4: Cartoon emoji reveal & sunglasses drop (1000ms)
+    postAnimationCountdownSec: number; // Phase 5: Countdown timer AFTER all animations complete (5s)
   };
 
   // Final Leaderboard (After Last Question Only)
@@ -55,6 +57,8 @@ export const LEADERBOARD_ANIMATION_CONFIG: ILeaderboardAnimationConfig = {
     previousScoreboardPhaseMs: 1200,
     countingPointsPhaseMs: 1500,
     reorderingPhaseMs: 1200,
+    emojiRevealPhaseMs: 1000,
+    postAnimationCountdownSec: 5,
   },
   final: {
     enabled: true,
