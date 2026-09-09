@@ -27,6 +27,7 @@ import { useToast } from '../ui/ToastNotification';
 import { soundManager } from '@/lib/game/soundManager';
 import { QuestionRenderer } from '../common/QuestionRenderer';
 import { LivePodiumFinale } from './LivePodiumFinale';
+import { PracticeTrialView } from './PracticeTrialView';
 
 interface ConductQuizStudentProps {
   quizCode: string;
@@ -57,6 +58,8 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const [startTimeMs, setStartTimeMs] = useState<number>(Date.now());
   const [hasTimedOut, setHasTimedOut] = useState<boolean>(false);
+  const [isTrialActive, setIsTrialActive] = useState<boolean>(false);
+  const [hasTriedOnce, setHasTriedOnce] = useState<boolean>(false);
   useEffect(() => {
     soundManager.setMuted(true);
   }, []);
@@ -389,6 +392,17 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
 
   // 2. WAITING ROOM (LOBBY)
   if (session.stage === 'LOBBY') {
+    if (isTrialActive) {
+      return (
+        <PracticeTrialView
+          onClose={() => {
+            setIsTrialActive(false);
+            setHasTriedOnce(true);
+          }}
+        />
+      );
+    }
+
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 font-sans text-slate-900 space-y-6">
         <div className="bg-white p-8 md:p-10 rounded-3xl border border-slate-200 shadow-xl max-w-lg w-full text-center space-y-6">
@@ -408,6 +422,20 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
             </span>
             <h2 className="text-lg font-black text-slate-900">{session.quizTitle}</h2>
             <p className="text-xs font-semibold text-slate-500">Prepared by: {session.trainerName}</p>
+          </div>
+
+          {/* PRACTICE TRIAL WARMUP BUTTON */}
+          <div>
+            <button
+              onClick={() => setIsTrialActive(true)}
+              className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 hover:from-amber-300 hover:to-yellow-200 text-slate-950 font-black text-xs sm:text-sm rounded-2xl transition shadow-lg flex items-center justify-center space-x-2 border border-amber-300 active:scale-95 animate-in zoom-in-95 duration-300"
+            >
+              <Zap className="w-4.5 h-4.5 fill-slate-950" />
+              <span>{hasTriedOnce ? 'Take Practice Trial Again' : 'Try Practice Questions (Warmup)'}</span>
+            </button>
+            <p className="text-[10px] text-slate-500 font-semibold mt-1.5">
+              Practice MCQ, True/False, Drag & Drop & Prompt Builder while waiting!
+            </p>
           </div>
 
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-center space-x-2 text-xs font-extrabold text-emerald-900">

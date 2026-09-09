@@ -23,6 +23,7 @@ import { useToast } from '../ui/ToastNotification';
 import { Top5Leaderboard } from './Top5Leaderboard';
 import { LivePodiumFinale } from './LivePodiumFinale';
 import { QuestionRenderer } from '../common/QuestionRenderer';
+import { PracticeTrialView } from './PracticeTrialView';
 import { soundManager } from '@/lib/game/soundManager';
 
 interface LiveGameStudentProps {
@@ -64,6 +65,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   }, [quizCode, participantId, displayName]);
 
   const [isMuted, setIsMuted] = useState<boolean>(true);
+  const [isTrialActive, setIsTrialActive] = useState<boolean>(false);
+  const [hasTriedOnce, setHasTriedOnce] = useState<boolean>(false);
 
   const { showToast } = useToast();
 
@@ -349,6 +352,17 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   // SCREEN 2: WAITING LOBBY
   // ==========================================
   if (!session || stage === 'LOBBY') {
+    if (isTrialActive) {
+      return (
+        <PracticeTrialView
+          onClose={() => {
+            setIsTrialActive(false);
+            setHasTriedOnce(true);
+          }}
+        />
+      );
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-slate-950 to-blue-950 text-white flex flex-col justify-between p-6 sm:p-8 font-sans overflow-hidden animate-in fade-in duration-300">
         
@@ -371,22 +385,22 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
         </div>
 
         {/* Center Content Stage */}
-        <div className="my-auto max-w-md mx-auto w-full space-y-6 text-center py-6">
+        <div className="my-auto max-w-md mx-auto w-full space-y-5 text-center py-4">
           {/* Hourglass Icon Circle */}
-          <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+          <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping" />
-            <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border-2 border-amber-400/80 flex items-center justify-center shadow-xl text-amber-300">
-              <Hourglass className="w-9 h-9 animate-spin duration-3000" />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 border-2 border-amber-400/80 flex items-center justify-center shadow-xl text-amber-300">
+              <Hourglass className="w-8 h-8 animate-spin duration-3000" />
             </div>
           </div>
 
           {/* Heading */}
           <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-white">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Welcome <span className="text-amber-400">{displayName}!</span>
             </h1>
             <p className="text-xs text-blue-200 font-medium px-4">
-              You're in! Waiting for the trainer to start the quiz.
+              You&apos;re in! Waiting for the trainer to start the quiz.
             </p>
           </div>
 
@@ -403,13 +417,27 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
             </div>
           </div>
 
+          {/* PRACTICE TRIAL WARMUP BUTTON */}
+          <div className="pt-2">
+            <button
+              onClick={() => setIsTrialActive(true)}
+              className="w-full py-3.5 px-6 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 hover:from-amber-300 hover:to-yellow-200 text-slate-950 font-black text-xs sm:text-sm rounded-2xl transition shadow-xl flex items-center justify-center space-x-2 border border-amber-300 active:scale-95 animate-in zoom-in-95 duration-300"
+            >
+              <Zap className="w-4.5 h-4.5 fill-slate-950" />
+              <span>{hasTriedOnce ? 'Take Practice Trial Again' : 'Try Practice Questions (Warmup)'}</span>
+            </button>
+            <p className="text-[10px] text-blue-300 font-medium mt-1.5">
+              Practice MCQ, True/False, Drag & Drop & Prompt Builder while waiting!
+            </p>
+          </div>
+
           {/* Lightbulb Quote Box */}
-          <div className="bg-white/10 backdrop-blur-md border border-white/15 p-4 rounded-3xl text-xs font-semibold text-blue-100 flex items-center space-x-3 text-left">
+          <div className="bg-white/10 backdrop-blur-md border border-white/15 p-3.5 rounded-3xl text-xs font-semibold text-blue-100 flex items-center space-x-3 text-left">
             <div className="p-2 bg-amber-400/20 text-amber-300 rounded-xl shrink-0">
-              <Lightbulb className="w-5 h-5" />
+              <Lightbulb className="w-4 h-4" />
             </div>
-            <p className="font-serif italic text-sm">
-              "Good Questions Lead to Great Minds!"
+            <p className="font-serif italic text-xs sm:text-sm">
+              &quot;Good Questions Lead to Great Minds!&quot;
             </p>
           </div>
         </div>
