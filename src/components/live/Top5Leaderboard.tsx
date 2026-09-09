@@ -364,27 +364,27 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             {animPhase === 'PREVIOUS_SCOREBOARD' ? (
               <span className="text-amber-300 flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 animate-spin" />
-                <span>STEP 1: PREVIOUS STANDINGS (5s)</span>
+                <span>PHASE 1: PREVIOUS STANDINGS (5s)</span>
               </span>
             ) : animPhase === 'COUNTING_POINTS' ? (
               <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>STEP 2: ADDING POINTS (+PTS) (3s)</span>
+                <span>PHASE 2: ADDING POINTS (+PTS) (3s)</span>
               </span>
             ) : animPhase === 'REORDERING_RANKS' ? (
               <span className="text-purple-300 flex items-center space-x-1.5 animate-pulse">
                 <Zap className="w-3.5 h-3.5" />
-                <span>STEP 3: REORDERING POSITIONS (3s)</span>
+                <span>PHASE 3: REORDERING POSITIONS (3s)</span>
               </span>
             ) : animPhase === 'EMOJI_REVEAL' ? (
               <span className="text-amber-300 flex items-center space-x-1.5 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>STEP 4: CARTOON REVEAL & SUNGLASSES DROP (3s)</span>
+                <span>PHASE 4: LEADERBOARD REVEAL (3s)</span>
               </span>
             ) : (
               <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
                 <Clock className="w-3.5 h-3.5" />
-                <span>STEP 5: NEXT QUESTION IN {nextQCountdown}s (8s)</span>
+                <span>NEXT QUESTION IN {nextQCountdown}s (8s)</span>
               </span>
             )}
           </div>
@@ -398,7 +398,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                 : animPhase === 'REORDERING_RANKS'
                 ? 'Updating Standings!'
                 : animPhase === 'EMOJI_REVEAL'
-                ? 'Coronation & Badges!'
+                ? 'Leaderboard Standings'
                 : 'Get Ready for Next Question!'}
             </span>
           </h1>
@@ -417,10 +417,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">Participants</span>
           </div>
 
-          {/* Countdown Timer Badge (Shows 5-Second Timer in Phase 5) */}
+          {/* Countdown Timer Badge */}
           <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[120px] relative">
             <span className={`text-xl sm:text-2xl font-black font-mono block ${isPaused ? 'text-amber-400 animate-pulse' : 'text-amber-300'}`}>
-              {animPhase === 'POST_ANIMATION_COUNTDOWN' ? `00:0${nextQCountdown}` : 'ANIMATING'}
+              {animPhase === 'POST_ANIMATION_COUNTDOWN' ? `00:0${nextQCountdown}` : 'UPDATING'}
             </span>
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">
               {isPaused ? 'PAUSED' : animPhase === 'POST_ANIMATION_COUNTDOWN' ? 'NEXT QUESTION IN' : 'LEADERBOARD'}

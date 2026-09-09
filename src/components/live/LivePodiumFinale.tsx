@@ -202,7 +202,7 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
             </div>
           </div>
 
-          {/* Rank 1 - Gold (Center - Dramatic Coronation Reveal 1st) */}
+          {/* Rank 1 - Gold (Center - 1st Place Champion Reveal) */}
           <div
             className={`flex flex-col items-center space-y-2 w-36 sm:w-48 -mt-10 transition-all duration-1000 ${
               isVisible1st
@@ -210,7 +210,7 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
                 : 'opacity-0 translate-y-16 scale-90 pointer-events-none'
             }`}
           >
-            {/* CORONATION CROWN & AVATAR CONTAINER */}
+            {/* CROWN & AVATAR CONTAINER */}
             <div className="relative flex flex-col items-center pt-8">
               {/* ANIMATED DESCENDING CROWN (Lands onto 1st place head in celebrate stage) */}
               <div
@@ -246,7 +246,7 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
               </div>
             </div>
 
-            {/* CHAMPION DETAILS & CORONATION BADGE */}
+            {/* CHAMPION DETAILS */}
             <div className="text-center space-y-1 pt-1">
               {(stage === 'celebrate' || stage === 'showRemaining') && (
                 <div className="inline-flex items-center space-x-1 px-3 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 rounded-full text-[10px] sm:text-[11px] font-black shadow-lg border border-amber-200 animate-bounce">

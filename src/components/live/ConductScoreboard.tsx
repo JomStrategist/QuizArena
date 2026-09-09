@@ -114,7 +114,7 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
           </div>
         </div>
 
-        {/* 1st Place - Gold Coronation Podium */}
+        {/* 1st Place - Gold Champion Podium */}
         <div className="flex flex-col items-center space-y-2 w-36 sm:w-48 -mt-8">
           <div className="relative flex flex-col items-center pt-7">
             {/* Animated Floating Crown */}
