@@ -121,6 +121,40 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
     }
   };
 
+  // Smooth local timer countdown synchronized with questionStartTimestamp
+  const targetQuestionTime = currentQuestion?.timeLimit || session?.questionTime || 30;
+
+  useEffect(() => {
+    if (session?.stage !== 'QUESTION_ACTIVE' || !session?.questionStartTimestamp) {
+      setTimeLeft(targetQuestionTime);
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - session.questionStartTimestamp) / 1000);
+      const remaining = Math.max(0, targetQuestionTime - elapsed);
+      setTimeLeft(remaining);
+
+      soundManager.updateQuizState({
+        stage: session.stage,
+        timeLeft: remaining,
+        questionTimeLimit: targetQuestionTime,
+        isAnswerSubmitted: Boolean(studentAnswer),
+      });
+
+      if (remaining <= 0 && !studentAnswer && !hasTimedOut && !submitting) {
+        setHasTimedOut(true);
+        handleOptionSelect(-1, true);
+      }
+    };
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 500);
+
+    return () => clearInterval(timerInterval);
+  }, [session?.stage, session?.questionStartTimestamp, targetQuestionTime, studentAnswer, hasTimedOut, submitting]);
+
   useEffect(() => {
     syncState();
     const interval = setInterval(syncState, 500);

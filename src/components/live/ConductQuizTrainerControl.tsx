@@ -99,6 +99,34 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
     }
   };
 
+  // Smooth local timer countdown synchronized with questionStartTimestamp
+  const targetQuestionTime = currentQuestion?.timeLimit || sessionData?.questionTime || 30;
+
+  useEffect(() => {
+    if (sessionData?.stage !== 'QUESTION_ACTIVE' || !sessionData?.questionStartTimestamp) {
+      setTimeLeft(targetQuestionTime);
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - sessionData.questionStartTimestamp) / 1000);
+      const remaining = Math.max(0, targetQuestionTime - elapsed);
+      setTimeLeft(remaining);
+
+      soundManager.updateQuizState({
+        stage: sessionData.stage,
+        timeLeft: remaining,
+        questionTimeLimit: targetQuestionTime,
+      });
+    };
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 500);
+
+    return () => clearInterval(timerInterval);
+  }, [sessionData?.stage, sessionData?.questionStartTimestamp, targetQuestionTime]);
+
   useEffect(() => {
     fetchSyncData();
     const interval = setInterval(fetchSyncData, 1000);

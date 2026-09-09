@@ -107,6 +107,34 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
     }
   };
 
+  // Smooth local timer countdown synchronized with questionStartTimestamp
+  const targetQuestionTime = currentQuestion?.timeLimit || sessionData?.questionTime || 30;
+
+  useEffect(() => {
+    if (sessionData?.stage !== 'QUESTION_ACTIVE' || !sessionData?.questionStartTimestamp) {
+      setTimeLeft(targetQuestionTime);
+      return;
+    }
+
+    const updateTimer = () => {
+      const now = Date.now();
+      const elapsed = Math.floor((now - sessionData.questionStartTimestamp) / 1000);
+      const remaining = Math.max(0, targetQuestionTime - elapsed);
+      setTimeLeft(remaining);
+
+      soundManager.updateQuizState({
+        stage: sessionData.stage,
+        timeLeft: remaining,
+        questionTimeLimit: targetQuestionTime,
+      });
+    };
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 500);
+
+    return () => clearInterval(timerInterval);
+  }, [sessionData?.stage, sessionData?.questionStartTimestamp, targetQuestionTime]);
+
   useEffect(() => {
     fetchSyncData();
     const interval = setInterval(fetchSyncData, 1000);
@@ -315,13 +343,88 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
   // Circular timer SVG specs
   const radius = 24;
   const circumference = 2 * Math.PI * radius;
-  const totalTime = sessionData?.questionTime || 20;
-  const timePercent = Math.max(0, Math.min(1, timeLeft / totalTime));
+  const totalTime = targetQuestionTime;
+  const timePercent = Math.max(0, Math.min(1, timeLeft / Math.max(1, totalTime)));
   const strokeDashoffset = circumference * (1 - timePercent);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-start p-2 sm:p-4 space-y-6 w-full font-sans text-slate-900">
-      
+      {/* Top Session Live Banner Card */}
+      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+        
+        {/* Left Activity Details */}
+        <div className="space-y-2">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-rose-50 border border-rose-200 text-rose-600 rounded-full text-xs font-extrabold">
+            <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
+            <Radio className="w-3.5 h-3.5" />
+            <span>LIVE</span>
+          </div>
+
+          <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
+            {quizTitle}
+          </h1>
+        </div>
+
+        {/* Center: Game Code Card (Fills Center Space) */}
+        <div className="flex-1 max-w-xl mx-auto md:mx-6 bg-rose-50/60 border-2 border-rose-300 px-8 py-3 rounded-2xl shadow-sm flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-600 whitespace-nowrap hidden sm:inline">
+              GAME CODE
+            </span>
+            <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-mono tracking-[0.2em] text-rose-600">
+              {quizCode}
+            </span>
+          </div>
+          <button
+            onClick={handleCopyCode}
+            className="p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-100/80 rounded-xl transition cursor-pointer flex items-center"
+            title="Copy URL"
+          >
+            {copied ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5 text-rose-600" />}
+          </button>
+        </div>
+
+        {/* Right Controls: Next Question, Pause, End Game */}
+        <div className="flex items-center space-x-2 shrink-0">
+          <button
+            onClick={handleNextQuestion}
+            className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/20 active:scale-95"
+          >
+            <span>Next Question</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
+          <button
+            onClick={handlePauseResumeToggle}
+            disabled={actionLoading}
+            className={`px-5 py-3 rounded-2xl font-black text-xs transition flex items-center space-x-2 shadow-xs ${
+              stage === 'PAUSED'
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                : 'bg-amber-400 hover:bg-amber-500 text-slate-950'
+            }`}
+          >
+            {stage === 'PAUSED' ? (
+              <>
+                <PlayCircle className="w-4 h-4 fill-current" />
+                <span>Resume Game</span>
+              </>
+            ) : (
+              <>
+                <PauseCircle className="w-4 h-4" />
+                <span>Pause Game</span>
+              </>
+            )}
+          </button>
+
+          <button
+            onClick={handleCloseClick}
+            className="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-2xl transition shadow-md shadow-rose-600/20 flex items-center space-x-2"
+          >
+            <StopCircle className="w-4 h-4" />
+            <span>End Game</span>
+          </button>
+        </div>
+      </div>
 
 
 

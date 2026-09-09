@@ -70,7 +70,8 @@ export const ProjectorViewModal: React.FC<ProjectorViewModalProps> = ({
   // SVG Circular progress for timer
   const radius = 54;
   const circumference = 2 * Math.PI * radius;
-  const timePercent = Math.max(0, Math.min(1, timeLeft / Math.max(1, totalTime)));
+  const effectiveTotalTime = currentQuestion?.timeLimit || totalTime || 30;
+  const timePercent = Math.max(0, Math.min(1, timeLeft / Math.max(1, effectiveTotalTime)));
   const strokeDashoffset = circumference * (1 - timePercent);
 
   const progressPercent = Math.min(
