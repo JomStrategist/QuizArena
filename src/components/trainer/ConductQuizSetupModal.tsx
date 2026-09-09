@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { IQuiz } from '@/types';
 import { useToast } from '../ui/ToastNotification';
+import { ScoreboardVisibilityModal } from '../common/ScoreboardVisibilityModal';
 
 interface ConductQuizSetupModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
   const [scoreboardVisibility, setScoreboardVisibility] = useState<'EVERYONE' | 'TRAINER_ONLY'>('EVERYONE');
   const [finalLeaderboard, setFinalLeaderboard] = useState<boolean>(true);
   const [submitting, setSubmitting] = useState<boolean>(false);
+  const [isScoreboardModalOpen, setIsScoreboardModalOpen] = useState<boolean>(false);
 
   const { showToast } = useToast();
 
@@ -59,12 +61,18 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
 
   const currentSelectedQuiz = quizzes.find((q) => q._id === selectedQuizId) || quiz;
 
-  const handleCreateSession = async (e: React.FormEvent) => {
+  const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedQuizId) {
       showToast('Please select a valid quiz to conduct.', 'warning');
       return;
     }
+    // Open Scoreboard Visibility Popup Modal before launching
+    setIsScoreboardModalOpen(true);
+  };
+
+  const handleConfirmCreateSession = async (chosenVisibility: 'EVERYONE' | 'TRAINER_ONLY') => {
+    if (!selectedQuizId) return;
 
     setSubmitting(true);
     try {
@@ -81,7 +89,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
           showCorrectAnswer,
           showScore,
           showLeaderboard,
-          scoreboardVisibility,
+          scoreboardVisibility: chosenVisibility,
           finalPodium: finalLeaderboard,
           pointsMode,
         }),
@@ -94,6 +102,7 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
 
       const { quizCode, quizTitle, quizSnapshot } = json.data;
       showToast(`Conduct Quiz created for "${quizTitle}"! Code: ${quizCode}`, 'success');
+      setIsScoreboardModalOpen(false);
       onSessionCreated(quizCode, quizTitle, questionTime, quizSnapshot);
       onClose();
     } catch (err: any) {
@@ -104,45 +113,53 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
   };
 
   return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 font-sans text-slate-900 animate-in fade-in duration-200 cursor-pointer overflow-y-auto"
-    >
+    <>
+      <ScoreboardVisibilityModal
+        isOpen={isScoreboardModalOpen}
+        onClose={() => setIsScoreboardModalOpen(false)}
+        isSubmitting={submitting}
+        onConfirm={handleConfirmCreateSession}
+      />
+
       <div
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden space-y-5 p-6 md:p-8 relative cursor-default my-8"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 font-sans text-slate-900 animate-in fade-in duration-200 cursor-pointer overflow-y-auto"
       >
-        
-        {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-          <div className="flex items-center space-x-3">
-            <img src="/QuizArena Icon.png" alt="QuizArena" className="w-8 h-8 object-contain" />
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-black text-lg text-slate-900">QuizArena</span>
-                <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 rounded-md">
-                  CONDUCT QUIZ SETUP
-                </span>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full overflow-hidden space-y-5 p-6 md:p-8 relative cursor-default my-8"
+        >
+          
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div className="flex items-center space-x-3">
+              <img src="/QuizArena Icon.png" alt="QuizArena" className="w-8 h-8 object-contain" />
+              <div>
+                <div className="flex items-center space-x-2">
+                  <span className="font-black text-lg text-slate-900">QuizArena</span>
+                  <span className="px-2 py-0.5 text-[10px] font-black uppercase tracking-wider bg-blue-100 text-blue-700 rounded-md">
+                    CONDUCT QUIZ SETUP
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 font-semibold">
+                  Configure your real-time trainer-led quiz session
+                </p>
               </div>
-              <p className="text-[11px] text-slate-500 font-semibold">
-                Configure your real-time trainer-led quiz session
-              </p>
             </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-slate-700 rounded-xl transition hover:bg-slate-100"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-slate-700 rounded-xl transition hover:bg-slate-100"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleCreateSession} className="space-y-5">
+          {/* Form */}
+          <form onSubmit={handleFormSubmit} className="space-y-5">
           
           {/* Select Quiz to Conduct */}
           <div className="space-y-2">
@@ -372,5 +389,6 @@ export const ConductQuizSetupModal: React.FC<ConductQuizSetupModalProps> = ({
         </form>
       </div>
     </div>
-  );
+  </>
+);
 };

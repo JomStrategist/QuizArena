@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { IQuiz } from '@/types';
 import { useToast } from '../ui/ToastNotification';
+import { ScoreboardVisibilityModal } from '../common/ScoreboardVisibilityModal';
 
 interface LiveGameSetupModalProps {
   isOpen: boolean;
@@ -69,6 +70,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
   const [showLeaderboard, setShowLeaderboard] = useState<boolean>(true);
   const [scoreboardVisibility, setScoreboardVisibility] = useState<'EVERYONE' | 'TRAINER_ONLY'>('EVERYONE');
   const [finalPodium, setFinalPodium] = useState<boolean>(true);
+  const [isScoreboardModalOpen, setIsScoreboardModalOpen] = useState<boolean>(false);
 
   const { showToast } = useToast();
 
@@ -171,7 +173,12 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
       return;
     }
 
-    // Default question time (20s) passed for fallback while backend uses each question's actual timeLimit
+    // Open Scoreboard Visibility Popup Modal before starting game
+    setIsScoreboardModalOpen(true);
+  };
+
+  const handleConfirmLaunch = (chosenVisibility: 'EVERYONE' | 'TRAINER_ONLY') => {
+    if (!selectedQuiz) return;
     const fallbackTime = questionsList.length > 0 ? (questionsList[0].timeLimit || 20) : 20;
 
     onLaunchLiveGame(selectedQuiz._id, {
@@ -180,9 +187,10 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
       speedScoring,
       showCorrectAnswer,
       showLeaderboard,
-      scoreboardVisibility,
+      scoreboardVisibility: chosenVisibility,
       finalPodium,
     });
+    setIsScoreboardModalOpen(false);
     onClose();
   };
 
@@ -205,12 +213,19 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
   };
 
   return (
-    <div
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-      className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 font-sans cursor-pointer"
-    >
+    <>
+      <ScoreboardVisibilityModal
+        isOpen={isScoreboardModalOpen}
+        onClose={() => setIsScoreboardModalOpen(false)}
+        onConfirm={handleConfirmLaunch}
+      />
+
+      <div
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200 font-sans cursor-pointer"
+      >
       <div
         onClick={(e) => e.stopPropagation()}
         className="bg-white max-w-6xl w-full rounded-3xl border border-slate-200/80 shadow-2xl overflow-hidden flex flex-col max-h-[92vh] text-slate-900 cursor-default"
@@ -836,7 +851,8 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
 
       </div>
     </div>
-  );
+  </>
+);
 };
 
 
