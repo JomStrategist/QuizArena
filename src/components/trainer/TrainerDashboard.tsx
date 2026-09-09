@@ -69,7 +69,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   onStartLiveSession,
   onStartConductQuiz,
 }) => {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'QUESTION_BANK' | 'QUIZZES' | 'ASSIGNMENTS' | 'REPORTS'>('QUIZZES');
+  const [activeTab, setActiveTab] = useState<'QUIZZES' | 'REPORTS' | 'OVERVIEW' | 'QUESTION_BANK' | 'ASSIGNMENTS'>('QUIZZES');
   const [quizzes, setQuizzes] = useState<IQuiz[]>([]);
   const [assignments, setAssignments] = useState<IAssignment[]>([]);
   const [recentConductResults, setRecentConductResults] = useState<any[]>([]);
@@ -381,8 +381,32 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           </div>
         </div>
 
-        {/* Center: intentionally empty for V1 */}
-        <div />
+        {/* Center: 2 Navigation Tabs (Quizzes & Reports) */}
+        <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 shadow-inner space-x-1">
+          <button
+            onClick={() => setActiveTab('QUIZZES')}
+            className={`flex items-center space-x-2 px-5 py-2 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 ${
+              activeTab === 'QUIZZES'
+                ? 'bg-white text-blue-600 shadow-xs border border-slate-200/60 scale-[1.02]'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Quizzes</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('REPORTS')}
+            className={`flex items-center space-x-2 px-5 py-2 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 ${
+              activeTab === 'REPORTS'
+                ? 'bg-white text-blue-600 shadow-xs border border-slate-200/60 scale-[1.02]'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+            }`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            <span>Reports</span>
+          </button>
+        </div>
 
         {/* Right: User Profile */}
         <div className="flex items-center space-x-3">
