@@ -190,11 +190,11 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   isPaused = false,
   onTogglePause,
   onNextQuestion,
-  timerDurationSec = 8,
+  timerDurationSec = 5,
 }) => {
   const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
   const [nextQCountdown, setNextQCountdown] = useState<number>(
-    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 8
+    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 5
   );
 
   const hasTriggeredNextRef = useRef<boolean>(false);
@@ -208,10 +208,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
 
   // Multi-phase animation timeline sequence
   useEffect(() => {
-    const p1Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.previousScoreboardPhaseMs || 1200;
-    const p2Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.countingPointsPhaseMs || 1500;
-    const p3Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.reorderingPhaseMs || 1200;
-    const p4Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.emojiRevealPhaseMs || 1000;
+    const p1Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.previousScoreboardPhaseMs || 2000;
+    const p2Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.countingPointsPhaseMs || 2000;
+    const p3Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.reorderingPhaseMs || 2000;
+    const p4Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.emojiRevealPhaseMs || 1500;
 
     // Step 1 -> Step 2: Start Counting Points
     const timer1 = setTimeout(() => {
@@ -374,27 +374,27 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             {animPhase === 'PREVIOUS_SCOREBOARD' ? (
               <span className="text-amber-300 flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 animate-spin" />
-                <span>PHASE 1: PREVIOUS STANDINGS (5s)</span>
+                <span>PHASE 1: PREVIOUS STANDINGS (2s)</span>
               </span>
             ) : animPhase === 'COUNTING_POINTS' ? (
               <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>PHASE 2: ADDING POINTS (+PTS) (3s)</span>
+                <span>PHASE 2: ADDING POINTS (+PTS) (2s)</span>
               </span>
             ) : animPhase === 'REORDERING_RANKS' ? (
               <span className="text-purple-300 flex items-center space-x-1.5 animate-pulse">
                 <Zap className="w-3.5 h-3.5" />
-                <span>PHASE 3: REORDERING POSITIONS (3s)</span>
+                <span>PHASE 3: REORDERING POSITIONS (2s)</span>
               </span>
             ) : animPhase === 'EMOJI_REVEAL' ? (
               <span className="text-amber-300 flex items-center space-x-1.5 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>PHASE 4: LEADERBOARD REVEAL (3s)</span>
+                <span>PHASE 4: LEADERBOARD REVEAL (1.5s)</span>
               </span>
             ) : (
               <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
                 <Clock className="w-3.5 h-3.5" />
-                <span>NEXT QUESTION IN {nextQCountdown}s (8s)</span>
+                <span>NEXT QUESTION IN {nextQCountdown}s (5s)</span>
               </span>
             )}
           </div>
