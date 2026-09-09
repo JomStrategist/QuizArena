@@ -28,9 +28,12 @@ import {
   Italic,
   Type,
   Copy,
+  Upload,
 } from 'lucide-react';
 import { IQuestion, IQuiz, QuestionType } from '@/types';
 import { useToast } from '../ui/ToastNotification';
+import { parseExcelQuestionFile } from '@/lib/import/excelParser';
+import { parseWordQuestionFile } from '@/lib/import/wordParser';
 
 interface QuizCreatorModalProps {
   isOpen: boolean;
@@ -55,6 +58,61 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
   const [draggedQIdx, setDraggedQIdx] = useState<number | null>(null);
   const [dragOverQIdx, setDragOverQIdx] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importingFile, setImportingFile] = useState(false);
+
+  const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImportingFile(true);
+    try {
+      const fileName = file.name.toLowerCase();
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+
+      let summary: any = null;
+      if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls') || fileName.endsWith('.csv')) {
+        summary = parseExcelQuestionFile(buffer, file.name);
+      } else if (fileName.endsWith('.docx') || fileName.endsWith('.txt')) {
+        summary = await parseWordQuestionFile(buffer, file.name);
+      } else {
+        showToast('Unsupported file type. Please upload Excel (.xlsx, .csv) or Word (.docx, .txt).', 'warning');
+        return;
+      }
+
+      if (summary && summary.validQuestions && summary.validQuestions.length > 0) {
+        const newQs: IQuestion[] = summary.validQuestions.map((q: any, i: number) => ({
+          _id: `import-${Date.now()}-${i}`,
+          trainerId: 'trainer-1',
+          questionText: q.questionText || `Imported Question ${i + 1}`,
+          questionType: (q.questionType as QuestionType) || 'MCQ',
+          options: q.options || ['Option A', 'Option B'],
+          correctOptionIndex: q.correctOptionIndex ?? 0,
+          correctOptionIndices: q.correctOptionIndices || [],
+          explanation: q.explanation || '',
+          timeLimit: q.timeLimit || 20,
+          points: q.points || 1000,
+          category: q.category || category || 'General',
+          difficulty: 'MEDIUM',
+          tags: [],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        }));
+
+        setQuizQuestions((prev) => [...prev, ...newQs]);
+        showToast(`Successfully imported ${newQs.length} question(s) from ${file.name}!`, 'success');
+      } else {
+        showToast('No valid questions found in file. Please check file format.', 'warning');
+      }
+    } catch (err: any) {
+      console.error('File import error:', err);
+      showToast(err.message || 'Error parsing imported file.', 'error');
+    } finally {
+      setImportingFile(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   const moveQuestion = (fromIdx: number, toIdx: number) => {
     if (fromIdx < 0 || toIdx < 0 || fromIdx >= quizQuestions.length || toIdx >= quizQuestions.length || fromIdx === toIdx) return;
@@ -622,18 +680,41 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
             {/* LEFT COLUMN: Questions List (4 Cols) */}
             <div className="lg:col-span-4 space-y-4">
               <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-xs space-y-3">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 flex-wrap gap-2">
                   <h3 className="text-sm font-black text-slate-900">Questions ({quizQuestions.length})</h3>
                   
-                  {/* Add Question Button */}
-                  <button
-                    type="button"
-                    onClick={() => handleAddNewBlankQuestion('MCQ')}
-                    className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition flex items-center space-x-1.5 shadow-xs"
-                  >
-                    <Plus className="w-4 h-4 stroke-[3]" />
-                    <span>Add Question</span>
-                  </button>
+                  <div className="flex items-center space-x-2">
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleFileImport}
+                      accept=".xlsx,.xls,.csv,.docx,.txt"
+                      className="hidden"
+                    />
+
+                    {/* Import Excel / Word Button */}
+                    <button
+                      type="button"
+                      disabled={importingFile}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-extrabold rounded-xl transition flex items-center space-x-1.5 shadow-xs cursor-pointer disabled:opacity-50"
+                      title="Upload questions in bulk via Excel (.xlsx, .csv) or Word (.docx, .txt)"
+                    >
+                      <Upload className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>{importingFile ? 'Importing...' : 'Upload Excel / Word'}</span>
+                    </button>
+
+                    {/* Add Question Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleAddNewBlankQuestion('MCQ')}
+                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold rounded-xl transition flex items-center space-x-1.5 shadow-xs cursor-pointer"
+                    >
+                      <Plus className="w-4 h-4 stroke-[3]" />
+                      <span>Add</span>
+                    </button>
+                  </div>
                 </div>
 
                 <div className="space-y-2 max-h-[460px] overflow-y-auto pr-1">

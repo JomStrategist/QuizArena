@@ -300,7 +300,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
   }
 
   // 2. LEADERBOARD SCREEN
-  if (stage === 'LEADERBOARD') {
+  if (stage === 'LEADERBOARD' || (stage === 'PAUSED' && sessionData?.previousStage === 'LEADERBOARD')) {
     return (
       <Top5Leaderboard
         rankings={rankings}
@@ -311,7 +311,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         isPaused={sessionData?.stage === 'PAUSED'}
         onTogglePause={handlePauseResumeToggle}
         onNextQuestion={handleNextQuestion}
-        timerDurationSec={8}
+        timerDurationSec={3}
       />
     );
   }
@@ -336,51 +336,54 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
     stage === 'QUESTION_LOCKED' ||
     (stage === 'QUESTION_ACTIVE' && timeLeft <= 0);
 
-  const totalAns = liveStats.answeredCount || 0;
-  const correctPct = totalAns > 0 ? Math.round((liveStats.correctCount / totalAns) * 100) : 83;
-  const wrongPct = totalAns > 0 ? Math.round((liveStats.wrongCount / totalAns) * 100) : 17;
-
   // Circular timer SVG specs
   const radius = 24;
   const circumference = 2 * Math.PI * radius;
   const totalTime = targetQuestionTime;
-  const timePercent = Math.max(0, Math.min(1, timeLeft / Math.max(1, totalTime)));
-  const strokeDashoffset = circumference * (1 - timePercent);
+  const timeRatio = Math.max(0, Math.min(1, timeLeft / Math.max(1, totalTime)));
+  const strokeDashoffset = circumference * (1 - timeRatio);
+
+  // Timer Color-Coding (Green -> Yellow -> Red)
+  let timerColorClass = 'text-emerald-400';
+  if (timeRatio <= 0.25) {
+    timerColorClass = 'text-rose-500 animate-pulse';
+  } else if (timeRatio <= 0.5) {
+    timerColorClass = 'text-amber-400';
+  }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-start p-2 sm:p-4 space-y-6 w-full font-sans text-slate-900">
-      {/* Top Session Live Banner Card */}
-      <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+    <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-indigo-950 to-slate-950 text-white flex flex-col justify-start p-3 sm:p-6 space-y-5 w-full font-sans">
+      
+      {/* Top Controls & Game Code Bar (Clean Header without extra logo) */}
+      <div className="bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         
-        {/* Left Activity Details */}
-        <div className="space-y-2">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-rose-50 border border-rose-200 text-rose-600 rounded-full text-xs font-extrabold">
-            <span className="w-2 h-2 rounded-full bg-rose-600 animate-ping shrink-0" />
+        {/* Left: LIVE Badge & Activity Title */}
+        <div className="flex items-center space-x-3">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-full text-xs font-extrabold shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />
             <Radio className="w-3.5 h-3.5" />
             <span>LIVE</span>
           </div>
 
-          <h1 className="text-xl md:text-2xl font-black text-slate-900 leading-tight">
+          <h1 className="text-base sm:text-lg font-black text-white leading-tight truncate max-w-xs sm:max-w-md">
             {quizTitle}
           </h1>
         </div>
 
-        {/* Center: Game Code Card (Fills Center Space) */}
-        <div className="flex-1 max-w-xl mx-auto md:mx-6 bg-rose-50/60 border-2 border-rose-300 px-8 py-3 rounded-2xl shadow-sm flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-rose-600 whitespace-nowrap hidden sm:inline">
-              GAME CODE
-            </span>
-            <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black font-mono tracking-[0.2em] text-rose-600">
-              {quizCode}
-            </span>
-          </div>
+        {/* Center: Glowing Game Code Box */}
+        <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-blue-900/40 border border-cyan-500/40 px-6 py-2 rounded-2xl shadow-lg shadow-cyan-500/10">
+          <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 hidden md:inline">
+            GAME CODE
+          </span>
+          <span className="text-3xl sm:text-4xl font-black font-mono tracking-[0.15em] text-cyan-300 drop-shadow-md">
+            {quizCode}
+          </span>
           <button
             onClick={handleCopyCode}
-            className="p-2.5 text-rose-600 hover:text-rose-700 hover:bg-rose-100/80 rounded-xl transition cursor-pointer flex items-center"
+            className="p-1.5 text-cyan-400 hover:text-cyan-200 hover:bg-white/10 rounded-xl transition cursor-pointer"
             title="Copy URL"
           >
-            {copied ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5 text-rose-600" />}
+            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
           </button>
         </div>
 
@@ -388,7 +391,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         <div className="flex items-center space-x-2 shrink-0">
           <button
             onClick={handleNextQuestion}
-            className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/20 active:scale-95"
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
           >
             <span>Next Question</span>
             <ArrowRight className="w-4 h-4" />
@@ -397,15 +400,15 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           <button
             onClick={handlePauseResumeToggle}
             disabled={actionLoading}
-            className={`px-5 py-3 rounded-2xl font-black text-xs transition flex items-center space-x-2 shadow-xs ${
+            className={`px-4 py-2.5 rounded-xl font-black text-xs transition flex items-center space-x-1.5 shadow-sm cursor-pointer ${
               stage === 'PAUSED'
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-amber-400 hover:bg-amber-500 text-slate-950'
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                : 'bg-blue-600/80 hover:bg-blue-600 border border-blue-400/30 text-white'
             }`}
           >
             {stage === 'PAUSED' ? (
               <>
-                <PlayCircle className="w-4 h-4 fill-current" />
+                <PlayCircle className="w-4 h-4 fill-current text-white" />
                 <span>Resume Game</span>
               </>
             ) : (
@@ -418,7 +421,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
 
           <button
             onClick={handleCloseClick}
-            className="px-5 py-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-2xl transition shadow-md shadow-rose-600/20 flex items-center space-x-2"
+            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition shadow-md shadow-rose-600/20 flex items-center space-x-1.5 cursor-pointer"
           >
             <StopCircle className="w-4 h-4" />
             <span>End Game</span>
@@ -426,78 +429,65 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         </div>
       </div>
 
-
-
-
-      {/* Main Content Grid Layout */}
-      <div className="grid grid-cols-1 gap-6 items-start">
-        
-        {/* Main Column: Progress, Timer, Active Question & Controls (Full Width) */}
-        <div className="w-full space-y-5">
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+      {/* Main Column: Progress, Timer, Active Question */}
+      <div className="w-full space-y-5">
+        <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-slate-800/80 shadow-2xl space-y-6">
+          
+          {/* Question Progress Bar & Color-Coded Circular Timer */}
+          <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between gap-6">
             
-            {/* Question Progress Header & Timer Box (Sticky on Scroll) */}
-            <div className="sticky top-2 z-40 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-slate-200 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all">
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-600">
-                  <span>Question {currentIdx} of {totalQuestions}</span>
-                  <span className="text-blue-600 font-extrabold">{progressPercent}% Completed</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
-                  <div
-                    className="bg-blue-600 h-full rounded-full transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
-                  />
-                </div>
+            {/* Progress Bar & Counter */}
+            <div className="flex-1 space-y-2">
+              <div className="flex items-center justify-between text-xs font-black tracking-wide text-slate-300">
+                <span>Question {currentIdx} of {totalQuestions}</span>
+                <span className="text-cyan-400 font-extrabold">{progressPercent}% Completed</span>
               </div>
-
-              {/* Countdown Circular Timer Ring */}
-              <div className="bg-orange-50/80 border border-orange-200 px-4 py-2 rounded-2xl flex items-center space-x-3 shrink-0">
-                <div className="relative w-12 h-12 flex items-center justify-center">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
-                    <circle
-                      cx="30"
-                      cy="30"
-                      r={radius}
-                      stroke="currentColor"
-                      strokeWidth="5"
-                      className="text-orange-100"
-                      fill="transparent"
-                    />
-                    <circle
-                      cx="30"
-                      cy="30"
-                      r={radius}
-                      stroke="currentColor"
-                      strokeWidth="5"
-                      className="text-orange-500 transition-all duration-1000 ease-linear"
-                      fill="transparent"
-                      strokeDasharray={circumference}
-                      strokeDashoffset={strokeDashoffset}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <Clock className="w-4 h-4 text-orange-600 absolute" />
-                </div>
-                <div>
-                  <span className="text-xl font-black font-mono text-slate-900 leading-none block">
-                    {timeLeft}s
-                  </span>
-                  <span className="text-[10px] font-extrabold text-orange-700 uppercase tracking-wider">
-                    Time Remaining
-                  </span>
-                </div>
+              <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+                <div
+                  className="bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-500 h-full rounded-full transition-all duration-500 shadow-md shadow-cyan-500/30"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
             </div>
 
-            {/* Active Question Content Box */}
-            <div className="pt-2">
-              <QuestionRenderer
-                question={currentQuestion}
-                mode="trainer"
-                showCorrectAnswer={isTimeUp || showCorrectAnswerToggle}
-              />
+            {/* Clean Color-Coded Circular Timer Ring (No text clutter next to it) */}
+            <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
+                <circle
+                  cx="30"
+                  cy="30"
+                  r={radius}
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  className="text-slate-800"
+                  fill="transparent"
+                />
+                <circle
+                  cx="30"
+                  cy="30"
+                  r={radius}
+                  stroke="currentColor"
+                  strokeWidth="5"
+                  className={`${timerColorClass} transition-all duration-1000 ease-linear`}
+                  fill="transparent"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="absolute text-base font-black font-mono text-white drop-shadow">
+                {timeLeft}s
+              </span>
             </div>
+          </div>
+
+          {/* Active Question Box wrapped in clean card */}
+          <div className="pt-1">
+            <QuestionRenderer
+              question={currentQuestion}
+              mode="trainer"
+              showCorrectAnswer={isTimeUp || showCorrectAnswerToggle}
+            />
           </div>
         </div>
       </div>

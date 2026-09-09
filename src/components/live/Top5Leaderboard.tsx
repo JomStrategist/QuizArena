@@ -190,11 +190,11 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   isPaused = false,
   onTogglePause,
   onNextQuestion,
-  timerDurationSec = 5,
+  timerDurationSec = 3,
 }) => {
   const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
   const [nextQCountdown, setNextQCountdown] = useState<number>(
-    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 5
+    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 3
   );
   const hasTriggeredNextRef = useRef<boolean>(false);
 

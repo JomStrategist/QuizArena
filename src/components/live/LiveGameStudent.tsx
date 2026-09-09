@@ -819,7 +819,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           Q {currentIdx} of {totalQuestions}
         </span>
 
-        {/* Center Circular 16s Timer Ring */}
+        {/* Center Circular Timer Ring */}
         <div className="relative w-12 h-12 flex items-center justify-center">
           <svg className="w-full h-full transform -rotate-90" viewBox="0 0 60 60">
             <circle
@@ -828,7 +828,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
               r="24"
               stroke="currentColor"
               strokeWidth="5"
-              className="text-amber-100"
+              className="text-slate-200"
               fill="transparent"
             />
             <circle
@@ -838,11 +838,15 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
               stroke="currentColor"
               strokeWidth="5"
               className={`${
-                timeLeft <= 5 ? 'text-rose-500' : 'text-amber-500'
+                timeLeft <= Math.max(1, targetQuestionTime) * 0.25
+                  ? 'text-rose-500 animate-pulse'
+                  : timeLeft <= Math.max(1, targetQuestionTime) * 0.5
+                  ? 'text-amber-500'
+                  : 'text-emerald-500'
               } transition-all duration-1000 ease-linear`}
               fill="transparent"
               strokeDasharray={2 * Math.PI * 24}
-              strokeDashoffset={2 * Math.PI * 24 * (1 - Math.max(0, timeLeft / 20))}
+              strokeDashoffset={2 * Math.PI * 24 * (1 - Math.max(0, timeLeft / Math.max(1, targetQuestionTime)))}
               strokeLinecap="round"
             />
           </svg>
