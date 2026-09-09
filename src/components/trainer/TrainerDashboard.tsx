@@ -365,45 +365,45 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   return (
     <div className="space-y-6 font-sans text-slate-800 pb-12">
       {/* Top Header Navbar matching reference design */}
-      <header className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-xs px-5 py-3 flex items-center justify-between">
+      <header className="bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-xs px-5 py-3.5 sm:py-4 flex items-center justify-between">
         {/* Left: Brand Identity with official logo */}
         <div className="flex items-center space-x-3">
-          <img src="/QuizArena Icon.png" alt="QuizArena Logo" className="w-9 h-9 object-contain" />
+          <img src="/QuizArena Icon.png" alt="QuizArena Logo" className="w-9 h-9 sm:w-10 sm:h-10 object-contain" />
           <div>
             <div className="flex items-center space-x-1.5">
-              <span className="text-xl font-black tracking-tight text-slate-900">
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
                 Quiz<span className="text-blue-600">Arena</span>
               </span>
             </div>
-            <p className="text-[10px] font-bold text-blue-600 tracking-wide">
+            <p className="text-xs font-bold text-blue-600 tracking-wide">
               Learn • Assess • Grow
             </p>
           </div>
         </div>
 
         {/* Center: 2 Navigation Tabs (Quizzes & Reports) */}
-        <div className="flex items-center bg-slate-100/90 p-1 rounded-xl border border-slate-200/80 shadow-inner space-x-1">
+        <div className="flex items-center bg-slate-100/90 p-1.5 rounded-xl sm:rounded-2xl border border-slate-200/80 shadow-inner space-x-1">
           <button
             onClick={() => setActiveTab('QUIZZES')}
-            className={`flex items-center space-x-2 px-5 py-2 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-extrabold transition-all duration-200 ${
               activeTab === 'QUIZZES'
                 ? 'bg-white text-blue-600 shadow-xs border border-slate-200/60 scale-[1.02]'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
             }`}
           >
-            <BookOpen className="w-4 h-4" />
+            <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Quizzes</span>
           </button>
 
           <button
             onClick={() => setActiveTab('REPORTS')}
-            className={`flex items-center space-x-2 px-5 py-2 rounded-lg text-xs md:text-sm font-bold transition-all duration-200 ${
+            className={`flex items-center space-x-2 px-5 sm:px-6 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm md:text-base font-extrabold transition-all duration-200 ${
               activeTab === 'REPORTS'
                 ? 'bg-white text-blue-600 shadow-xs border border-slate-200/60 scale-[1.02]'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
             }`}
           >
-            <BarChart3 className="w-4 h-4" />
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
             <span>Reports</span>
           </button>
         </div>
@@ -414,27 +414,27 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           <div className="relative">
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="flex items-center space-x-2 bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200 transition"
+              className="flex items-center space-x-2.5 bg-slate-50 hover:bg-slate-100 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full border border-slate-200 transition"
             >
-              <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold text-xs flex items-center justify-center shadow-xs">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-xs">
                 {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
               </div>
               <div className="text-left hidden sm:block">
-                <p className="text-xs font-bold text-slate-900 leading-tight">
+                <p className="text-xs sm:text-sm font-extrabold text-slate-900 leading-tight">
                   {user?.name || 'Admin'}
                 </p>
-                <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider leading-tight">
+                <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider leading-tight">
                   {user?.role || 'TRAINER'}
                 </p>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             </button>
 
             {isUserMenuOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-[9999] animate-in fade-in slide-in-from-top-2">
                 <div className="px-4 py-2 border-b border-slate-100">
-                  <p className="text-xs font-bold text-slate-900">{user?.name || 'Admin Trainer'}</p>
-                  <p className="text-[10px] text-slate-500 truncate">{user?.email || 'admin@quizarena.com'}</p>
+                  <p className="text-xs sm:text-sm font-extrabold text-slate-900">{user?.name || 'Admin Trainer'}</p>
+                  <p className="text-xs text-slate-500 truncate">{user?.email || 'admin@quizarena.com'}</p>
                 </div>
                 <button
                   onClick={async () => {
@@ -448,9 +448,9 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                       window.location.href = '/auth/trainer';
                     }
                   }}
-                  className="w-full text-left px-4 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 transition"
+                  className="w-full text-left px-4 py-2 text-xs sm:text-sm font-bold text-rose-600 hover:bg-rose-50 flex items-center space-x-2 transition"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
+                  <LogOut className="w-4 h-4" />
                   <span>Logout</span>
                 </button>
               </div>
@@ -837,18 +837,18 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
             {/* Right Column (Your Quizzes Data Table) */}
             <div className="lg:col-span-8">
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
                 {/* Header & Controls */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                   <div className="flex items-center space-x-2">
                     <BookOpen className="w-5 h-5 text-blue-600" />
-                    <h3 className="text-base font-black text-slate-900">Your Quizzes</h3>
+                    <h3 className="text-base sm:text-lg font-black text-slate-900">Your Quizzes</h3>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     {/* Search Input */}
-                    <div className="relative flex-1 sm:w-48">
-                      <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                    <div className="relative flex-1 sm:w-56">
+                      <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 sm:top-3" />
                       <input
                         type="text"
                         placeholder="Search quizzes..."
@@ -857,7 +857,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                           setSearchQuery(e.target.value);
                           setCurrentPage(1);
                         }}
-                        className="w-full pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        className="w-full pl-9 pr-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                       />
                     </div>
 
@@ -868,7 +868,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                         setSelectedCategory(e.target.value);
                         setCurrentPage(1);
                       }}
-                      className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none"
+                      className="px-3 sm:px-3.5 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-700 focus:outline-none"
                     >
                       <option value="ALL">All Categories</option>
                       {categoriesList.map((cat) => (
@@ -881,9 +881,9 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     {/* Create Button */}
                     <button
                       onClick={handleCreateNewQuiz}
-                      className="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center space-x-1"
+                      className="px-4 sm:px-4.5 py-2 sm:py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black rounded-xl transition shadow-xs flex items-center space-x-1.5 hover:scale-[1.02]"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                       <span>Create New Quiz</span>
                     </button>
                   </div>
@@ -893,20 +893,20 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                 {loading ? (
                   <div className="h-32 bg-slate-100 rounded-xl animate-pulse" />
                 ) : filteredQuizzes.length === 0 ? (
-                  <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-500 text-xs">
+                  <div className="p-8 text-center bg-slate-50 rounded-xl border border-slate-200 text-slate-500 text-xs sm:text-sm">
                     No quizzes found matching your search criteria.
                   </div>
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
+                    <table className="w-full text-left text-xs sm:text-sm border-collapse">
                       <thead>
-                        <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                          <th className="pb-3 px-2">Quiz Title</th>
-                          <th className="pb-3 px-2">Category</th>
-                          <th className="pb-3 px-2">Questions</th>
-                          <th className="pb-3 px-2">Last Modified</th>
-                          <th className="pb-3 px-2">Status</th>
-                          <th className="pb-3 px-2 text-right">Actions</th>
+                        <tr className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                          <th className="py-3.5 sm:py-4 px-3 sm:px-4">Quiz Title</th>
+                          <th className="py-3.5 sm:py-4 px-3 sm:px-4">Category</th>
+                          <th className="py-3.5 sm:py-4 px-3 sm:px-4">Questions</th>
+                          <th className="py-3.5 sm:py-4 px-3 sm:px-4">Last Modified</th>
+                          <th className="py-3.5 sm:py-4 px-3 sm:px-4">Status</th>
+                          <th className="py-3.5 sm:py-4 px-3 sm:px-4 text-right">Actions</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
@@ -916,21 +916,21 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                           return (
                             <tr key={quiz._id} className="hover:bg-slate-50/70 transition">
                               {/* Quiz Title with Icon Thumbnail */}
-                              <td className="py-3 px-2">
-                                <div className="flex items-center space-x-2.5">
-                                  <div className="w-7 h-7 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <BookOpen className="w-3.5 h-3.5" />
+                              <td className="py-3.5 sm:py-4 px-3 sm:px-4">
+                                <div className="flex items-center space-x-3">
+                                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                    <BookOpen className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                                   </div>
-                                  <span className="font-bold text-slate-900 leading-tight">
+                                  <span className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
                                     {quiz.title}
                                   </span>
                                 </div>
                               </td>
 
                               {/* Category Badge */}
-                              <td className="py-3 px-2">
+                              <td className="py-3.5 sm:py-4 px-3 sm:px-4">
                                 <span
-                                  className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${getCategoryBadgeClass(
+                                  className={`px-3 sm:px-3.5 py-1 sm:py-1.5 text-xs sm:text-sm font-extrabold rounded-full border ${getCategoryBadgeClass(
                                     quiz.category
                                   )}`}
                                 >
@@ -939,48 +939,47 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                               </td>
 
                               {/* Question Count */}
-                              <td className="py-3 px-2 font-bold text-slate-700">
+                              <td className="py-3.5 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm font-black text-slate-700">
                                 {quiz.questionIds?.length || 0}
                               </td>
 
                               {/* Last Modified */}
-                              <td className="py-3 px-2 text-slate-500 font-medium">
+                              <td className="py-3.5 sm:py-4 px-3 sm:px-4 text-xs sm:text-sm text-slate-600 font-semibold">
                                 {modifiedDate}
                               </td>
 
                               {/* Status Badge */}
-                              <td className="py-3 px-2">
-                                <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
+                              <td className="py-3.5 sm:py-4 px-3 sm:px-4">
+                                <span className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-extrabold bg-emerald-100 text-emerald-800 rounded-lg">
                                   Ready
                                 </span>
                               </td>
 
                               {/* Action Buttons */}
-                              <td className="py-3 px-2 text-right">
-                                <div className="flex items-center justify-end space-x-1.5">
+                              <td className="py-3.5 sm:py-4 px-3 sm:px-4 text-right">
+                                <div className="flex items-center justify-end space-x-2">
                                   <button
                                     onClick={() => handleEditQuiz(quiz)}
-                                    className="px-2.5 py-1 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-[11px] font-bold rounded-lg transition flex items-center space-x-1"
+                                    className="px-3 sm:px-3.5 py-1.5 sm:py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs sm:text-sm font-extrabold rounded-lg sm:rounded-xl transition flex items-center space-x-1.5 shadow-xs"
                                   >
-                                    <Edit className="w-3 h-3 text-amber-600" />
+                                    <Edit className="w-3.5 h-3.5 text-amber-600" />
                                     <span>Edit</span>
                                   </button>
 
-
                                   <button
                                     onClick={() => handleLaunchLiveSession(quiz._id)}
-                                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold rounded-lg transition flex items-center space-x-1 shadow-xs"
+                                    className="px-3.5 sm:px-4.5 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black rounded-lg sm:rounded-xl transition flex items-center space-x-1.5 shadow-xs hover:scale-[1.02]"
                                   >
-                                    <Play className="w-3 h-3 fill-current" />
+                                    <Play className="w-3.5 h-3.5 fill-current" />
                                     <span>Start Game</span>
                                   </button>
 
                                   <button
                                     onClick={() => handleDeleteQuiz(quiz)}
                                     title="Delete Quiz"
-                                    className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
+                                    className="p-1.5 sm:p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition"
                                   >
-                                    <Trash2 className="w-3.5 h-3.5" />
+                                    <Trash2 className="w-4 h-4" />
                                   </button>
                                 </div>
                               </td>
@@ -993,30 +992,30 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                 )}
 
                 {/* Pagination Footer */}
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100 text-xs text-slate-500">
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 text-xs sm:text-sm text-slate-600 font-medium">
                   <span>
                     Showing {Math.min(1, filteredQuizzes.length)} -{' '}
                     {Math.min(currentPage * itemsPerPage, filteredQuizzes.length)} of{' '}
                     {filteredQuizzes.length} quizzes
                   </span>
 
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center space-x-1.5">
                     <button
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
                     >
-                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </button>
-                    <span className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs">
+                    <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs sm:text-sm shadow-xs">
                       {currentPage}
                     </span>
                     <button
                       disabled={currentPage >= totalPages}
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                      className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
+                      className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
                     >
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
@@ -1157,11 +1156,11 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           </div>
 
           {/* Search, Filter & Action Bar */}
-          <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs space-y-3">
+          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
             <div className="flex flex-col md:flex-row items-center gap-3">
               {/* Search Bar */}
               <div className="relative flex-1 w-full">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 sm:top-3.5" />
                 <input
                   type="text"
                   placeholder="Search quizzes by title, category, or keyword..."
@@ -1170,7 +1169,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                     setQuizzesTabSearch(e.target.value);
                     setQuizzesTabPage(1);
                   }}
-                  className="w-full pl-10 pr-4 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 font-medium placeholder-slate-400"
+                  className="w-full pl-10 pr-4 py-2.5 sm:py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-slate-800 font-semibold placeholder-slate-400"
                 />
               </div>
 
@@ -1181,7 +1180,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   setQuizzesTabCategory(e.target.value);
                   setQuizzesTabPage(1);
                 }}
-                className="w-full md:w-auto px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none"
+                className="w-full md:w-auto px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none"
               >
                 <option value="ALL">All Categories</option>
                 {categoriesList.map((cat) => (
@@ -1198,7 +1197,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                   setQuizzesTabStatus(e.target.value);
                   setQuizzesTabPage(1);
                 }}
-                className="w-full md:w-auto px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl font-semibold text-slate-700 focus:outline-none"
+                className="w-full md:w-auto px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-700 focus:outline-none"
               >
                 <option value="ALL">All Status</option>
                 <option value="READY">Ready</option>
@@ -1206,12 +1205,12 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               </select>
 
               {/* Sort By Filter */}
-              <div className="flex items-center space-x-1 text-xs text-slate-500 w-full md:w-auto">
-                <span className="font-semibold whitespace-nowrap">Sort by</span>
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-slate-600 w-full md:w-auto">
+                <span className="font-bold whitespace-nowrap">Sort by</span>
                 <select
                   value={quizzesTabSortBy}
                   onChange={(e) => setQuizzesTabSortBy(e.target.value as any)}
-                  className="w-full md:w-auto px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none"
+                  className="w-full md:w-auto px-3.5 sm:px-4 py-2.5 sm:py-3 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-slate-800 focus:outline-none"
                 >
                   <option value="LAST_MODIFIED">Last Modified</option>
                   <option value="TITLE">Title Alphabetical</option>
@@ -1223,9 +1222,9 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
               <div className="flex items-center space-x-2 shrink-0 w-full md:w-auto">
                 <button
                   onClick={handleCreateNewQuiz}
-                  className="w-full md:w-auto px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs flex items-center justify-center space-x-1"
+                  className="w-full md:w-auto px-4.5 sm:px-5 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black rounded-xl transition shadow-sm flex items-center justify-center space-x-1.5 hover:scale-[1.02]"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Create Quiz</span>
                 </button>
               </div>
@@ -1234,7 +1233,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
           {/* Quizzes Grid Controls Bar */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
-            <h2 className="text-base font-black text-slate-900">
+            <h2 className="text-lg sm:text-xl font-black text-slate-900">
               All Quizzes ({sortedQuizzesTab.length})
             </h2>
           </div>
@@ -1252,35 +1251,33 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
                 <BookOpen className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-800">No quizzes found</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
+                <h3 className="text-lg font-bold text-slate-800">No quizzes found</h3>
+                <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto mt-1">
                   No quizzes match your filter criteria or your database is empty. You can create a new quiz.
                 </p>
               </div>
               <div className="flex items-center justify-center space-x-3 pt-2">
                 <button
                   onClick={handleCreateNewQuiz}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-md flex items-center space-x-1.5"
+                  className="px-5 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black rounded-xl transition shadow-md flex items-center space-x-2"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Create New Quiz</span>
                 </button>
               </div>
             </div>
           ) : (
-            /* List View - only view in V1 */
-
             /* List View */
-            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm border-collapse">
                 <thead>
-                  <tr className="text-[11px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                    <th className="pb-3 px-2">Quiz Title</th>
-                    <th className="pb-3 px-2">Category</th>
-                    <th className="pb-3 px-2">Questions</th>
-                    <th className="pb-3 px-2">Last Modified</th>
-                    <th className="pb-3 px-2">Status</th>
-                    <th className="pb-3 px-2 text-right">Actions</th>
+                  <tr className="text-xs sm:text-sm font-black text-slate-500 uppercase tracking-wider border-b border-slate-100">
+                    <th className="py-3.5 sm:py-4 px-3 sm:px-4">Quiz Title</th>
+                    <th className="py-3.5 sm:py-4 px-3 sm:px-4">Category</th>
+                    <th className="py-3.5 sm:py-4 px-3 sm:px-4">Questions</th>
+                    <th className="py-3.5 sm:py-4 px-3 sm:px-4">Last Modified</th>
+                    <th className="py-3.5 sm:py-4 px-3 sm:px-4">Status</th>
+                    <th className="py-3.5 sm:py-4 px-3 sm:px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -1289,38 +1286,39 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
 
                     return (
                       <tr key={quiz._id} className="hover:bg-slate-50/80 transition">
-                        <td className="py-3 px-2 font-bold text-slate-900">{quiz.title}</td>
-                        <td className="py-3 px-2">
+                        <td className="py-3.5 sm:py-4 px-3 sm:px-4 font-extrabold text-slate-900 text-sm sm:text-base">{quiz.title}</td>
+                        <td className="py-3.5 sm:py-4 px-3 sm:px-4">
                           <span
-                            className={`px-2.5 py-0.5 text-[10px] font-bold rounded-full border ${getCategoryBadgeClass(
+                            className={`px-3 sm:px-3.5 py-1 sm:py-1.5 text-xs sm:text-sm font-extrabold rounded-full border ${getCategoryBadgeClass(
                               quiz.category
                             )}`}
                           >
                             {quiz.category || 'General'}
                           </span>
                         </td>
-                        <td className="py-3 px-2 font-bold text-slate-700">
+                        <td className="py-3.5 sm:py-4 px-3 sm:px-4 font-black text-slate-700 text-xs sm:text-sm">
                           {quiz.questionIds?.length || 0}
                         </td>
-                        <td className="py-3 px-2 text-slate-500 font-medium">{modifiedDate}</td>
-                        <td className="py-3 px-2">
-                          <span className="px-2 py-0.5 text-[10px] font-extrabold bg-emerald-100 text-emerald-800 rounded-md">
+                        <td className="py-3.5 sm:py-4 px-3 sm:px-4 text-slate-600 font-semibold text-xs sm:text-sm">{modifiedDate}</td>
+                        <td className="py-3.5 sm:py-4 px-3 sm:px-4">
+                          <span className="px-2.5 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm font-extrabold bg-emerald-100 text-emerald-800 rounded-lg">
                             Ready
                           </span>
                         </td>
-                        <td className="py-3 px-2 text-right">
-                          <div className="flex items-center justify-end space-x-1.5">
+                        <td className="py-3.5 sm:py-4 px-3 sm:px-4 text-right">
+                          <div className="flex items-center justify-end space-x-2">
                             <button
                               onClick={() => handleEditQuiz(quiz)}
-                              className="px-2 py-1 bg-amber-50 text-amber-800 text-[11px] font-bold rounded-md"
+                              className="px-3 sm:px-3.5 py-1.5 sm:py-2 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs sm:text-sm font-extrabold rounded-lg sm:rounded-xl transition flex items-center space-x-1.5 shadow-xs"
                             >
-                              Edit
+                              <Edit className="w-3.5 h-3.5 text-amber-600" />
+                              <span>Edit</span>
                             </button>
                             <button
                               onClick={() => handleLaunchLiveSession(quiz._id)}
-                              className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold rounded-md transition flex items-center space-x-1"
+                              className="px-3.5 sm:px-4.5 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-black rounded-lg sm:rounded-xl transition flex items-center space-x-1.5 shadow-xs hover:scale-[1.02]"
                             >
-                              <Play className="w-3 h-3 fill-current" />
+                              <Play className="w-3.5 h-3.5 fill-current" />
                               <span>Start Game</span>
                             </button>
                           </div>
@@ -1334,30 +1332,30 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
           )}
 
           {/* Pagination Footer */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 text-xs text-slate-500">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 text-xs sm:text-sm text-slate-600 font-medium">
             <span>
               Showing {Math.min(1, sortedQuizzesTab.length)} -{' '}
               {Math.min(quizzesTabPage * quizzesTabItemsPerPage, sortedQuizzesTab.length)} of{' '}
               {sortedQuizzesTab.length} quizzes
             </span>
 
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-1.5">
               <button
                 disabled={quizzesTabPage === 1}
                 onClick={() => setQuizzesTabPage((p) => Math.max(1, p - 1))}
-                className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
               >
-                <ChevronLeft className="w-3.5 h-3.5" />
+                <ChevronLeft className="w-4 h-4" />
               </button>
-              <span className="w-7 h-7 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">
+              <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-blue-600 text-white font-extrabold flex items-center justify-center text-xs sm:text-sm shadow-xs">
                 {quizzesTabPage}
               </span>
               <button
                 disabled={quizzesTabPage >= totalQuizzesTabPages}
                 onClick={() => setQuizzesTabPage((p) => Math.min(totalQuizzesTabPages, p + 1))}
-                className="w-7 h-7 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full border border-slate-200 flex items-center justify-center disabled:opacity-40 hover:bg-slate-50 transition"
               >
-                <ChevronRight className="w-3.5 h-3.5" />
+                <ChevronRight className="w-4 h-4" />
               </button>
             </div>
           </div>
