@@ -15,6 +15,7 @@ import {
   SkipForward,
   Sparkles,
   ArrowUpRight,
+  Crown,
 } from 'lucide-react';
 import { ILiveParticipant } from '@/types';
 import { soundManager } from '@/lib/game/soundManager';
@@ -243,7 +244,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
         </div>
       </div>
 
-      {/* FULL-WIDTH LEADERBOARD TABLE WITH KAHOOT-STYLE STREAKS & RANK CLIMBER HIGHLIGHTS */}
+      {/* FULL-WIDTH LEADERBOARD TABLE WITH KAHOOT-STYLE SMILEYS, STREAKS & RANK CLIMBER HIGHLIGHTS */}
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden transition-all duration-300">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-semibold border-collapse">
@@ -278,16 +279,27 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                   (p.participantId === highestClimberId || p.displayName === highestClimberId) &&
                   trendDelta > 0;
 
+                const isNewRankOneLeader = rankNum === 1 && trendDelta > 0;
+
                 const streakCount = p.correctAnswers !== undefined && p.correctAnswers >= 2 ? p.correctAnswers : 0;
+
+                // Select matching smiley for rank & trend
+                let playerSmiley = '🧐'; // default comeback/focused
+                if (rankNum === 1) playerSmiley = '😎'; // Cool sunglasses leader
+                else if (rankNum === 2) playerSmiley = '🤩'; // Star-eyed runner-up
+                else if (rankNum === 3) playerSmiley = '🥳'; // Party podium contender
+                else if (trendDelta > 0) playerSmiley = '😁'; // Grinning rank climber
 
                 // Row highlight & Kahoot movement indicators
                 let rowBgClass = 'hover:bg-slate-50 transition-colors duration-200';
-                if (isHighestClimber) {
-                  rowBgClass = 'bg-gradient-to-r from-amber-100/90 via-emerald-50/70 to-amber-50/40 ring-2 ring-amber-400 shadow-md shadow-amber-400/20 font-bold';
+                if (isNewRankOneLeader) {
+                  rowBgClass = 'bg-gradient-to-r from-amber-200/90 via-amber-100/80 to-amber-50/50 ring-4 ring-amber-400 shadow-xl shadow-amber-400/30 font-bold';
+                } else if (rankNum === 1) {
+                  rowBgClass = 'bg-gradient-to-r from-amber-100/90 via-amber-50/70 to-slate-50 ring-2 ring-amber-400/80 shadow-md shadow-amber-400/10 font-bold';
+                } else if (isHighestClimber) {
+                  rowBgClass = 'bg-gradient-to-r from-emerald-100/90 via-teal-50/70 to-amber-50/40 ring-2 ring-emerald-400 shadow-md shadow-emerald-400/20 font-bold';
                 } else if (trendDelta > 0) {
                   rowBgClass = 'bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-slate-50 ring-2 ring-emerald-400/80 shadow-sm shadow-emerald-500/10 font-bold';
-                } else if (rankNum === 1) {
-                  rowBgClass = 'bg-amber-50/80 hover:bg-amber-50 font-bold';
                 } else if (rankNum === 2) {
                   rowBgClass = 'bg-blue-50/60 hover:bg-blue-50 font-bold';
                 } else if (rankNum === 3) {
@@ -307,10 +319,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     className={`animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out ${rowBgClass}`}
                     style={{ animationDelay: `${idx * effectiveStaggerMs}ms` }}
                   >
-                    {/* Rank # */}
+                    {/* Rank # with Cool Sunglasses / Trophy Badge */}
                     <td className="py-3.5 px-4 text-center font-black">
                       {rankNum === 1 ? (
-                        <span className="w-7 h-7 rounded-full bg-amber-400 text-slate-950 text-xs inline-flex items-center justify-center font-black shadow-xs transition-transform hover:scale-110">
+                        <span className="w-8 h-8 rounded-full bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 text-xs inline-flex items-center justify-center font-black shadow-md border border-amber-300 transition-transform hover:scale-110">
                           🥇 1
                         </span>
                       ) : rankNum === 2 ? (
@@ -326,27 +338,57 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                       )}
                     </td>
 
-                    {/* Name with Avatar & Kahoot Badges (Highest Climber / Streak) */}
+                    {/* Name with Avatar & Animated Smiley Badge Overlay */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-xs shrink-0 ${
-                            avatarColors[idx % avatarColors.length]
-                          }`}
-                        >
-                          {displayName.charAt(0)}
+                        {/* Avatar with Smiley Overlay */}
+                        <div className="relative shrink-0">
+                          <div
+                            className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-black shadow-md transition-transform hover:scale-105 ${
+                              avatarColors[idx % avatarColors.length]
+                            }`}
+                          >
+                            {displayName.charAt(0)}
+                          </div>
+                          {/* Animated Smiley Badge Overlay */}
+                          <span
+                            className="absolute -bottom-1 -right-1 text-sm select-none filter drop-shadow-xs transition-all duration-300 hover:scale-125 animate-in zoom-in-75"
+                            title={
+                              rankNum === 1
+                                ? 'Cool Leader 😎'
+                                : rankNum === 2
+                                ? 'Superstar 🤩'
+                                : rankNum === 3
+                                ? 'Podium Contender 🥳'
+                                : trendDelta > 0
+                                ? 'Rank Climber 😁'
+                                : 'Comeback Mode 🧐'
+                            }
+                          >
+                            {playerSmiley}
+                          </span>
                         </div>
+
                         <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                           <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{displayName}</span>
-                          
+
+                          {/* YOU Badge */}
                           {isCurrentUser && (
                             <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[9px] font-black rounded-md uppercase tracking-wider">
                               YOU
                             </span>
                           )}
 
+                          {/* New Rank 1 Leader Animated Badge */}
+                          {isNewRankOneLeader && (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 text-slate-950 font-black text-[10px] rounded-full shadow-md animate-bounce border border-amber-300">
+                              <span className="text-xs">😎✨</span>
+                              <span>NEW RANK 1 LEADER!</span>
+                            </span>
+                          )}
+
                           {/* Kahoot Highest Climber Badge */}
-                          {isHighestClimber && (
+                          {!isNewRankOneLeader && isHighestClimber && (
                             <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-full text-[10px] font-black shadow-xs animate-bounce border border-amber-300">
                               <Zap className="w-3 h-3 fill-slate-950" />
                               <span>Highest Climber (+{trendDelta})</span>
@@ -354,7 +396,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                           )}
 
                           {/* Kahoot Rank Up Badge (for non-highest climbers) */}
-                          {!isHighestClimber && trendDelta >= 2 && (
+                          {!isNewRankOneLeader && !isHighestClimber && trendDelta >= 2 && (
                             <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-black shadow-xs animate-pulse">
                               <TrendingUp className="w-3 h-3 stroke-[3]" />
                               <span>+{trendDelta} Ranks</span>
@@ -399,17 +441,19 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     {/* Avg. Time */}
                     <td className="py-3.5 px-4 text-center font-mono text-slate-700">{avgTimeSec}</td>
 
-                    {/* Trend Indicator */}
+                    {/* Trend Indicator with Matching Smileys */}
                     <td className="py-3.5 px-4 text-center font-black">
                       {trendDelta > 0 ? (
-                        <span className="inline-flex items-center space-x-1.5 text-emerald-700 text-xs font-black bg-emerald-100/90 px-2.5 py-1 rounded-xl border border-emerald-300/80 shadow-xs animate-in zoom-in-90 duration-300">
+                        <span className="inline-flex items-center space-x-1 text-emerald-700 text-xs font-black bg-emerald-100/90 px-2.5 py-1 rounded-xl border border-emerald-300/80 shadow-xs animate-in zoom-in-90 duration-300">
                           <TrendingUp className="w-3.5 h-3.5 text-emerald-600 animate-bounce stroke-[3]" />
                           <span>▲ {trendDelta}</span>
+                          <span className="text-xs ml-0.5">😁</span>
                         </span>
                       ) : trendDelta < 0 ? (
-                        <span className="inline-flex items-center space-x-1.5 text-rose-700 text-xs font-black bg-rose-100/90 px-2.5 py-1 rounded-xl border border-rose-300/80 shadow-xs animate-in zoom-in-90 duration-300">
+                        <span className="inline-flex items-center space-x-1 text-rose-700 text-xs font-black bg-rose-100/90 px-2.5 py-1 rounded-xl border border-rose-300/80 shadow-xs animate-in zoom-in-90 duration-300">
                           <TrendingDown className="w-3.5 h-3.5 text-rose-600 stroke-[3]" />
                           <span>▼ {Math.abs(trendDelta)}</span>
+                          <span className="text-xs ml-0.5">🧐</span>
                         </span>
                       ) : (
                         <span className="text-slate-400 font-bold text-xs">-</span>
