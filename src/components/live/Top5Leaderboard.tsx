@@ -332,18 +332,28 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
       if (el) {
         const newRect = el.getBoundingClientRect();
         const prevRect = prevRectsRef.current[id];
-        if (prevRect) {
+        if (prevRect && (animPhase === 'REORDERING_RANKS' || animPhase === 'EMOJI_REVEAL' || animPhase === 'POST_ANIMATION_COUNTDOWN')) {
           const deltaY = prevRect.top - newRect.top;
           if (deltaY !== 0) {
             // First & Last -> Invert
             el.style.transform = `translateY(${deltaY}px)`;
             el.style.transition = 'transform 0s';
 
-            // Play smooth transition to final location
+            // Play smooth transition to final position based on rank
             requestAnimationFrame(() => {
-              el.style.transform = '';
+              el.style.transform = 'translateY(0px)';
               el.style.transition = `transform ${LEADERBOARD_ANIMATION_CONFIG.intermediate.rankMovementDurationMs}ms cubic-bezier(0.25, 1, 0.5, 1)`;
             });
+
+            // Lock position fixed in place once transition finishes
+            const handleTransitionEnd = (e: TransitionEvent) => {
+              if (e.propertyName === 'transform') {
+                el.style.transform = '';
+                el.style.transition = '';
+                el.removeEventListener('transitionend', handleTransitionEnd);
+              }
+            };
+            el.addEventListener('transitionend', handleTransitionEnd);
           }
         }
         prevRectsRef.current[id] = newRect;
@@ -538,8 +548,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     ref={(el) => {
                       rowRefs.current[rowId] = el;
                     }}
-                    className={`animate-in fade-in duration-300 ease-out ${rowBgClass}`}
-                    style={{ animationDelay: `${idx * effectiveStaggerMs}ms` }}
+                    className={`transition-colors duration-300 ${rowBgClass}`}
                   >
                     {/* Rank # with Gold / Silver / Bronze Badge */}
                     <td className="py-3.5 px-4 text-center font-black">
