@@ -193,18 +193,9 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   timerDurationSec = 5,
 }) => {
   const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
-  
-  // Total sequence duration: 2s (P1) + 2s (P2) + 2s (P3) + 1.5s (P4) + 5s (P5) = ~12s total
-  const totalSequenceSec = Math.round(
-    ((LEADERBOARD_ANIMATION_CONFIG.intermediate.previousScoreboardPhaseMs || 2000) +
-      (LEADERBOARD_ANIMATION_CONFIG.intermediate.countingPointsPhaseMs || 2000) +
-      (LEADERBOARD_ANIMATION_CONFIG.intermediate.reorderingPhaseMs || 2000) +
-      (LEADERBOARD_ANIMATION_CONFIG.intermediate.emojiRevealPhaseMs || 1500) +
-      ((timerDurationSec || 5) * 1000)) /
-      1000
+  const [nextQCountdown, setNextQCountdown] = useState<number>(
+    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 5
   );
-
-  const [nextQCountdown, setNextQCountdown] = useState<number>(totalSequenceSec);
   const hasTriggeredNextRef = useRef<boolean>(false);
 
   // Play leaderboard audio reveal sound on mount
@@ -236,7 +227,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
       setAnimPhase('EMOJI_REVEAL');
     }, p1Time + p2Time + p3Time);
 
-    // Step 4 -> Step 5: Start Countdown Timer AFTER initial animations complete
+    // Step 4 -> Step 5: Start 5-Second Countdown Timer AFTER initial animations complete
     const timer4 = setTimeout(() => {
       setAnimPhase('POST_ANIMATION_COUNTDOWN');
     }, p1Time + p2Time + p3Time + p4Time);
@@ -249,8 +240,9 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     };
   }, []);
 
-  // Continuous Live Countdown Timer from mount (12s -> 0s)
+  // Phase 5: 5-Second Countdown Timer to Next Question (Runs strictly during POST_ANIMATION_COUNTDOWN)
   useEffect(() => {
+    if (animPhase !== 'POST_ANIMATION_COUNTDOWN') return;
     if (isPaused) return; // Pause countdown timer when trainer clicks pause
 
     const interval = setInterval(() => {
@@ -270,7 +262,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isPaused, onNextQuestion]);
+  }, [animPhase, isPaused, onNextQuestion]);
 
   // Compute previous scores & earnings for each participant
   const processedParticipants = rankings.map((p) => {
@@ -434,10 +426,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">Participants</span>
           </div>
 
-          {/* Continuous Countdown Timer Badge */}
+          {/* Countdown Timer Badge */}
           <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[120px] relative">
             <span className={`text-xl sm:text-2xl font-black font-mono block ${isPaused ? 'text-amber-400 animate-pulse' : 'text-amber-300'}`}>
-              00:{nextQCountdown < 10 ? '0' : ''}{nextQCountdown}
+              {animPhase === 'POST_ANIMATION_COUNTDOWN' ? `00:0${nextQCountdown}` : 'UPDATING'}
             </span>
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">
               {isPaused ? 'PAUSED' : animPhase === 'POST_ANIMATION_COUNTDOWN' ? 'NEXT QUESTION IN' : 'LEADERBOARD'}

@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
         }
       } else if (session.stage === 'SHOWING_RESULT' && session.stageStartTimestamp) {
         const elapsedResult = (now - session.stageStartTimestamp) / 1000;
-        const resultDelay = 3; // 3 seconds result reveal
+        const resultDelay = 4; // Phase 0: 4 seconds correct answer result reveal
         if (elapsedResult >= resultDelay) {
           const showLeaderboard = session.showLeaderboard !== false;
           if (showLeaderboard) {
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
         }
       } else if (session.stage === 'LEADERBOARD' && session.stageStartTimestamp) {
         const elapsedLeaderboard = (now - session.stageStartTimestamp) / 1000;
-        const leaderboardDelay = 24; // 24 seconds: 5s P1 + 3s P2 + 3s P3 + 3s P4 + 8s P5 countdown + 2s buffer
+        const leaderboardDelay = 15; // 15 seconds: 2s P1 + 2s P2 + 2s P3 + 1.5s P4 + 5s P5 countdown + 2.5s buffer
         if (elapsedLeaderboard >= leaderboardDelay) {
           if (session.currentQuestionIndex < totalQuestions - 1) {
             session.currentQuestionIndex = session.currentQuestionIndex + 1;
