@@ -434,7 +434,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
               <span>{hasTriedOnce ? 'Take Practice Trial Again' : 'Try Practice Questions (Warmup)'}</span>
             </button>
             <p className="text-[10px] text-slate-500 font-semibold mt-1.5">
-              Practice MCQ, True/False, Drag & Drop & Prompt Builder while waiting!
+              Practice Single Choice, Multi-Select, Scenario, Drag & Drop & Sequence while waiting!
             </p>
           </div>
 

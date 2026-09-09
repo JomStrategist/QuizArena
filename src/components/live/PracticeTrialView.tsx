@@ -17,6 +17,8 @@ import {
   Play,
   ArrowUp,
   ArrowDown,
+  FileText,
+  ListChecks,
 } from 'lucide-react';
 
 interface PracticeTrialViewProps {
@@ -25,35 +27,26 @@ interface PracticeTrialViewProps {
 
 export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose }) => {
   const [currentStep, setCurrentStep] = useState<number>(0);
-  const [selectedMcq, setSelectedMcq] = useState<number | null>(null);
-  const [selectedTf, setSelectedTf] = useState<number | null>(null);
 
-  // Drag & Drop practice state
+  // Practice state per question type
+  const [selectedSingleChoice, setSelectedSingleChoice] = useState<number | null>(null);
+  const [selectedMultiChoices, setSelectedMultiChoices] = useState<number[]>([]);
+  const [selectedScenarioChoice, setSelectedScenarioChoice] = useState<number | null>(null);
   const [dragAssignments, setDragAssignments] = useState<Record<string, string>>({});
-
-  // Sequence ordering practice state
   const [sequenceSteps, setSequenceSteps] = useState<string[]>([
-    'Define Role & Goal',
-    'Provide Context & Input Data',
-    'Specify Clear Instructions',
-    'Set Output Constraints & Format',
+    'Define Role & System Persona',
+    'Provide Context & Background Data',
+    'Specify Clear Instructions & Task',
+    'Set Output Constraints & JSON Schema',
   ]);
-
-  // Prompt Builder practice state
-  const [selectedPromptBlocks, setSelectedPromptBlocks] = useState<{
-    role?: string;
-    context?: string;
-    task?: string;
-    format?: string;
-  }>({});
 
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
 
   const practiceQuestions = [
     {
-      type: 'MCQ',
-      title: 'Practice 1: Multiple Choice (MCQ)',
-      badge: 'MCQ Question',
+      type: 'SINGLE_CHOICE',
+      title: 'Practice 1: Single Choice Question',
+      badge: 'Single Choice (MCQ)',
       description: 'Select the single best answer from the options below.',
       questionText: 'What is the primary benefit of defining a specific Role in a system prompt?',
       options: [
@@ -66,23 +59,47 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
       explanation: 'Setting a clear role (e.g. "Act as a Senior Data Scientist") grounds the AI\'s persona and domain expertise.',
     },
     {
-      type: 'TRUE_FALSE',
-      title: 'Practice 2: True or False',
-      badge: 'Binary Decision',
-      description: 'Evaluate the statement and select True or False.',
-      questionText: 'True or False: Providing concrete examples (Few-Shot Prompting) improves model accuracy for complex tasks.',
-      options: ['True', 'False'],
+      type: 'MULTIPLE_SELECTION',
+      title: 'Practice 2: Multiple Selection Question',
+      badge: 'Check All That Apply',
+      description: 'Select ALL correct answers that apply before moving forward.',
+      questionText: 'Which of the following are essential components of effective prompt engineering? (Select all correct)',
+      options: [
+        'Defining a clear Role & Persona',
+        'Providing Context & Input Examples',
+        'Setting Output Constraints & Formatting',
+        'Inserting random unformatted text',
+      ],
+      correctIndices: [0, 1, 2],
+      explanation: 'Role, Context, and Output Constraints are all core pillars of structured prompt engineering!',
+    },
+    {
+      type: 'SCENARIO_BASED',
+      title: 'Practice 3: Scenario-Based Question',
+      badge: 'Case Study & Scenario',
+      description: 'Read the scenario case study and select the optimal decision response.',
+      scenarioContext:
+        'Scenario: You are designing an AI customer support agent for a major e-commerce enterprise. Users frequently inquire about order tracking, item exchanges, and high-value refund requests exceeding $50.',
+      questionText:
+        'Which prompt strategy best ensures compliance and security when handling high-value refund requests?',
+      options: [
+        'Enforce strict policy rules and automatically escalate refunds > $50 to human supervisors.',
+        'Allow the AI agent to grant unlimited refunds to satisfy every customer.',
+        'Ignore customer messages containing refund keywords.',
+        'Ask customers to reveal their credit card PINs for verification.',
+      ],
       correctIndex: 0,
-      explanation: 'True! Few-shot prompting guides the model with clear target output patterns.',
+      explanation:
+        'Scenario-based questions test real-world application. Requiring human escalation for high-value refunds balances safety with automation.',
     },
     {
       type: 'DRAG_DROP',
-      title: 'Practice 3: Drag & Drop Categorization',
+      title: 'Practice 4: Drag & Drop Categorization',
       badge: 'Category Matching',
-      description: 'Assign each AI scenario card to its correct AI Category.',
+      description: 'Click or drag each scenario card into its correct AI Category.',
       cards: [
-        { id: 'c1', text: 'Translating English to French' },
-        { id: 'c2', text: 'Detecting defects in factory images' },
+        { id: 'c1', text: 'Translating English documentation to Spanish' },
+        { id: 'c2', text: 'Detecting physical defects in factory line items' },
       ],
       categories: [
         { id: 'nlp', name: 'Natural Language Processing (NLP)' },
@@ -92,29 +109,25 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
     },
     {
       type: 'SEQUENCE',
-      title: 'Practice 4: Correct Sequence / Ordering',
+      title: 'Practice 5: Sequence & Step Ordering',
       badge: 'Sequence Reordering',
-      description: 'Use the Up/Down arrows to reorder the steps in logical sequence.',
+      description: 'Use the Up / Down arrows to arrange the steps in logical execution order.',
       correctSequence: [
-        'Define Role & Goal',
-        'Provide Context & Input Data',
-        'Specify Clear Instructions',
-        'Set Output Constraints & Format',
+        'Define Role & System Persona',
+        'Provide Context & Background Data',
+        'Specify Clear Instructions & Task',
+        'Set Output Constraints & JSON Schema',
       ],
     },
-    {
-      type: 'PROMPT_BUILDER',
-      title: 'Practice 5: RCTOF Prompt Builder',
-      badge: 'Interactive Block Builder',
-      description: 'Assemble a complete structured prompt by choosing blocks for Role, Context, Task, and Format.',
-      blocks: {
-        role: ['Act as an Expert AI Engineer', 'Act as a General Assistant'],
-        context: ['Working on an enterprise web platform', 'Writing a personal blog'],
-        task: ['Generate a clean JSON API schema', 'Write a short story'],
-        format: ['Format as valid JSON', 'Format as plain text'],
-      },
-    },
   ];
+
+  const toggleMultiChoice = (index: number) => {
+    if (selectedMultiChoices.includes(index)) {
+      setSelectedMultiChoices(selectedMultiChoices.filter((i) => i !== index));
+    } else {
+      setSelectedMultiChoices([...selectedMultiChoices, index]);
+    }
+  };
 
   const moveSequenceStep = (fromIdx: number, toIdx: number) => {
     if (fromIdx < 0 || toIdx < 0 || toIdx >= sequenceSteps.length || fromIdx === toIdx) return;
@@ -134,10 +147,10 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
 
   const handleRestart = () => {
     setCurrentStep(0);
-    setSelectedMcq(null);
-    setSelectedTf(null);
+    setSelectedSingleChoice(null);
+    setSelectedMultiChoices([]);
+    setSelectedScenarioChoice(null);
     setDragAssignments({});
-    setSelectedPromptBlocks({});
     setIsCompleted(false);
   };
 
@@ -155,7 +168,7 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
           <div>
             <h2 className="text-base font-black text-white">Practice Warmup Trial</h2>
             <p className="text-[10px] text-amber-300 font-bold tracking-wide uppercase">
-              Try Question Types Before Game Starts
+              Explore All Question Types Before Game Starts
             </p>
           </div>
         </div>
@@ -187,7 +200,7 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               </span>
               <h1 className="text-3xl font-black text-white">You&apos;re 100% Ready for the Live Game!</h1>
               <p className="text-xs text-blue-200 font-medium max-w-md mx-auto">
-                You have practiced all key question types. When the trainer starts the live quiz, you will immediately jump into the live contest!
+                You have practiced all 5 question types (Single Choice, Multiple Selection, Scenario-Based, Drag & Drop, and Sequence Reordering). When the trainer starts the live quiz, you will be fully prepared!
               </p>
             </div>
 
@@ -241,7 +254,7 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               </div>
             </div>
 
-            {/* Question Header & Prompt */}
+            {/* Question Header & Description */}
             <div className="space-y-2">
               <h3 className="text-xl sm:text-2xl font-black text-white leading-tight">
                 {currentQ.title}
@@ -249,20 +262,20 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               <p className="text-xs text-blue-200 font-medium">{currentQ.description}</p>
             </div>
 
-            {/* 1. MCQ STEP */}
-            {currentQ.type === 'MCQ' && (
+            {/* 1. SINGLE CHOICE (MCQ) */}
+            {currentQ.type === 'SINGLE_CHOICE' && (
               <div className="space-y-4 pt-2">
                 <p className="text-sm font-bold text-white bg-white/5 p-4 rounded-2xl border border-white/10">
                   {currentQ.questionText}
                 </p>
                 <div className="grid grid-cols-1 gap-2.5">
                   {currentQ.options?.map((opt, optIdx) => {
-                    const isSelected = selectedMcq === optIdx;
+                    const isSelected = selectedSingleChoice === optIdx;
                     const isCorrect = optIdx === currentQ.correctIndex;
                     return (
                       <button
                         key={optIdx}
-                        onClick={() => setSelectedMcq(optIdx)}
+                        onClick={() => setSelectedSingleChoice(optIdx)}
                         className={`p-3.5 rounded-2xl text-left text-xs sm:text-sm font-bold border transition flex items-center justify-between ${
                           isSelected
                             ? isCorrect
@@ -286,7 +299,7 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
                     );
                   })}
                 </div>
-                {selectedMcq !== null && (
+                {selectedSingleChoice !== null && (
                   <div className="p-3 bg-emerald-500/10 border border-emerald-400/30 rounded-2xl text-xs font-semibold text-emerald-200">
                     💡 {currentQ.explanation}
                   </div>
@@ -294,31 +307,46 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               </div>
             )}
 
-            {/* 2. TRUE / FALSE STEP */}
-            {currentQ.type === 'TRUE_FALSE' && (
+            {/* 2. MULTIPLE SELECTION (CHECK ALL THAT APPLY) */}
+            {currentQ.type === 'MULTIPLE_SELECTION' && (
               <div className="space-y-4 pt-2">
                 <p className="text-sm font-bold text-white bg-white/5 p-4 rounded-2xl border border-white/10">
                   {currentQ.questionText}
                 </p>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-2.5">
                   {currentQ.options?.map((opt, optIdx) => {
-                    const isSelected = selectedTf === optIdx;
+                    const isSelected = selectedMultiChoices.includes(optIdx);
+                    const isCorrect = currentQ.correctIndices?.includes(optIdx);
                     return (
                       <button
-                        key={opt}
-                        onClick={() => setSelectedTf(optIdx)}
-                        className={`p-5 rounded-2xl text-center font-black text-lg border transition ${
+                        key={optIdx}
+                        onClick={() => toggleMultiChoice(optIdx)}
+                        className={`p-3.5 rounded-2xl text-left text-xs sm:text-sm font-bold border transition flex items-center justify-between ${
                           isSelected
-                            ? 'bg-amber-400 border-amber-300 text-slate-950 shadow-lg scale-[1.02]'
+                            ? isCorrect
+                              ? 'bg-emerald-500/25 border-emerald-400 text-emerald-100 font-extrabold ring-2 ring-emerald-400/40'
+                              : 'bg-rose-500/25 border-rose-400 text-rose-100'
                             : 'bg-white/5 hover:bg-white/10 border-white/15 text-white'
                         }`}
                       >
-                        {opt}
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-6 h-6 rounded-lg border flex items-center justify-center font-bold text-xs ${
+                              isSelected ? 'bg-amber-400 border-amber-300 text-slate-950' : 'border-white/30 bg-white/5'
+                            }`}
+                          >
+                            {isSelected ? '✓' : ''}
+                          </div>
+                          <span>{opt}</span>
+                        </div>
+                        <span className="text-[11px] text-blue-200 opacity-70">
+                          Option {String.fromCharCode(65 + optIdx)}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
-                {selectedTf !== null && (
+                {selectedMultiChoices.length > 0 && (
                   <div className="p-3 bg-blue-500/10 border border-blue-400/30 rounded-2xl text-xs font-semibold text-blue-200">
                     💡 {currentQ.explanation}
                   </div>
@@ -326,7 +354,64 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               </div>
             )}
 
-            {/* 3. DRAG & DROP STEP */}
+            {/* 3. SCENARIO-BASED QUESTION */}
+            {currentQ.type === 'SCENARIO_BASED' && (
+              <div className="space-y-4 pt-2">
+                {/* Scenario Case Study Box */}
+                <div className="p-4 bg-indigo-900/60 border border-indigo-400/40 rounded-2xl space-y-1">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-300 block">
+                    READ CASE STUDY SCENARIO
+                  </span>
+                  <p className="text-xs text-indigo-100 font-medium leading-relaxed">
+                    {currentQ.scenarioContext}
+                  </p>
+                </div>
+
+                <p className="text-sm font-bold text-white bg-white/5 p-4 rounded-2xl border border-white/10">
+                  {currentQ.questionText}
+                </p>
+
+                <div className="grid grid-cols-1 gap-2.5">
+                  {currentQ.options?.map((opt, optIdx) => {
+                    const isSelected = selectedScenarioChoice === optIdx;
+                    const isCorrect = optIdx === currentQ.correctIndex;
+                    return (
+                      <button
+                        key={optIdx}
+                        onClick={() => setSelectedScenarioChoice(optIdx)}
+                        className={`p-3.5 rounded-2xl text-left text-xs sm:text-sm font-bold border transition flex items-center justify-between ${
+                          isSelected
+                            ? isCorrect
+                              ? 'bg-emerald-500/20 border-emerald-400 text-emerald-200'
+                              : 'bg-rose-500/20 border-rose-400 text-rose-200'
+                            : 'bg-white/5 hover:bg-white/10 border-white/15 text-white'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          <span className="w-7 h-7 rounded-xl bg-white/10 flex items-center justify-center font-mono font-black text-xs">
+                            {String.fromCharCode(65 + optIdx)}
+                          </span>
+                          <span>{opt}</span>
+                        </div>
+                        {isSelected && (
+                          <span className="text-xs font-black px-2 py-0.5 rounded-md bg-white/20">
+                            {isCorrect ? '✓ Optimal Strategy' : '✕ Re-evaluate'}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {selectedScenarioChoice !== null && (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-400/30 rounded-2xl text-xs font-semibold text-emerald-200">
+                    💡 {currentQ.explanation}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 4. DRAG & DROP STEP */}
             {currentQ.type === 'DRAG_DROP' && (
               <div className="space-y-4 pt-2">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -358,7 +443,7 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               </div>
             )}
 
-            {/* 4. SEQUENCE REORDERING STEP */}
+            {/* 5. SEQUENCE REORDERING STEP */}
             {currentQ.type === 'SEQUENCE' && (
               <div className="space-y-3 pt-2">
                 {sequenceSteps.map((stepText, sIdx) => (
@@ -391,33 +476,6 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
                     </div>
                   </div>
                 ))}
-              </div>
-            )}
-
-            {/* 5. PROMPT BUILDER STEP */}
-            {currentQ.type === 'PROMPT_BUILDER' && (
-              <div className="space-y-3 pt-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(currentQ.blocks || {}).map(([key, options]) => (
-                    <div key={key} className="p-3 bg-white/5 border border-white/15 rounded-2xl space-y-1.5">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-amber-300">{key}</label>
-                      <select
-                        value={selectedPromptBlocks[key as keyof typeof selectedPromptBlocks] || ''}
-                        onChange={(e) =>
-                          setSelectedPromptBlocks({ ...selectedPromptBlocks, [key]: e.target.value })
-                        }
-                        className="w-full p-2 bg-slate-900 border border-white/20 rounded-xl text-xs font-bold text-white focus:outline-none"
-                      >
-                        <option value="">Choose {key} block...</option>
-                        {(options as string[]).map((opt) => (
-                          <option key={opt} value={opt}>
-                            {opt}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  ))}
-                </div>
               </div>
             )}
 

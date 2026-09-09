@@ -427,7 +427,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
               <span>{hasTriedOnce ? 'Take Practice Trial Again' : 'Try Practice Questions (Warmup)'}</span>
             </button>
             <p className="text-[10px] text-blue-300 font-medium mt-1.5">
-              Practice MCQ, True/False, Drag & Drop & Prompt Builder while waiting!
+              Practice Single Choice, Multi-Select, Scenario, Drag & Drop & Sequence while waiting!
             </p>
           </div>
 
