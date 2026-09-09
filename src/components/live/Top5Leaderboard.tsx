@@ -35,20 +35,30 @@ interface Top5LeaderboardProps {
   timerDurationSec?: number;
 }
 
+export type LeaderboardAnimPhase =
+  | 'PREVIOUS_SCOREBOARD' // Step 1: Show initial scores before points added
+  | 'COUNTING_POINTS' // Step 2: Animated points count-up (+pts)
+  | 'REORDERING_RANKS' // Step 3: FLIP row re-sorting / position changing
+  | 'EMOJI_REVEAL'; // Step 4: Emoji animations & callout badges reveal
+
 /**
- * Animated Number Counter for smooth score transition (160 -> 183)
+ * Animated Number Counter for smooth score transition (e.g. 100 -> 183)
  */
-const AnimatedNumber: React.FC<{ value: number; durationMs?: number }> = ({
+const AnimatedNumber: React.FC<{ value: number; fromValue?: number; durationMs?: number }> = ({
   value,
+  fromValue,
   durationMs = LEADERBOARD_ANIMATION_CONFIG.intermediate.scoreAnimationDurationMs,
 }) => {
-  const [displayValue, setDisplayValue] = useState<number>(value);
-  const prevValueRef = useRef<number>(value);
+  const [displayValue, setDisplayValue] = useState<number>(fromValue !== undefined ? fromValue : value);
+  const prevValueRef = useRef<number>(fromValue !== undefined ? fromValue : value);
 
   useEffect(() => {
-    const startValue = prevValueRef.current;
+    const startValue = fromValue !== undefined ? fromValue : prevValueRef.current;
     const endValue = value;
-    if (startValue === endValue) return;
+    if (startValue === endValue) {
+      setDisplayValue(endValue);
+      return;
+    }
 
     const startTime = performance.now();
     let animationFrameId: number;
@@ -70,7 +80,7 @@ const AnimatedNumber: React.FC<{ value: number; durationMs?: number }> = ({
 
     animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [value, durationMs]);
+  }, [value, fromValue, durationMs]);
 
   return <span>{displayValue.toLocaleString()}</span>;
 };
@@ -89,12 +99,41 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   timerDurationSec = LEADERBOARD_ANIMATION_CONFIG.intermediate.timerDurationSec || 8,
 }) => {
   const [countdown, setCountdown] = useState<number>(timerDurationSec);
+  const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
 
   // Play leaderboard audio reveal sound on mount
   useEffect(() => {
     if (LEADERBOARD_ANIMATION_CONFIG.audio.enabled) {
       soundManager.playLeaderboardSound();
     }
+  }, []);
+
+  // Multi-phase animation timeline sequence
+  useEffect(() => {
+    const p1Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.previousScoreboardPhaseMs || 1200;
+    const p2Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.countingPointsPhaseMs || 1500;
+    const p3Time = LEADERBOARD_ANIMATION_CONFIG.intermediate.reorderingPhaseMs || 1200;
+
+    // Step 1 -> Step 2: Start Counting Points
+    const timer1 = setTimeout(() => {
+      setAnimPhase('COUNTING_POINTS');
+    }, p1Time);
+
+    // Step 2 -> Step 3: Reorder Row Positions
+    const timer2 = setTimeout(() => {
+      setAnimPhase('REORDERING_RANKS');
+    }, p1Time + p2Time);
+
+    // Step 3 -> Step 4: Reveal Emojis & Badges
+    const timer3 = setTimeout(() => {
+      setAnimPhase('EMOJI_REVEAL');
+    }, p1Time + p2Time + p3Time);
+
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+      clearTimeout(timer3);
+    };
   }, []);
 
   // Timer Countdown with Pause support
@@ -106,15 +145,35 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     return () => clearInterval(interval);
   }, [isPaused]);
 
-  const sorted = [...rankings].sort((a, b) => (b.score || 0) - (a.score || 0));
-  const allRankings = sorted;
+  // Compute previous scores & earnings for each participant
+  const processedParticipants = rankings.map((p) => {
+    const lastEarned = p.lastPointsEarned !== undefined ? p.lastPointsEarned : 0;
+    const prevScore = Math.max(0, (p.score || 0) - lastEarned);
+    return {
+      ...p,
+      prevScore,
+      newScore: p.score || 0,
+      lastEarned,
+    };
+  });
+
+  // Sort lists for Previous vs New Scoreboard states
+  const sortedByPrevScore = [...processedParticipants].sort((a, b) => b.prevScore - a.prevScore);
+  const sortedByNewScore = [...processedParticipants].sort((a, b) => b.newScore - a.newScore);
+
+  // Select active list based on animation phase
+  const activeRankings =
+    animPhase === 'PREVIOUS_SCOREBOARD' || animPhase === 'COUNTING_POINTS'
+      ? sortedByPrevScore
+      : sortedByNewScore;
+
   const currentQNum = (currentQuestionIndex || 0) + 1;
   const totalParticipants = rankings.length;
 
   // Identify Highest Climber (maximum positive lastRankDelta > 0)
   let highestClimberId: string | null = null;
   let maxRankClimb = 0;
-  allRankings.forEach((p) => {
+  sortedByNewScore.forEach((p) => {
     const delta = p.lastRankDelta || 0;
     if (delta > maxRankClimb) {
       maxRankClimb = delta;
@@ -142,12 +201,12 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   // Dynamic calculate row stagger delay based on total participant count
   const effectiveStaggerMs = Math.min(
     LEADERBOARD_ANIMATION_CONFIG.intermediate.rowStaggerMs,
-    Math.max(15, Math.floor(LEADERBOARD_ANIMATION_CONFIG.intermediate.maxRowStaggerMs / Math.max(1, allRankings.length)))
+    Math.max(15, Math.floor(LEADERBOARD_ANIMATION_CONFIG.intermediate.maxRowStaggerMs / Math.max(1, activeRankings.length)))
   );
 
-  // FLIP (First, Last, Invert, Play) Layout Animation Hook
+  // FLIP (First, Last, Invert, Play) Layout Animation Hook for Position Reordering
   useLayoutEffect(() => {
-    allRankings.forEach((p) => {
+    activeRankings.forEach((p) => {
       const id = p.participantId || p.displayName;
       const el = rowRefs.current[id];
       if (el) {
@@ -170,21 +229,53 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
         prevRectsRef.current[id] = newRect;
       }
     });
-  }, [allRankings]);
+  }, [activeRankings, animPhase]);
 
   return (
     <div
       className="max-w-6xl mx-auto w-full space-y-4 py-4 px-3 sm:px-6 font-sans text-slate-800 animate-in fade-in zoom-in-95 duration-500"
       style={{ animationDuration: `${LEADERBOARD_ANIMATION_CONFIG.intermediate.containerDurationMs}ms` }}
     >
-      {/* LEADERBOARD TITLE HEADER */}
+      {/* LEADERBOARD TITLE HEADER WITH MULTI-STEP ANIMATION PHASE BADGE */}
       <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-5 sm:p-6 rounded-3xl text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
-        <div className="space-y-1">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
-            <Trophy className="w-4 h-4 fill-amber-300" />
-            <span>LIVE SCOREBOARD</span>
+        <div className="space-y-1.5">
+          {/* Phase Badge Indicator */}
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl text-xs font-black uppercase tracking-wider border border-white/20">
+            {animPhase === 'PREVIOUS_SCOREBOARD' ? (
+              <span className="text-amber-300 flex items-center space-x-1.5">
+                <Clock className="w-3.5 h-3.5 animate-spin" />
+                <span>STEP 1: PREVIOUS STANDINGS</span>
+              </span>
+            ) : animPhase === 'COUNTING_POINTS' ? (
+              <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>STEP 2: ADDING POINTS (+PTS)</span>
+              </span>
+            ) : animPhase === 'REORDERING_RANKS' ? (
+              <span className="text-purple-300 flex items-center space-x-1.5 animate-pulse">
+                <Zap className="w-3.5 h-3.5" />
+                <span>STEP 3: REORDERING POSITIONS</span>
+              </span>
+            ) : (
+              <span className="text-amber-300 flex items-center space-x-1.5">
+                <Trophy className="w-3.5 h-3.5 fill-amber-300" />
+                <span>STEP 4: LIVE SCOREBOARD</span>
+              </span>
+            )}
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight">Leaderboard Standings</h1>
+
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight flex items-center space-x-3">
+            <span>
+              {animPhase === 'PREVIOUS_SCOREBOARD'
+                ? 'Previous Scoreboard'
+                : animPhase === 'COUNTING_POINTS'
+                ? 'Calculating Scores...'
+                : animPhase === 'REORDERING_RANKS'
+                ? 'Updating Standings!'
+                : 'Leaderboard Standings'}
+            </span>
+          </h1>
+
           <p className="text-xs sm:text-sm font-bold text-blue-100">
             Question <strong className="text-amber-300 font-mono">{currentQNum}</strong> of{' '}
             <strong className="text-amber-300 font-mono">{totalQuestions}</strong> Complete!
@@ -244,7 +335,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
         </div>
       </div>
 
-      {/* FULL-WIDTH LEADERBOARD TABLE WITH KAHOOT-STYLE SMILEYS, STREAKS & RANK CLIMBER HIGHLIGHTS */}
+      {/* FULL-WIDTH LEADERBOARD TABLE WITH MULTI-STEP ANIMATED REVEAL SEQUENCE */}
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden transition-all duration-300">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-semibold border-collapse">
@@ -260,7 +351,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {allRankings.map((p, idx) => {
+              {activeRankings.map((p, idx) => {
                 const rowId = p.participantId || p.displayName || `row-${idx}`;
                 const displayName = p.displayName || `Player ${idx + 1}`;
                 const isCurrentUser =
@@ -268,7 +359,13 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                   (userDisplayName && displayName.toLowerCase() === userDisplayName.toLowerCase());
 
                 const rankNum = idx + 1;
-                const scoreVal = p.score !== undefined ? p.score : 0;
+
+                // Points & Score determinations by phase
+                const isPrevPhase = animPhase === 'PREVIOUS_SCOREBOARD';
+                const isCountingPhase = animPhase === 'COUNTING_POINTS';
+                const isReorderingPhase = animPhase === 'REORDERING_RANKS';
+                const isEmojiPhase = animPhase === 'EMOJI_REVEAL';
+
                 const correctStr = `${p.correctAnswers || 0} / ${currentQNum}`;
                 const accuracyPct = p.accuracy !== undefined ? p.accuracy : 0;
                 const avgTimeSec = p.avgResponseTimeMs ? (p.avgResponseTimeMs / 1000).toFixed(1) + 's' : '-';
@@ -280,32 +377,37 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                   trendDelta > 0;
 
                 const isNewRankOneLeader = rankNum === 1 && trendDelta > 0;
-
                 const streakCount = p.correctAnswers !== undefined && p.correctAnswers >= 2 ? p.correctAnswers : 0;
 
-                // Select matching smiley for rank & trend
+                // Select matching smiley for rank & trend (Only revealed in Phase 4: EMOJI_REVEAL)
                 let playerSmiley = '🧐'; // default comeback/focused
                 if (rankNum === 1) playerSmiley = '😎'; // Cool sunglasses leader
                 else if (rankNum === 2) playerSmiley = '🤩'; // Star-eyed runner-up
                 else if (rankNum === 3) playerSmiley = '🥳'; // Party podium contender
                 else if (trendDelta > 0) playerSmiley = '😁'; // Grinning rank climber
 
-                // Row highlight & Kahoot movement indicators
-                let rowBgClass = 'hover:bg-slate-50 transition-colors duration-200';
-                if (isNewRankOneLeader) {
-                  rowBgClass = 'bg-gradient-to-r from-amber-200/90 via-amber-100/80 to-amber-50/50 ring-4 ring-amber-400 shadow-xl shadow-amber-400/30 font-bold';
-                } else if (rankNum === 1) {
-                  rowBgClass = 'bg-gradient-to-r from-amber-100/90 via-amber-50/70 to-slate-50 ring-2 ring-amber-400/80 shadow-md shadow-amber-400/10 font-bold';
-                } else if (isHighestClimber) {
-                  rowBgClass = 'bg-gradient-to-r from-emerald-100/90 via-teal-50/70 to-amber-50/40 ring-2 ring-emerald-400 shadow-md shadow-emerald-400/20 font-bold';
-                } else if (trendDelta > 0) {
-                  rowBgClass = 'bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-slate-50 ring-2 ring-emerald-400/80 shadow-sm shadow-emerald-500/10 font-bold';
-                } else if (rankNum === 2) {
-                  rowBgClass = 'bg-blue-50/60 hover:bg-blue-50 font-bold';
-                } else if (rankNum === 3) {
-                  rowBgClass = 'bg-orange-50/60 hover:bg-orange-50 font-bold';
-                } else if (trendDelta < 0) {
-                  rowBgClass += ' bg-rose-50/30 opacity-95';
+                // Row highlight classes
+                let rowBgClass = 'hover:bg-slate-50 transition-all duration-300';
+                if (isEmojiPhase) {
+                  if (isNewRankOneLeader) {
+                    rowBgClass =
+                      'bg-gradient-to-r from-amber-200/90 via-amber-100/80 to-amber-50/50 ring-4 ring-amber-400 shadow-xl shadow-amber-400/30 font-bold';
+                  } else if (rankNum === 1) {
+                    rowBgClass =
+                      'bg-gradient-to-r from-amber-100/90 via-amber-50/70 to-slate-50 ring-2 ring-amber-400/80 shadow-md shadow-amber-400/10 font-bold';
+                  } else if (isHighestClimber) {
+                    rowBgClass =
+                      'bg-gradient-to-r from-emerald-100/90 via-teal-50/70 to-amber-50/40 ring-2 ring-emerald-400 shadow-md shadow-emerald-400/20 font-bold';
+                  } else if (trendDelta > 0) {
+                    rowBgClass =
+                      'bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-slate-50 ring-2 ring-emerald-400/80 shadow-sm shadow-emerald-500/10 font-bold';
+                  } else if (rankNum === 2) {
+                    rowBgClass = 'bg-blue-50/60 hover:bg-blue-50 font-bold';
+                  } else if (rankNum === 3) {
+                    rowBgClass = 'bg-orange-50/60 hover:bg-orange-50 font-bold';
+                  }
+                } else if (isReorderingPhase) {
+                  rowBgClass += ' bg-indigo-50/40 shadow-sm';
                 }
 
                 if (isCurrentUser) rowBgClass += ' ring-2 ring-blue-500';
@@ -316,7 +418,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     ref={(el) => {
                       rowRefs.current[rowId] = el;
                     }}
-                    className={`animate-in fade-in slide-in-from-bottom-2 duration-300 ease-out ${rowBgClass}`}
+                    className={`animate-in fade-in duration-300 ease-out ${rowBgClass}`}
                     style={{ animationDelay: `${idx * effectiveStaggerMs}ms` }}
                   >
                     {/* Rank # with Cool Sunglasses / Trophy Badge */}
@@ -338,7 +440,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                       )}
                     </td>
 
-                    {/* Name with Avatar & Animated Smiley Badge Overlay */}
+                    {/* Name with Avatar & Animated Smiley Badge Overlay (Phase 4 reveal) */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
                         {/* Avatar with Smiley Overlay */}
@@ -350,23 +452,26 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                           >
                             {displayName.charAt(0)}
                           </div>
-                          {/* Animated Smiley Badge Overlay */}
-                          <span
-                            className="absolute -bottom-1 -right-1 text-sm select-none filter drop-shadow-xs transition-all duration-300 hover:scale-125 animate-in zoom-in-75"
-                            title={
-                              rankNum === 1
-                                ? 'Cool Leader 😎'
-                                : rankNum === 2
-                                ? 'Superstar 🤩'
-                                : rankNum === 3
-                                ? 'Podium Contender 🥳'
-                                : trendDelta > 0
-                                ? 'Rank Climber 😁'
-                                : 'Comeback Mode 🧐'
-                            }
-                          >
-                            {playerSmiley}
-                          </span>
+
+                          {/* Animated Smiley Badge Overlay (Revealed in Phase 4: EMOJI_REVEAL) */}
+                          {isEmojiPhase && (
+                            <span
+                              className="absolute -bottom-1 -right-1 text-sm select-none filter drop-shadow-xs transition-all duration-300 hover:scale-125 animate-in zoom-in-75 bounce-in"
+                              title={
+                                rankNum === 1
+                                  ? 'Cool Leader 😎'
+                                  : rankNum === 2
+                                  ? 'Superstar 🤩'
+                                  : rankNum === 3
+                                  ? 'Podium Contender 🥳'
+                                  : trendDelta > 0
+                                  ? 'Rank Climber 😁'
+                                  : 'Comeback Mode 🧐'
+                              }
+                            >
+                              {playerSmiley}
+                            </span>
+                          )}
                         </div>
 
                         <div className="flex items-center space-x-2 flex-wrap gap-y-1">
@@ -379,44 +484,66 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                             </span>
                           )}
 
-                          {/* New Rank 1 Leader Animated Badge */}
-                          {isNewRankOneLeader && (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 text-slate-950 font-black text-[10px] rounded-full shadow-md animate-bounce border border-amber-300">
-                              <span className="text-xs">😎✨</span>
-                              <span>NEW RANK 1 LEADER!</span>
-                            </span>
-                          )}
+                          {/* Phase 4 Emoji & Badge Callouts */}
+                          {isEmojiPhase && (
+                            <>
+                              {/* New Rank 1 Leader Animated Badge */}
+                              {isNewRankOneLeader && (
+                                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-300 text-slate-950 font-black text-[10px] rounded-full shadow-md animate-bounce border border-amber-300">
+                                  <span className="text-xs">😎✨</span>
+                                  <span>NEW RANK 1 LEADER!</span>
+                                </span>
+                              )}
 
-                          {/* Kahoot Highest Climber Badge */}
-                          {!isNewRankOneLeader && isHighestClimber && (
-                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-full text-[10px] font-black shadow-xs animate-bounce border border-amber-300">
-                              <Zap className="w-3 h-3 fill-slate-950" />
-                              <span>Highest Climber (+{trendDelta})</span>
-                            </span>
-                          )}
+                              {/* Kahoot Highest Climber Badge */}
+                              {!isNewRankOneLeader && isHighestClimber && (
+                                <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-full text-[10px] font-black shadow-xs animate-bounce border border-amber-300">
+                                  <Zap className="w-3 h-3 fill-slate-950" />
+                                  <span>Highest Climber (+{trendDelta})</span>
+                                </span>
+                              )}
 
-                          {/* Kahoot Rank Up Badge (for non-highest climbers) */}
-                          {!isNewRankOneLeader && !isHighestClimber && trendDelta >= 2 && (
-                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-black shadow-xs animate-pulse">
-                              <TrendingUp className="w-3 h-3 stroke-[3]" />
-                              <span>+{trendDelta} Ranks</span>
-                            </span>
-                          )}
+                              {/* Kahoot Rank Up Badge (for non-highest climbers) */}
+                              {!isNewRankOneLeader && !isHighestClimber && trendDelta >= 2 && (
+                                <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-black shadow-xs animate-pulse">
+                                  <TrendingUp className="w-3 h-3 stroke-[3]" />
+                                  <span>+{trendDelta} Ranks</span>
+                                </span>
+                              )}
 
-                          {/* Kahoot Streak Badge */}
-                          {streakCount >= 2 && (
-                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-[10px] font-black shadow-xs">
-                              <Flame className="w-3 h-3 fill-amber-200" />
-                              <span>{streakCount} Streak!</span>
-                            </span>
+                              {/* Kahoot Streak Badge */}
+                              {streakCount >= 2 && (
+                                <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-[10px] font-black shadow-xs">
+                                  <Flame className="w-3 h-3 fill-amber-200" />
+                                  <span>{streakCount} Streak!</span>
+                                </span>
+                              )}
+                            </>
                           )}
                         </div>
                       </div>
                     </td>
 
-                    {/* Score with Count-Up Animation */}
+                    {/* Score with Count-Up Animation & Green +PTS Pill */}
                     <td className="py-3.5 px-4 text-right font-black font-mono text-base text-slate-900">
-                      <AnimatedNumber value={scoreVal} />
+                      <div className="flex items-center justify-end space-x-2">
+                        {/* Animated Points Added Badge (+X pts) in Phase 2 & 3 */}
+                        {(isCountingPhase || isReorderingPhase) && p.lastEarned > 0 && (
+                          <span className="inline-flex items-center space-x-0.5 px-2 py-0.5 bg-emerald-500 text-white text-xs font-black rounded-lg shadow-sm animate-bounce">
+                            <span>+</span>
+                            <span>{p.lastEarned}</span>
+                          </span>
+                        )}
+
+                        {/* Animated Score Number */}
+                        {isPrevPhase ? (
+                          <span>{p.prevScore.toLocaleString()}</span>
+                        ) : isCountingPhase ? (
+                          <AnimatedNumber value={p.newScore} fromValue={p.prevScore} />
+                        ) : (
+                          <span>{p.newScore.toLocaleString()}</span>
+                        )}
+                      </div>
                     </td>
 
                     {/* Correct Answers */}
@@ -441,22 +568,26 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     {/* Avg. Time */}
                     <td className="py-3.5 px-4 text-center font-mono text-slate-700">{avgTimeSec}</td>
 
-                    {/* Trend Indicator with Matching Smileys */}
+                    {/* Trend Indicator with Matching Smileys (Revealed in Phase 4) */}
                     <td className="py-3.5 px-4 text-center font-black">
-                      {trendDelta > 0 ? (
-                        <span className="inline-flex items-center space-x-1 text-emerald-700 text-xs font-black bg-emerald-100/90 px-2.5 py-1 rounded-xl border border-emerald-300/80 shadow-xs animate-in zoom-in-90 duration-300">
-                          <TrendingUp className="w-3.5 h-3.5 text-emerald-600 animate-bounce stroke-[3]" />
-                          <span>▲ {trendDelta}</span>
-                          <span className="text-xs ml-0.5">😁</span>
-                        </span>
-                      ) : trendDelta < 0 ? (
-                        <span className="inline-flex items-center space-x-1 text-rose-700 text-xs font-black bg-rose-100/90 px-2.5 py-1 rounded-xl border border-rose-300/80 shadow-xs animate-in zoom-in-90 duration-300">
-                          <TrendingDown className="w-3.5 h-3.5 text-rose-600 stroke-[3]" />
-                          <span>▼ {Math.abs(trendDelta)}</span>
-                          <span className="text-xs ml-0.5">🧐</span>
-                        </span>
+                      {isEmojiPhase ? (
+                        trendDelta > 0 ? (
+                          <span className="inline-flex items-center space-x-1 text-emerald-700 text-xs font-black bg-emerald-100/90 px-2.5 py-1 rounded-xl border border-emerald-300/80 shadow-xs animate-in zoom-in-90 duration-300">
+                            <TrendingUp className="w-3.5 h-3.5 text-emerald-600 animate-bounce stroke-[3]" />
+                            <span>▲ {trendDelta}</span>
+                            <span className="text-xs ml-0.5">😁</span>
+                          </span>
+                        ) : trendDelta < 0 ? (
+                          <span className="inline-flex items-center space-x-1 text-rose-700 text-xs font-black bg-rose-100/90 px-2.5 py-1 rounded-xl border border-rose-300/80 shadow-xs animate-in zoom-in-90 duration-300">
+                            <TrendingDown className="w-3.5 h-3.5 text-rose-600 stroke-[3]" />
+                            <span>▼ {Math.abs(trendDelta)}</span>
+                            <span className="text-xs ml-0.5">🧐</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 font-bold text-xs">-</span>
+                        )
                       ) : (
-                        <span className="text-slate-400 font-bold text-xs">-</span>
+                        <span className="text-slate-300 font-mono text-xs">-</span>
                       )}
                     </td>
                   </tr>

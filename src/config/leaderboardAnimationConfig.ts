@@ -16,6 +16,9 @@ export interface ILeaderboardAnimationConfig {
     rankMovementDurationMs: number; // FLIP row sliding animation (500-700ms)
     accuracyAnimationDurationMs: number; // Progress bar width fill (400-600ms)
     highlightDurationMs: number; // Affected participant pulse glow (700-1200ms)
+    previousScoreboardPhaseMs: number; // Phase 1: Show initial scores before points added (1200ms)
+    countingPointsPhaseMs: number; // Phase 2: Animated points count-up (1500ms)
+    reorderingPhaseMs: number; // Phase 3: FLIP row re-sorting (1200ms)
   };
 
   // Final Leaderboard (After Last Question Only)
@@ -45,10 +48,13 @@ export const LEADERBOARD_ANIMATION_CONFIG: ILeaderboardAnimationConfig = {
     containerDurationMs: 500,
     rowStaggerMs: 70,
     maxRowStaggerMs: 400,
-    scoreAnimationDurationMs: 700,
-    rankMovementDurationMs: 600,
+    scoreAnimationDurationMs: 800,
+    rankMovementDurationMs: 800,
     accuracyAnimationDurationMs: 500,
     highlightDurationMs: 900,
+    previousScoreboardPhaseMs: 1200,
+    countingPointsPhaseMs: 1500,
+    reorderingPhaseMs: 1200,
   },
   final: {
     enabled: true,
