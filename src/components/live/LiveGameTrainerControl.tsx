@@ -370,20 +370,20 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           </h1>
         </div>
 
-        {/* Center: Glowing Game Code Box */}
-        <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-900/40 via-indigo-900/40 to-blue-900/40 border border-cyan-500/40 px-6 py-2 rounded-2xl shadow-lg shadow-cyan-500/10">
-          <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400 hidden md:inline">
+        {/* Center: Glowing Game Code Box (Prominent & Extra Large) */}
+        <div className="flex items-center space-x-4 bg-gradient-to-r from-blue-950/80 via-indigo-950/80 to-blue-950/80 border-2 border-cyan-400/60 px-8 py-3 rounded-2xl shadow-xl shadow-cyan-500/20">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-cyan-400 shrink-0">
             GAME CODE
           </span>
-          <span className="text-3xl sm:text-4xl font-black font-mono tracking-[0.15em] text-cyan-300 drop-shadow-md">
+          <span className="text-5xl sm:text-6xl md:text-7xl font-black font-mono tracking-[0.25em] text-cyan-300 drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]">
             {quizCode}
           </span>
           <button
             onClick={handleCopyCode}
-            className="p-1.5 text-cyan-400 hover:text-cyan-200 hover:bg-white/10 rounded-xl transition cursor-pointer"
+            className="p-2 text-cyan-400 hover:text-cyan-200 hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
             title="Copy URL"
           >
-            {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            {copied ? <Check className="w-6 h-6 text-emerald-400" /> : <Copy className="w-6 h-6" />}
           </button>
         </div>
 

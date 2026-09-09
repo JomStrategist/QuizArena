@@ -265,17 +265,17 @@ export const ConductQuizTrainerControl: React.FC<ConductQuizTrainerControlProps>
         {/* Right: GAME CODE + Full Screen + End Game */}
         <div className="flex flex-wrap items-center gap-3">
           {/* Game Code Display Badge */}
-          <div className="px-5 py-2.5 bg-rose-50/60 border-2 border-rose-300 rounded-2xl flex items-center space-x-3 shadow-sm">
+          <div className="px-6 py-3 bg-rose-50/60 border-2 border-rose-300 rounded-2xl flex items-center space-x-4 shadow-sm">
             <div>
-              <div className="text-[9px] font-black uppercase tracking-widest text-rose-600">GAME CODE</div>
-              <div className="text-2xl font-black font-mono tracking-widest text-rose-600">{quizCode}</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-rose-600">GAME CODE</div>
+              <div className="text-4xl font-black font-mono tracking-[0.2em] text-rose-600">{quizCode}</div>
             </div>
             <button
               onClick={handleCopyCode}
-              className="p-1.5 text-rose-600 hover:text-rose-700 transition"
+              className="p-2 text-rose-600 hover:text-rose-700 transition"
               title="Copy Game Code"
             >
-              {copiedCode ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-rose-600" />}
+              {copiedCode ? <Check className="w-5 h-5 text-emerald-600" /> : <Copy className="w-5 h-5 text-rose-600" />}
             </button>
           </div>
 
