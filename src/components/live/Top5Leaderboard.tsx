@@ -193,10 +193,18 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   timerDurationSec = 5,
 }) => {
   const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
-  const [nextQCountdown, setNextQCountdown] = useState<number>(
-    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 5
+  
+  // Total sequence duration: 2s (P1) + 2s (P2) + 2s (P3) + 1.5s (P4) + 5s (P5) = ~12s total
+  const totalSequenceSec = Math.round(
+    ((LEADERBOARD_ANIMATION_CONFIG.intermediate.previousScoreboardPhaseMs || 2000) +
+      (LEADERBOARD_ANIMATION_CONFIG.intermediate.countingPointsPhaseMs || 2000) +
+      (LEADERBOARD_ANIMATION_CONFIG.intermediate.reorderingPhaseMs || 2000) +
+      (LEADERBOARD_ANIMATION_CONFIG.intermediate.emojiRevealPhaseMs || 1500) +
+      ((timerDurationSec || 5) * 1000)) /
+      1000
   );
 
+  const [nextQCountdown, setNextQCountdown] = useState<number>(totalSequenceSec);
   const hasTriggeredNextRef = useRef<boolean>(false);
 
   // Play leaderboard audio reveal sound on mount
@@ -228,7 +236,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
       setAnimPhase('EMOJI_REVEAL');
     }, p1Time + p2Time + p3Time);
 
-    // Step 4 -> Step 5: Start 5-Second Countdown Timer AFTER all animations complete!
+    // Step 4 -> Step 5: Start Countdown Timer AFTER initial animations complete
     const timer4 = setTimeout(() => {
       setAnimPhase('POST_ANIMATION_COUNTDOWN');
     }, p1Time + p2Time + p3Time + p4Time);
@@ -241,9 +249,8 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     };
   }, []);
 
-  // Step 5: 5-Second Countdown Timer to Next Question (Runs AFTER all animations complete)
+  // Continuous Live Countdown Timer from mount (12s -> 0s)
   useEffect(() => {
-    if (animPhase !== 'POST_ANIMATION_COUNTDOWN') return;
     if (isPaused) return; // Pause countdown timer when trainer clicks pause
 
     const interval = setInterval(() => {
@@ -263,7 +270,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [animPhase, isPaused, onNextQuestion]);
+  }, [isPaused, onNextQuestion]);
 
   // Compute previous scores & earnings for each participant
   const processedParticipants = rankings.map((p) => {
@@ -318,13 +325,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
   const prevRectsRef = useRef<Record<string, DOMRect>>({});
 
-  // Dynamic calculate row stagger delay based on total participant count
-  const effectiveStaggerMs = Math.min(
-    LEADERBOARD_ANIMATION_CONFIG.intermediate.rowStaggerMs,
-    Math.max(15, Math.floor(LEADERBOARD_ANIMATION_CONFIG.intermediate.maxRowStaggerMs / Math.max(1, activeRankings.length)))
-  );
-
-  // FLIP (First, Last, Invert, Play) Layout Animation Hook for Position Reordering
+  // FLIP (First, Last, Invert, Play) Layout Animation Hook for Position Reordering (Upward Only)
   useLayoutEffect(() => {
     activeRankings.forEach((p) => {
       const id = p.participantId || p.displayName;
@@ -334,12 +335,14 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
         const prevRect = prevRectsRef.current[id];
         if (prevRect && (animPhase === 'REORDERING_RANKS' || animPhase === 'EMOJI_REVEAL' || animPhase === 'POST_ANIMATION_COUNTDOWN')) {
           const deltaY = prevRect.top - newRect.top;
-          if (deltaY !== 0) {
+          
+          // ONLY animate if row is moving UPWARDS towards the top of the table (deltaY > 0)
+          if (deltaY > 0) {
             // First & Last -> Invert
             el.style.transform = `translateY(${deltaY}px)`;
             el.style.transition = 'transform 0s';
 
-            // Play smooth transition to final position based on rank
+            // Play smooth transition upwards to final position based on rank
             requestAnimationFrame(() => {
               el.style.transform = 'translateY(0px)';
               el.style.transition = `transform ${LEADERBOARD_ANIMATION_CONFIG.intermediate.rankMovementDurationMs}ms cubic-bezier(0.25, 1, 0.5, 1)`;
@@ -354,6 +357,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
               }
             };
             el.addEventListener('transitionend', handleTransitionEnd);
+          } else {
+            // Non-climbing rows reset instantly without downward sliding animation
+            el.style.transform = '';
+            el.style.transition = '';
           }
         }
         prevRectsRef.current[id] = newRect;
@@ -427,10 +434,10 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">Participants</span>
           </div>
 
-          {/* Countdown Timer Badge */}
+          {/* Continuous Countdown Timer Badge */}
           <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[120px] relative">
             <span className={`text-xl sm:text-2xl font-black font-mono block ${isPaused ? 'text-amber-400 animate-pulse' : 'text-amber-300'}`}>
-              {animPhase === 'POST_ANIMATION_COUNTDOWN' ? `00:0${nextQCountdown}` : 'UPDATING'}
+              00:{nextQCountdown < 10 ? '0' : ''}{nextQCountdown}
             </span>
             <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">
               {isPaused ? 'PAUSED' : animPhase === 'POST_ANIMATION_COUNTDOWN' ? 'NEXT QUESTION IN' : 'LEADERBOARD'}
