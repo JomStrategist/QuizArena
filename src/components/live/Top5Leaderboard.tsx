@@ -364,27 +364,27 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
             {animPhase === 'PREVIOUS_SCOREBOARD' ? (
               <span className="text-amber-300 flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 animate-spin" />
-                <span>STEP 1: PREVIOUS STANDINGS</span>
+                <span>STEP 1: PREVIOUS STANDINGS (5s)</span>
               </span>
             ) : animPhase === 'COUNTING_POINTS' ? (
               <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>STEP 2: ADDING POINTS (+PTS)</span>
+                <span>STEP 2: ADDING POINTS (+PTS) (3s)</span>
               </span>
             ) : animPhase === 'REORDERING_RANKS' ? (
               <span className="text-purple-300 flex items-center space-x-1.5 animate-pulse">
                 <Zap className="w-3.5 h-3.5" />
-                <span>STEP 3: REORDERING POSITIONS</span>
+                <span>STEP 3: REORDERING POSITIONS (3s)</span>
               </span>
             ) : animPhase === 'EMOJI_REVEAL' ? (
               <span className="text-amber-300 flex items-center space-x-1.5 animate-pulse">
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>STEP 4: CARTOON REVEAL & SUNGLASSES DROP</span>
+                <span>STEP 4: CARTOON REVEAL & SUNGLASSES DROP (3s)</span>
               </span>
             ) : (
               <span className="text-emerald-300 flex items-center space-x-1.5 animate-pulse">
                 <Clock className="w-3.5 h-3.5" />
-                <span>STEP 5: NEXT QUESTION IN {nextQCountdown}s</span>
+                <span>STEP 5: NEXT QUESTION IN {nextQCountdown}s (8s)</span>
               </span>
             )}
           </div>
