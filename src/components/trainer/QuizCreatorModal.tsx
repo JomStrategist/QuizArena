@@ -389,7 +389,16 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     });
   };
 
-  const totalPoints = quizQuestions.reduce((acc, q) => acc + (q.points || 1000), 0);
+  const totalPoints = quizQuestions.reduce((acc, q) => {
+    if (q.questionType === 'SCENARIO_QUESTIONS') {
+      const subSum = (q.scenarioQuestionsData?.subQuestions || []).reduce(
+        (sum: number, sq: any) => sum + (sq.points !== undefined ? sq.points : 250),
+        0
+      );
+      return acc + (subSum || q.points || 0);
+    }
+    return acc + (q.points !== undefined ? q.points : 1000);
+  }, 0);
   const totalTimeSeconds = quizQuestions.reduce((acc, q) => acc + (q.timeLimit || 20), 0);
   const totalTimeMinutes = Math.max(1, Math.round(totalTimeSeconds / 60));
 
@@ -1256,9 +1265,14 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                         (sum: number, sq: any) => sum + (sq.timeLimit !== undefined ? sq.timeLimit : 20),
                         0
                       );
+                      const totalPoints = (updatedScenario.subQuestions || []).reduce(
+                        (sum: number, sq: any) => sum + (sq.points !== undefined ? sq.points : 250),
+                        0
+                      );
                       updateCurrentQuestion({
                         scenarioQuestionsData: updatedScenario,
                         timeLimit: totalTime > 0 ? totalTime : 20,
+                        points: totalPoints,
                       });
                     };
                     const updateSubQ = (sqIdx: number, patch: any) => {
@@ -1693,7 +1707,12 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       {currentQuestion.questionType === 'SCENARIO_QUESTIONS' ? (
                         <div className="p-2 bg-purple-50 border border-purple-200 rounded-xl text-[11px] font-bold text-purple-900 flex items-center justify-between">
                           <span className="text-[10px] text-purple-700 uppercase">Sum of Sub-Qs:</span>
-                          <span className="text-xs font-black text-purple-800">{currentQuestion.points || 0} pts</span>
+                          <span className="text-xs font-black text-purple-800">
+                            {(currentQuestion.scenarioQuestionsData?.subQuestions || []).reduce(
+                              (sum: number, sq: any) => sum + (sq.points !== undefined ? sq.points : 250),
+                              0
+                            )} pts
+                          </span>
                         </div>
                       ) : (
                         <input
