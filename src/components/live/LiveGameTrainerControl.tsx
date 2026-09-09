@@ -464,23 +464,8 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           </button>
         </div>
 
-        {/* Right Controls: Scoreboard Visibility, Next Question, Pause, End Game */}
+        {/* Right Controls: Next Question, Pause, End Game */}
         <div className="flex items-center space-x-2 shrink-0">
-          <button
-            onClick={handleToggleScoreboardVisibility}
-            className={`px-3.5 py-3 rounded-2xl text-xs font-black transition flex items-center space-x-1.5 border shadow-xs ${
-              sessionData?.scoreboardVisibility === 'TRAINER_ONLY'
-                ? 'bg-purple-100 text-purple-900 border-purple-300 hover:bg-purple-200'
-                : 'bg-blue-100 text-blue-900 border-blue-300 hover:bg-blue-200'
-            }`}
-            title="Toggle whether participants see the scoreboard or only the trainer"
-          >
-            <Eye className="w-4 h-4 text-purple-700" />
-            <span>
-              {sessionData?.scoreboardVisibility === 'TRAINER_ONLY' ? '🔒 Scoreboard: Trainer Only' : '👥 Scoreboard: Everyone'}
-            </span>
-          </button>
-
           <button
             onClick={handleNextQuestion}
             className="px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-600/20 active:scale-95"
