@@ -27,6 +27,7 @@ import {
   Bold,
   Italic,
   Type,
+  Copy,
 } from 'lucide-react';
 import { IQuestion, IQuiz, QuestionType } from '@/types';
 import { useToast } from '../ui/ToastNotification';
@@ -325,6 +326,24 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
     const updated = [...quizQuestions, newQ];
     setQuizQuestions(updated);
     setActiveQuestionIndex(updated.length - 1);
+  };
+
+  // Duplicate question (clones options, question text, scenario sub-questions, correct answer, etc.)
+  const handleDuplicateQuestion = (idxToDuplicate?: number) => {
+    const targetIdx = idxToDuplicate !== undefined ? idxToDuplicate : activeQuestionIndex;
+    const targetQ = quizQuestions[targetIdx];
+    if (!targetQ) return;
+
+    const duplicatedQ: IQuestion = JSON.parse(JSON.stringify(targetQ));
+    duplicatedQ._id = `temp-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    duplicatedQ.createdAt = new Date().toISOString();
+    duplicatedQ.updatedAt = new Date().toISOString();
+
+    const updated = [...quizQuestions];
+    updated.splice(targetIdx + 1, 0, duplicatedQ);
+    setQuizQuestions(updated);
+    setActiveQuestionIndex(targetIdx + 1);
+    showToast(`Question ${targetIdx + 1} duplicated successfully!`, 'success');
   };
 
   const handleAddOption = () => {
@@ -703,6 +722,17 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                             >
                               <ArrowDown className="w-3.5 h-3.5" />
                             </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDuplicateQuestion(idx);
+                              }}
+                              className="p-1 text-slate-400 hover:text-amber-600 hover:bg-amber-100/60 rounded-lg transition"
+                              title="Duplicate Question (Copy options & settings)"
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
                           </div>
 
                           {quizQuestions.length > 1 && (
@@ -739,8 +769,18 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       </h3>
                     </div>
 
-                    {/* Question Type Selector */}
+                    {/* Duplicate Question Button & Question Type Selector */}
                     <div className="flex items-center space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicateQuestion(activeQuestionIndex)}
+                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl text-xs font-bold transition flex items-center space-x-1.5 shadow-xs"
+                        title="Duplicate this question with all options & settings"
+                      >
+                        <Copy className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Duplicate Question</span>
+                      </button>
+
                       <label className="text-xs font-bold text-slate-600">Question Type:</label>
                       <select
                         value={currentQuestion.questionType || 'MCQ'}
@@ -1251,6 +1291,16 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                       [copy[sqIdx], copy[to]] = [copy[to], copy[sqIdx]];
                       updateScenario({ subQuestions: copy });
                     };
+                    const duplicateSubQ = (sqIdx: number) => {
+                      const targetSq = sData.subQuestions[sqIdx];
+                      if (!targetSq) return;
+                      const clonedSq = JSON.parse(JSON.stringify(targetSq));
+                      clonedSq.id = `sq_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                      const copy = [...sData.subQuestions];
+                      copy.splice(sqIdx + 1, 0, clonedSq);
+                      updateScenario({ subQuestions: copy });
+                      showToast(`Sub-question ${sqIdx + 1} duplicated!`, 'success');
+                    };
                     const updateOpt = (sqIdx: number, optIdx: number, val: string) => {
                       const copy = [...sData.subQuestions[sqIdx].options];
                       copy[optIdx] = val;
@@ -1379,6 +1429,11 @@ export const QuizCreatorModal: React.FC<QuizCreatorModalProps> = ({
                                     <button type="button" onClick={() => moveSubQ(sqIdx, 1)} disabled={sqIdx === sData.subQuestions.length - 1}
                                       className="p-1 text-slate-500 hover:text-slate-800 disabled:opacity-30 bg-slate-100 rounded-lg transition">
                                       <ArrowDown className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button type="button" onClick={() => duplicateSubQ(sqIdx)}
+                                      className="p-1 text-amber-600 hover:text-amber-800 bg-amber-50 rounded-lg transition"
+                                      title="Duplicate Sub-Question (Copy options & settings)">
+                                      <Copy className="w-3.5 h-3.5" />
                                     </button>
                                     <button type="button" onClick={() => removeSubQ(sqIdx)}
                                       className="p-1 text-rose-500 hover:text-rose-700 bg-rose-50 rounded-lg transition">
