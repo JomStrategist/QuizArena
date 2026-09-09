@@ -464,6 +464,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
         userDisplayName={displayName}
         userParticipantId={participantId}
         sessionType="LIVE_GAME"
+        isPaused={session?.stage === 'PAUSED'}
+        timerDurationSec={8}
       />
     );
   }

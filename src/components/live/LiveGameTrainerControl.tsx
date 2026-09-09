@@ -256,6 +256,11 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
         currentQuestionIndex={sessionData?.currentQuestionIndex || 0}
         totalQuestions={sessionData?.totalQuestions || 1}
         sessionType="LIVE_GAME"
+        isTrainer={true}
+        isPaused={sessionData?.stage === 'PAUSED'}
+        onTogglePause={handlePauseResumeToggle}
+        onNextQuestion={handleNextQuestion}
+        timerDurationSec={8}
       />
     );
   }

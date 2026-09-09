@@ -8,6 +8,7 @@ export interface ILeaderboardAnimationConfig {
   // Intermediate Leaderboard (After Every Question)
   intermediate: {
     enabled: boolean;
+    timerDurationSec?: number;
     containerDurationMs: number; // Entrance animation duration (400-600ms)
     rowStaggerMs: number; // Stagger delay per row (50-100ms)
     maxRowStaggerMs: number; // Cap for large participant counts
@@ -40,6 +41,7 @@ export interface ILeaderboardAnimationConfig {
 export const LEADERBOARD_ANIMATION_CONFIG: ILeaderboardAnimationConfig = {
   intermediate: {
     enabled: true,
+    timerDurationSec: 8,
     containerDurationMs: 500,
     rowStaggerMs: 70,
     maxRowStaggerMs: 400,

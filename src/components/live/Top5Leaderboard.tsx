@@ -1,7 +1,21 @@
 'use client';
 
 import React, { useEffect, useState, useRef, useLayoutEffect } from 'react';
-import { TrendingUp, TrendingDown, Clock, Users, Target, Trophy } from 'lucide-react';
+import {
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  Users,
+  Target,
+  Trophy,
+  Flame,
+  Zap,
+  Pause,
+  Play,
+  SkipForward,
+  Sparkles,
+  ArrowUpRight,
+} from 'lucide-react';
 import { ILiveParticipant } from '@/types';
 import { soundManager } from '@/lib/game/soundManager';
 import { LEADERBOARD_ANIMATION_CONFIG } from '@/config/leaderboardAnimationConfig';
@@ -13,6 +27,11 @@ interface Top5LeaderboardProps {
   userDisplayName?: string;
   userParticipantId?: string;
   sessionType?: 'LIVE_GAME' | 'CONDUCT';
+  isTrainer?: boolean;
+  isPaused?: boolean;
+  onTogglePause?: () => void;
+  onNextQuestion?: () => void;
+  timerDurationSec?: number;
 }
 
 /**
@@ -38,7 +57,7 @@ const AnimatedNumber: React.FC<{ value: number; durationMs?: number }> = ({
       const progress = Math.min(1, elapsed / durationMs);
       const easeOutCubic = 1 - Math.pow(1 - progress, 3);
       const current = Math.round(startValue + (endValue - startValue) * easeOutCubic);
-      
+
       setDisplayValue(current);
 
       if (progress < 1) {
@@ -62,23 +81,45 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
   userDisplayName = '',
   userParticipantId = '',
   sessionType = 'LIVE_GAME',
+  isTrainer = false,
+  isPaused = false,
+  onTogglePause,
+  onNextQuestion,
+  timerDurationSec = LEADERBOARD_ANIMATION_CONFIG.intermediate.timerDurationSec || 8,
 }) => {
-  const [countdown, setCountdown] = useState<number>(5);
+  const [countdown, setCountdown] = useState<number>(timerDurationSec);
 
+  // Play leaderboard audio reveal sound on mount
   useEffect(() => {
     if (LEADERBOARD_ANIMATION_CONFIG.audio.enabled) {
       soundManager.playLeaderboardSound();
     }
+  }, []);
+
+  // Timer Countdown with Pause support
+  useEffect(() => {
+    if (isPaused) return; // Freeze timer countdown when trainer pauses
     const interval = setInterval(() => {
       setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isPaused]);
 
   const sorted = [...rankings].sort((a, b) => (b.score || 0) - (a.score || 0));
   const allRankings = sorted;
   const currentQNum = (currentQuestionIndex || 0) + 1;
   const totalParticipants = rankings.length;
+
+  // Identify Highest Climber (maximum positive lastRankDelta > 0)
+  let highestClimberId: string | null = null;
+  let maxRankClimb = 0;
+  allRankings.forEach((p) => {
+    const delta = p.lastRankDelta || 0;
+    if (delta > maxRankClimb) {
+      maxRankClimb = delta;
+      highestClimberId = p.participantId || p.displayName;
+    }
+  });
 
   const avatarColors = [
     'bg-purple-600 text-white',
@@ -132,36 +173,77 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
 
   return (
     <div
-      className="min-h-screen bg-slate-100 flex flex-col justify-between font-sans text-slate-800 p-3 sm:p-5 max-w-[1440px] mx-auto w-full space-y-4 animate-in fade-in zoom-in-95 duration-500"
+      className="max-w-6xl mx-auto w-full space-y-4 py-4 px-3 sm:px-6 font-sans text-slate-800 animate-in fade-in zoom-in-95 duration-500"
       style={{ animationDuration: `${LEADERBOARD_ANIMATION_CONFIG.intermediate.containerDurationMs}ms` }}
     >
       {/* LEADERBOARD TITLE HEADER */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-6 rounded-3xl text-white shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all duration-300">
+      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 p-5 sm:p-6 rounded-3xl text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300">
         <div className="space-y-1">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl text-xs font-black uppercase tracking-wider text-amber-300">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-white/20 backdrop-blur-md rounded-xl text-xs font-black uppercase tracking-wider text-amber-300 border border-white/20">
             <Trophy className="w-4 h-4 fill-amber-300" />
             <span>LIVE SCOREBOARD</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Leaderboard Standings</h1>
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight">Leaderboard Standings</h1>
           <p className="text-xs sm:text-sm font-bold text-blue-100">
             Question <strong className="text-amber-300 font-mono">{currentQNum}</strong> of{' '}
             <strong className="text-amber-300 font-mono">{totalQuestions}</strong> Complete!
           </p>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 text-center">
-            <span className="text-2xl font-black font-mono block text-white">{totalParticipants}</span>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-200 block">Participants</span>
+        {/* Right Section: Stats, Timer & Trainer Pause/Next Controls */}
+        <div className="flex items-center space-x-3 flex-wrap gap-y-2">
+          {/* Total Participants Badge */}
+          <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[90px]">
+            <span className="text-xl sm:text-2xl font-black font-mono block text-white">{totalParticipants}</span>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">Participants</span>
           </div>
-          <div className="bg-white/10 backdrop-blur-md px-5 py-3 rounded-2xl border border-white/20 text-center">
-            <span className="text-2xl font-black font-mono block text-amber-300">00:0{countdown}</span>
-            <span className="text-[10px] font-extrabold uppercase tracking-widest text-blue-200 block">Next Question</span>
+
+          {/* Countdown Timer Badge */}
+          <div className="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/20 text-center min-w-[110px] relative">
+            <span className={`text-xl sm:text-2xl font-black font-mono block ${isPaused ? 'text-amber-400 animate-pulse' : 'text-amber-300'}`}>
+              00:0{countdown}
+            </span>
+            <span className="text-[9px] font-extrabold uppercase tracking-widest text-blue-200 block">
+              {isPaused ? 'PAUSED' : 'NEXT QUESTION'}
+            </span>
           </div>
+
+          {/* Trainer Interactive Controls (Pause/Resume & Next Question) */}
+          {(isTrainer || onTogglePause || onNextQuestion) && (
+            <div className="flex items-center space-x-2 pl-2 border-l border-white/20">
+              {onTogglePause && (
+                <button
+                  type="button"
+                  onClick={onTogglePause}
+                  className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-black transition-all shadow-sm border ${
+                    isPaused
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 hover:bg-amber-300 animate-pulse scale-[1.03]'
+                      : 'bg-white/20 hover:bg-white/30 text-white border-white/30'
+                  }`}
+                  title={isPaused ? 'Resume Leaderboard Timer' : 'Pause Leaderboard Timer'}
+                >
+                  {isPaused ? <Play className="w-3.5 h-3.5 fill-current" /> : <Pause className="w-3.5 h-3.5 fill-current" />}
+                  <span>{isPaused ? 'Resume' : 'Pause'}</span>
+                </button>
+              )}
+
+              {onNextQuestion && (
+                <button
+                  type="button"
+                  onClick={onNextQuestion}
+                  className="flex items-center space-x-1.5 px-3.5 py-2 bg-amber-400 hover:bg-amber-300 text-slate-950 border border-amber-300 rounded-xl text-xs font-black transition-all shadow-md active:scale-95"
+                  title="Immediately advance to next question"
+                >
+                  <SkipForward className="w-3.5 h-3.5 fill-current" />
+                  <span>Next Question</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* FULL-WIDTH LEADERBOARD TABLE (MAXIMUM PARTICIPANTS WITH STAGGERED ROW REVEAL) */}
+      {/* FULL-WIDTH LEADERBOARD TABLE WITH KAHOOT-STYLE STREAKS & RANK CLIMBER HIGHLIGHTS */}
       <div className="bg-white rounded-3xl border border-slate-200/90 shadow-lg overflow-hidden transition-all duration-300">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs font-semibold border-collapse">
@@ -191,16 +273,27 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                 const avgTimeSec = p.avgResponseTimeMs ? (p.avgResponseTimeMs / 1000).toFixed(1) + 's' : '-';
                 const trendDelta = p.lastRankDelta !== undefined ? p.lastRankDelta : 0;
 
-                // Row highlight & movement indicator
-                let rowBgClass = 'hover:bg-slate-50 transition-colors duration-200';
-                if (rankNum === 1) rowBgClass = 'bg-amber-50/80 hover:bg-amber-50 font-bold';
-                else if (rankNum === 2) rowBgClass = 'bg-blue-50/60 hover:bg-blue-50 font-bold';
-                else if (rankNum === 3) rowBgClass = 'bg-orange-50/60 hover:bg-orange-50 font-bold';
+                const isHighestClimber =
+                  highestClimberId &&
+                  (p.participantId === highestClimberId || p.displayName === highestClimberId) &&
+                  trendDelta > 0;
 
-                if (trendDelta > 0) {
-                  rowBgClass += ' ring-1 ring-emerald-400 bg-emerald-50/40';
+                const streakCount = p.correctAnswers !== undefined && p.correctAnswers >= 2 ? p.correctAnswers : 0;
+
+                // Row highlight & Kahoot movement indicators
+                let rowBgClass = 'hover:bg-slate-50 transition-colors duration-200';
+                if (isHighestClimber) {
+                  rowBgClass = 'bg-gradient-to-r from-amber-100/90 via-emerald-50/70 to-amber-50/40 ring-2 ring-amber-400 shadow-md shadow-amber-400/20 font-bold';
+                } else if (trendDelta > 0) {
+                  rowBgClass = 'bg-gradient-to-r from-emerald-50/90 via-teal-50/40 to-slate-50 ring-2 ring-emerald-400/80 shadow-sm shadow-emerald-500/10 font-bold';
+                } else if (rankNum === 1) {
+                  rowBgClass = 'bg-amber-50/80 hover:bg-amber-50 font-bold';
+                } else if (rankNum === 2) {
+                  rowBgClass = 'bg-blue-50/60 hover:bg-blue-50 font-bold';
+                } else if (rankNum === 3) {
+                  rowBgClass = 'bg-orange-50/60 hover:bg-orange-50 font-bold';
                 } else if (trendDelta < 0) {
-                  rowBgClass += ' ring-1 ring-rose-300 bg-rose-50/30';
+                  rowBgClass += ' bg-rose-50/30 opacity-95';
                 }
 
                 if (isCurrentUser) rowBgClass += ' ring-2 ring-blue-500';
@@ -233,17 +326,46 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                       )}
                     </td>
 
-                    {/* Name with initial avatar */}
+                    {/* Name with Avatar & Kahoot Badges (Highest Climber / Streak) */}
                     <td className="py-3.5 px-4">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-xs ${avatarColors[idx % avatarColors.length]}`}>
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-xs shrink-0 ${
+                            avatarColors[idx % avatarColors.length]
+                          }`}
+                        >
                           {displayName.charAt(0)}
                         </div>
-                        <div>
+                        <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                           <span className="font-extrabold text-slate-900 text-xs sm:text-sm">{displayName}</span>
+                          
                           {isCurrentUser && (
-                            <span className="ml-2 px-1.5 py-0.5 bg-blue-600 text-white text-[9px] font-black rounded-md uppercase">
+                            <span className="px-1.5 py-0.5 bg-blue-600 text-white text-[9px] font-black rounded-md uppercase tracking-wider">
                               YOU
+                            </span>
+                          )}
+
+                          {/* Kahoot Highest Climber Badge */}
+                          {isHighestClimber && (
+                            <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-full text-[10px] font-black shadow-xs animate-bounce border border-amber-300">
+                              <Zap className="w-3 h-3 fill-slate-950" />
+                              <span>Highest Climber (+{trendDelta})</span>
+                            </span>
+                          )}
+
+                          {/* Kahoot Rank Up Badge (for non-highest climbers) */}
+                          {!isHighestClimber && trendDelta >= 2 && (
+                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-emerald-600 text-white rounded-full text-[10px] font-black shadow-xs animate-pulse">
+                              <TrendingUp className="w-3 h-3 stroke-[3]" />
+                              <span>+{trendDelta} Ranks</span>
+                            </span>
+                          )}
+
+                          {/* Kahoot Streak Badge */}
+                          {streakCount >= 2 && (
+                            <span className="inline-flex items-center space-x-1 px-2 py-0.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-full text-[10px] font-black shadow-xs">
+                              <Flame className="w-3 h-3 fill-amber-200" />
+                              <span>{streakCount} Streak!</span>
                             </span>
                           )}
                         </div>
@@ -280,17 +402,17 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
                     {/* Trend Indicator */}
                     <td className="py-3.5 px-4 text-center font-black">
                       {trendDelta > 0 ? (
-                        <span className="inline-flex items-center space-x-1 text-emerald-600 text-xs bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 animate-in zoom-in-75 duration-300">
-                          <TrendingUp className="w-3 h-3" />
+                        <span className="inline-flex items-center space-x-1.5 text-emerald-700 text-xs font-black bg-emerald-100/90 px-2.5 py-1 rounded-xl border border-emerald-300/80 shadow-xs animate-in zoom-in-90 duration-300">
+                          <TrendingUp className="w-3.5 h-3.5 text-emerald-600 animate-bounce stroke-[3]" />
                           <span>▲ {trendDelta}</span>
                         </span>
                       ) : trendDelta < 0 ? (
-                        <span className="inline-flex items-center space-x-1 text-rose-600 text-xs bg-rose-50 px-2 py-0.5 rounded-md border border-rose-200/60 animate-in zoom-in-75 duration-300">
-                          <TrendingDown className="w-3 h-3" />
+                        <span className="inline-flex items-center space-x-1.5 text-rose-700 text-xs font-black bg-rose-100/90 px-2.5 py-1 rounded-xl border border-rose-300/80 shadow-xs animate-in zoom-in-90 duration-300">
+                          <TrendingDown className="w-3.5 h-3.5 text-rose-600 stroke-[3]" />
                           <span>▼ {Math.abs(trendDelta)}</span>
                         </span>
                       ) : (
-                        <span className="text-slate-400 font-bold">-</span>
+                        <span className="text-slate-400 font-bold text-xs">-</span>
                       )}
                     </td>
                   </tr>
@@ -304,7 +426,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
       {/* FOOTER BAR */}
       <footer className="pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs text-slate-400 font-medium">
         <div className="flex items-center space-x-2">
-          <img src="/QuizArena Logo.png" alt="QuizArena" className="h-5 object-contain" />
+          <img src="/QuizArena Icon.png" alt="QuizArena" className="h-5 object-contain" />
           <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
             Internal Training & Assessment Platform
           </span>
