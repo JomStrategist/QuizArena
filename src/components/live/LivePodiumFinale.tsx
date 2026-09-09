@@ -202,30 +202,67 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
             </div>
           </div>
 
-          {/* Rank 1 - Gold (Center - Dramatic Reveal 1st) */}
+          {/* Rank 1 - Gold (Center - Dramatic Coronation Reveal 1st) */}
           <div
-            className={`flex flex-col items-center space-y-2 w-32 sm:w-44 -mt-8 transition-all duration-1000 ${
+            className={`flex flex-col items-center space-y-2 w-36 sm:w-48 -mt-10 transition-all duration-1000 ${
               isVisible1st
                 ? 'opacity-100 translate-y-0 scale-105'
                 : 'opacity-0 translate-y-16 scale-90 pointer-events-none'
             }`}
           >
-            <div className="relative">
-              <Crown className="w-9 h-9 text-amber-400 animate-bounce absolute -top-10 left-1/2 -translate-x-1/2 drop-shadow-md" />
-              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-amber-300 text-slate-950 font-black text-2xl flex items-center justify-center border-4 border-amber-200 shadow-2xl ring-4 ring-amber-400/50">
-                1
+            {/* CORONATION CROWN & AVATAR CONTAINER */}
+            <div className="relative flex flex-col items-center pt-8">
+              {/* ANIMATED DESCENDING CROWN (Lands onto 1st place head in celebrate stage) */}
+              <div
+                className={`absolute top-0 left-1/2 -translate-x-1/2 transition-all duration-1000 ease-out z-20 transform ${
+                  stage === 'celebrate' || stage === 'showRemaining'
+                    ? 'translate-y-0 opacity-100 scale-100 rotate-0'
+                    : '-translate-y-12 opacity-0 scale-150 -rotate-12'
+                }`}
+              >
+                <div className="relative">
+                  <Crown className="w-11 h-11 text-amber-300 fill-amber-400 filter drop-shadow-[0_0_12px_rgba(251,191,36,0.9)] animate-bounce" />
+                  <Sparkles className="w-5 h-5 text-amber-200 animate-spin absolute -top-2 -right-3" />
+                  <Sparkles className="w-4 h-4 text-yellow-300 animate-pulse absolute -top-1 -left-3" />
+                </div>
+              </div>
+
+              {/* CHAMPION AVATAR WITH GOLDEN GLOW & COOL SUNGLASSES */}
+              <div className="relative">
+                <div
+                  className={`w-20 h-20 rounded-full bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-slate-950 font-black text-3xl flex items-center justify-center border-4 border-amber-200 shadow-[0_0_30px_rgba(251,191,36,0.6)] ring-4 transition-all duration-700 ${
+                    stage === 'celebrate' || stage === 'showRemaining'
+                      ? 'scale-110 ring-amber-300 ring-8 shadow-[0_0_40px_rgba(251,191,36,0.9)]'
+                      : 'ring-amber-400/50'
+                  }`}
+                >
+                  <span>{top1 ? top1.displayName?.charAt(0).toUpperCase() : '1'}</span>
+                </div>
+
+                {/* Cool Sunglasses Emoji Overlay on Champion Avatar */}
+                <span className="absolute -bottom-1 -right-1 text-2xl select-none filter drop-shadow-md animate-bounce">
+                  😎
+                </span>
               </div>
             </div>
-            <div className="text-center space-y-0.5">
-              <p className="text-sm sm:text-base font-black text-amber-300 truncate max-w-[140px] drop-shadow-md">
+
+            {/* CHAMPION DETAILS & CORONATION BADGE */}
+            <div className="text-center space-y-1 pt-1">
+              {(stage === 'celebrate' || stage === 'showRemaining') && (
+                <div className="inline-flex items-center space-x-1 px-3 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 rounded-full text-[10px] sm:text-[11px] font-black shadow-lg border border-amber-200 animate-bounce">
+                  <span>👑 CORONATED CHAMPION 👑</span>
+                </div>
+              )}
+              <p className="text-base sm:text-lg font-black text-amber-300 truncate max-w-[150px] drop-shadow-md">
                 {top1 ? top1.displayName : '-'}
               </p>
               <p className="text-sm font-black text-amber-400 font-mono">
                 {top1 ? `${(top1.score || 0).toLocaleString()} pts` : '-'}
               </p>
             </div>
-            <div className="w-full bg-gradient-to-t from-amber-600 via-amber-500 to-amber-400 h-40 rounded-t-2xl flex items-center justify-center border-t-4 border-amber-200 shadow-2xl">
-              <span className="text-4xl font-black text-slate-950">🥇 1</span>
+
+            <div className="w-full bg-gradient-to-t from-amber-600 via-amber-500 to-amber-400 h-44 rounded-t-2xl flex items-center justify-center border-t-4 border-amber-200 shadow-2xl">
+              <span className="text-4xl font-black text-slate-950">🥇 1st</span>
             </div>
           </div>
 

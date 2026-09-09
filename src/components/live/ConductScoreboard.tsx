@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Trophy, Crown, ArrowLeft, Award, CheckCircle2, XCircle, Clock, Check, BarChart2 } from 'lucide-react';
+import { Trophy, Crown, ArrowLeft, Award, CheckCircle2, XCircle, Clock, Check, BarChart2, Sparkles } from 'lucide-react';
 
 interface ConductScoreboardProps {
   quizTitle: string;
@@ -114,18 +114,38 @@ export const ConductScoreboard: React.FC<ConductScoreboardProps> = ({
           </div>
         </div>
 
-        {/* 1st Place */}
-        <div className="flex flex-col items-center space-y-2 w-32 sm:w-44 -mt-6">
-          <div className="relative">
-            <Crown className="w-6 h-6 text-amber-500 absolute -top-5 left-1/2 transform -translate-x-1/2 animate-pulse" />
-            <div className="w-14 h-14 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-black text-lg border-4 border-amber-300 shadow-lg">
-              1
+        {/* 1st Place - Gold Coronation Podium */}
+        <div className="flex flex-col items-center space-y-2 w-36 sm:w-48 -mt-8">
+          <div className="relative flex flex-col items-center pt-7">
+            {/* Animated Floating Crown */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20">
+              <div className="relative">
+                <Crown className="w-10 h-10 text-amber-500 fill-amber-400 filter drop-shadow-[0_0_10px_rgba(251,191,36,0.9)] animate-bounce" />
+                <Sparkles className="w-4 h-4 text-amber-300 animate-spin absolute -top-1 -right-2" />
+              </div>
+            </div>
+
+            {/* Avatar with Sunglasses */}
+            <div className="relative">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-tr from-amber-400 to-amber-300 text-slate-950 flex items-center justify-center font-black text-xl border-4 border-amber-200 shadow-xl ring-4 ring-amber-400/60">
+                {firstPlace ? firstPlace.displayName?.charAt(0).toUpperCase() : '1'}
+              </div>
+              <span className="absolute -bottom-1 -right-1 text-xl select-none filter drop-shadow-sm animate-bounce">
+                😎
+              </span>
             </div>
           </div>
-          <p className="text-sm font-black text-slate-900 truncate w-full text-center">{firstPlace ? firstPlace.displayName : '-'}</p>
-          <p className="text-xs font-black text-amber-600">{firstPlace ? `${firstPlace.score || 0} pts` : '-'}</p>
-          <div className="w-full bg-gradient-to-t from-amber-400 to-amber-300 h-40 rounded-t-2xl shadow-xl border-t-2 border-amber-200 flex items-center justify-center">
-            <span className="text-2xl font-black text-slate-950">1st</span>
+
+          <div className="text-center space-y-0.5">
+            <div className="inline-flex items-center space-x-1 px-2.5 py-0.5 bg-gradient-to-r from-amber-400 to-yellow-400 text-slate-950 rounded-full text-[10px] font-black shadow-xs border border-amber-300 animate-bounce">
+              <span>👑 CHAMPION 👑</span>
+            </div>
+            <p className="text-sm font-black text-slate-900 truncate w-full text-center">{firstPlace ? firstPlace.displayName : '-'}</p>
+            <p className="text-xs font-black text-amber-600 font-mono">{firstPlace ? `${(firstPlace.score || 0).toLocaleString()} pts` : '-'}</p>
+          </div>
+
+          <div className="w-full bg-gradient-to-t from-amber-500 via-amber-400 to-amber-300 h-40 rounded-t-2xl shadow-xl border-t-4 border-amber-200 flex items-center justify-center">
+            <span className="text-3xl font-black text-slate-950">🥇 1st</span>
           </div>
         </div>
 
