@@ -56,7 +56,12 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const [hasTimedOut, setHasTimedOut] = useState<boolean>(false);
   useEffect(() => {
     soundManager.setMuted(true);
-  }, []);
+    if (typeof window !== 'undefined' && quizCode && participantId) {
+      try {
+        localStorage.setItem(`quiz_session_${quizCode}`, JSON.stringify({ quizCode, participantId, displayName }));
+      } catch (e) {}
+    }
+  }, [quizCode, participantId, displayName]);
 
   const [isMuted, setIsMuted] = useState<boolean>(true);
 
@@ -142,7 +147,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
       clearInterval(interval);
       if (eventSource) eventSource.close();
     };
-  }, [quizCode, displayName, participantId]);
+  }, [quizCode, displayName, participantId, hasTimedOut, submitting]);
 
   // Reset state when question index changes
   useEffect(() => {
@@ -708,19 +713,6 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           </div>
         )}
 
-        {/* Next Question Action */}
-        <div className="space-y-1.5 text-center pt-1">
-          <button
-            onClick={() => showToast('Waiting for trainer to advance question...', 'info')}
-            className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-black text-sm rounded-2xl transition shadow-lg shadow-blue-600/25 flex items-center justify-center space-x-2"
-          >
-            <span>Next Question</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <p className="text-[10px] font-bold text-slate-400">
-            Get ready for the next challenge!
-          </p>
-        </div>
       </div>
     );
   }

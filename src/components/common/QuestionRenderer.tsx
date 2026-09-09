@@ -270,10 +270,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   // Color schemes for option cards
   const optionThemes = [
-    { badge: 'bg-emerald-600 text-white', playerBg: 'bg-emerald-50 border-emerald-300 text-emerald-950', playerSelected: 'bg-emerald-600 text-white border-emerald-700 shadow-lg ring-2 ring-emerald-500', projectorBg: 'bg-emerald-600/90 border-emerald-400/40 text-white', letter: 'A' },
-    { badge: 'bg-blue-600 text-white', playerBg: 'bg-blue-50 border-blue-300 text-blue-950', playerSelected: 'bg-blue-600 text-white border-blue-700 shadow-lg ring-2 ring-blue-500', projectorBg: 'bg-blue-600/90 border-blue-400/40 text-white', letter: 'B' },
-    { badge: 'bg-amber-500 text-white', playerBg: 'bg-amber-50 border-amber-300 text-amber-950', playerSelected: 'bg-amber-500 text-white border-amber-600 shadow-lg ring-2 ring-amber-500', projectorBg: 'bg-amber-500/90 border-amber-300/40 text-slate-950', letter: 'C' },
-    { badge: 'bg-purple-600 text-white', playerBg: 'bg-purple-50 border-purple-300 text-purple-950', playerSelected: 'bg-purple-600 text-white border-purple-700 shadow-lg ring-2 ring-purple-500', projectorBg: 'bg-purple-600/90 border-purple-400/40 text-white', letter: 'D' },
+    { badge: 'bg-rose-600 text-white', playerBg: 'bg-rose-50 border-rose-200 text-rose-950 hover:bg-rose-100/80', playerSelected: 'bg-rose-600 text-white border-rose-700 shadow-lg ring-2 ring-rose-500', trainerBg: 'bg-rose-50/90 border-rose-200 text-rose-950 font-extrabold', projectorBg: 'bg-rose-600/90 border-rose-400/40 text-white', letter: 'A' },
+    { badge: 'bg-blue-600 text-white', playerBg: 'bg-blue-50 border-blue-200 text-blue-950 hover:bg-blue-100/80', playerSelected: 'bg-blue-600 text-white border-blue-700 shadow-lg ring-2 ring-blue-500', trainerBg: 'bg-blue-50/90 border-blue-200 text-blue-950 font-extrabold', projectorBg: 'bg-blue-600/90 border-blue-400/40 text-white', letter: 'B' },
+    { badge: 'bg-amber-500 text-white', playerBg: 'bg-amber-50 border-amber-200 text-amber-950 hover:bg-amber-100/80', playerSelected: 'bg-amber-500 text-white border-amber-600 shadow-lg ring-2 ring-amber-500', trainerBg: 'bg-amber-50/90 border-amber-200 text-amber-950 font-extrabold', projectorBg: 'bg-amber-500/90 border-amber-300/40 text-slate-950', letter: 'C' },
+    { badge: 'bg-purple-600 text-white', playerBg: 'bg-purple-50 border-purple-200 text-purple-950 hover:bg-purple-100/80', playerSelected: 'bg-purple-600 text-white border-purple-700 shadow-lg ring-2 ring-purple-500', trainerBg: 'bg-purple-50/90 border-purple-200 text-purple-950 font-extrabold', projectorBg: 'bg-purple-600/90 border-purple-400/40 text-white', letter: 'D' },
   ];
 
   const renderScenarioDetailsBanner = () => {
@@ -289,38 +289,38 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const totalSub = (question as any).totalSubQuestions ?? (question as any).totalSub ?? (question as any).totalSubQuestionsCount;
 
     return (
-      <div className={`p-4 sm:p-5 rounded-3xl border space-y-2 mb-4 transition-all shadow-sm ${
+      <div className={`p-5 sm:p-7 rounded-3xl border space-y-3 mb-4 transition-all shadow-sm ${
         mode === 'projector'
           ? 'bg-purple-950/90 border-purple-500/40 text-purple-100'
-          : 'bg-purple-50 border-purple-200 text-purple-950'
+          : 'bg-purple-50/90 border-purple-200 text-purple-950'
       }`}>
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider text-purple-600 dark:text-purple-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400">
           <div className="flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-purple-600 shrink-0" />
+            <BookOpen className="w-4 h-4 text-purple-700 shrink-0" />
             <span>
               SCENARIO CASE STUDY
               {subIdx !== undefined && totalSub !== undefined ? ` • SUB-QUESTION ${Number(subIdx) + 1} OF ${totalSub}` : ''}
             </span>
           </div>
           {scenarioTitle && (
-            <span className="bg-purple-200/80 text-purple-900 px-2.5 py-0.5 rounded-lg text-[10px] font-black">
+            <span className="bg-purple-200/90 text-purple-950 px-3 py-1 rounded-xl text-xs font-black">
               {scenarioTitle}
             </span>
           )}
         </div>
         {scenarioText && (
-          <p className={`text-xs md:text-sm font-semibold leading-relaxed whitespace-pre-wrap ${mode === 'projector' ? 'text-slate-100' : 'text-purple-950'}`}>
+          <p className={`text-xl md:text-2xl lg:text-3xl font-black leading-tight tracking-tight whitespace-pre-wrap py-2 ${mode === 'projector' ? 'text-slate-100' : 'text-purple-950'}`}>
             {scenarioText}
           </p>
         )}
         {instructions && (
-          <p className="text-[11px] font-bold text-amber-900 bg-amber-100/90 px-3 py-1 rounded-xl border border-amber-200/80 mt-1 inline-block">
+          <p className="text-xs font-bold text-amber-950 bg-amber-100/90 px-3.5 py-1.5 rounded-xl border border-amber-200/90 mt-1 inline-block">
             💡 {instructions}
           </p>
         )}
         {backgroundContext && (
-          <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 pt-0.5">
-            <strong className="font-bold text-slate-900 dark:text-white">Key Context:</strong> {backgroundContext}
+          <p className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300 pt-1">
+            <strong className="font-extrabold text-slate-900 dark:text-white">Key Context:</strong> {backgroundContext}
           </p>
         )}
       </div>
@@ -599,14 +599,14 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           /* ------------------------------------------------------------- */
           <div className="space-y-6">
             {/* Progress Header */}
-            <div className="p-4 bg-slate-900 border border-slate-800 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-white shadow-sm">
+            <div className="p-4 bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 border border-purple-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 text-white shadow-md">
               <div className="flex items-center space-x-3 w-full sm:w-auto">
-                <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/30 flex items-center justify-center font-black text-purple-400 text-sm shrink-0">
+                <div className="w-10 h-10 rounded-xl bg-purple-500/30 border border-purple-400/40 flex items-center justify-center font-black text-amber-300 text-sm shrink-0">
                   {items.length - unassignedCount}/{items.length}
                 </div>
                 <div>
-                  <h4 className="text-xs font-black uppercase text-slate-300 tracking-wider">Categorization Progress</h4>
-                  <p className="text-xs text-slate-400 font-medium">
+                  <h4 className="text-xs font-black uppercase text-purple-200 tracking-wider">Categorization Progress</h4>
+                  <p className="text-xs text-purple-300 font-medium">
                     {unassignedCount === 0
                       ? '🎉 All items categorized!'
                       : `${unassignedCount} item${unassignedCount > 1 ? 's' : ''} remaining`}
@@ -615,9 +615,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
               </div>
 
               {/* Progress bar */}
-              <div className="w-full sm:w-48 bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
+              <div className="w-full sm:w-48 bg-slate-800/80 h-3 rounded-full overflow-hidden border border-purple-400/30">
                 <div
-                  className="bg-gradient-to-r from-purple-500 to-blue-500 h-full transition-all duration-300 rounded-full"
+                  className="bg-gradient-to-r from-amber-400 via-purple-400 to-cyan-400 h-full transition-all duration-300 rounded-full"
                   style={{ width: `${Math.round(((items.length - unassignedCount) / items.length) * 100)}%` }}
                 />
               </div>
@@ -634,10 +634,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 return (
                   <div
                     key={originalIndex}
-                    className={`p-5 rounded-2xl border transition space-y-4 shadow-sm ${
+                    className={`p-5 rounded-2xl border transition space-y-4 shadow-md ${
                       assignedCat
-                        ? 'bg-slate-900/90 border-purple-500/50 ring-1 ring-purple-500/30'
-                        : 'bg-slate-900 border-slate-800 text-white hover:border-slate-700'
+                        ? 'bg-gradient-to-br from-indigo-950 via-slate-900 to-purple-950 border-purple-400/60 ring-2 ring-purple-500/40 text-white'
+                        : 'bg-gradient-to-br from-slate-900 to-slate-950 border-slate-700/80 text-white hover:border-purple-400/40'
                     }`}
                   >
                     {/* Item Header & Status Badge */}
@@ -1509,10 +1509,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             return (
               <div
                 key={idx}
-                className={`p-5 sm:p-6 rounded-2xl border flex items-center justify-between transition ${
+                className={`p-5 sm:p-6 rounded-2xl border flex items-center justify-between transition shadow-xs ${
                   isCorrect
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-950 font-black shadow-xs'
-                    : 'bg-slate-50/80 border-slate-200 text-slate-800 font-extrabold'
+                    ? 'bg-emerald-100 border-emerald-400 text-emerald-950 font-black shadow-md ring-2 ring-emerald-500'
+                    : theme.trainerBg
                 }`}
               >
                 <div className="flex items-center space-x-4 min-w-0 pr-2">

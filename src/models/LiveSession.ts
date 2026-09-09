@@ -44,7 +44,7 @@ const LiveSessionSchema = new Schema<ILiveSessionDocument>(
     sessionType: { type: String, enum: ['CONDUCT', 'LIVE_GAME'], default: 'LIVE_GAME' },
     questionTime: { type: Number, default: 20 },
     maxParticipants: { type: Number, default: 200 },
-    allowLateJoin: { type: Boolean, default: false },
+    allowLateJoin: { type: Boolean, default: true },
     speedScoring: { type: Boolean, default: true },
     showCorrectAnswer: { type: Boolean, default: true },
     showScore: { type: Boolean, default: true },

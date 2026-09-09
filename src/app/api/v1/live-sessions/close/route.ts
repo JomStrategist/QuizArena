@@ -28,10 +28,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    session.stage = 'CLOSED';
+    session.stage = 'FINAL_SCOREBOARD';
     session.closedAt = new Date();
     await session.save();
 
+    emitSessionEvent(session.quizCode, 'STAGE_CHANGED', { stage: 'FINAL_SCOREBOARD' });
     emitSessionEvent(session.quizCode, 'GAME_CLOSED', { quizCode: session.quizCode });
 
     // Compile & store historical result record

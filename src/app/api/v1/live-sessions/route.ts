@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
       sessionType = 'LIVE_GAME',
       questionTime = 20,
       maxParticipants = 200,
-      allowLateJoin = false,
+      allowLateJoin = true,
       speedScoring = true,
       showCorrectAnswer = true,
       showScore = true,
