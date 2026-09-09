@@ -16,6 +16,7 @@ export interface ILiveSessionDocument extends Document {
   showCorrectAnswer: boolean;
   showScore: boolean;
   showLeaderboard: boolean;
+  scoreboardVisibility?: 'EVERYONE' | 'TRAINER_ONLY';
   finalPodium: boolean;
   pointsMode: string;
   stage: 'LOBBY' | 'STARTING' | 'QUESTION_ACTIVE' | 'QUESTION_LOCKED' | 'SHOWING_RESULT' | 'LEADERBOARD' | 'PAUSED' | 'FINAL_PODIUM' | 'FINAL_SCOREBOARD' | 'CLOSED';
@@ -49,6 +50,7 @@ const LiveSessionSchema = new Schema<ILiveSessionDocument>(
     showCorrectAnswer: { type: Boolean, default: true },
     showScore: { type: Boolean, default: true },
     showLeaderboard: { type: Boolean, default: true },
+    scoreboardVisibility: { type: String, enum: ['EVERYONE', 'TRAINER_ONLY'], default: 'EVERYONE' },
     finalPodium: { type: Boolean, default: true },
     pointsMode: { type: String, default: 'QUIZ_SETTINGS' },
     stage: {

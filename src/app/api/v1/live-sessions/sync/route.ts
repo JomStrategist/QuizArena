@@ -201,6 +201,7 @@ export async function GET(req: NextRequest) {
           speedScoring: session.speedScoring !== false,
           showCorrectAnswer: session.showCorrectAnswer !== false,
           showLeaderboard: session.showLeaderboard !== false,
+          scoreboardVisibility: session.scoreboardVisibility || 'EVERYONE',
           finalPodium: session.finalPodium !== false,
           pointsMode: session.pointsMode,
           stage: session.stage,

@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
       showCorrectAnswer = true,
       showScore = true,
       showLeaderboard = true,
+      scoreboardVisibility = 'EVERYONE',
       finalPodium = true,
       pointsMode = 'QUIZ_SETTINGS',
     } = body;
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
       showCorrectAnswer: showCorrectAnswer !== undefined ? Boolean(showCorrectAnswer) : true,
       showScore: showScore !== undefined ? Boolean(showScore) : true,
       showLeaderboard: showLeaderboard !== undefined ? Boolean(showLeaderboard) : true,
+      scoreboardVisibility: scoreboardVisibility === 'TRAINER_ONLY' ? 'TRAINER_ONLY' : 'EVERYONE',
       finalPodium: finalPodium !== undefined ? Boolean(finalPodium) : true,
       pointsMode,
       stage: 'LOBBY',

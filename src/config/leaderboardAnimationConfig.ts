@@ -58,7 +58,7 @@ export const LEADERBOARD_ANIMATION_CONFIG: ILeaderboardAnimationConfig = {
     countingPointsPhaseMs: 1500,
     reorderingPhaseMs: 1200,
     emojiRevealPhaseMs: 1000,
-    postAnimationCountdownSec: 5,
+    postAnimationCountdownSec: 8,
   },
   final: {
     enabled: true,

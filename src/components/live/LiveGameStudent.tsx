@@ -484,6 +484,32 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
 
   // 4. Leaderboard View Between Questions
   if (stage === 'LEADERBOARD') {
+    if (session?.scoreboardVisibility === 'TRAINER_ONLY') {
+      return (
+        <div className="min-h-screen bg-gradient-to-b from-indigo-950 via-slate-900 to-slate-950 text-white flex flex-col justify-between p-6 sm:p-8 font-sans text-center animate-in zoom-in duration-300">
+          <div className="my-auto max-w-md mx-auto w-full space-y-6">
+            <div className="w-20 h-20 rounded-3xl bg-indigo-600/30 border border-indigo-400/40 text-amber-300 flex items-center justify-center mx-auto shadow-xl">
+              <Trophy className="w-10 h-10" />
+            </div>
+            <div className="space-y-2">
+              <h1 className="text-2xl sm:text-3xl font-black text-white">Scoreboard Active</h1>
+              <p className="text-xs sm:text-sm text-indigo-200 font-bold max-w-xs mx-auto leading-relaxed">
+                The live scoreboard is currently displayed on the Trainer's screen. Get ready for the next question!
+              </p>
+            </div>
+            <div className="flex justify-center space-x-1.5 pt-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse delay-150" />
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse delay-300" />
+            </div>
+          </div>
+          <div className="text-center text-xs text-indigo-400 font-medium">
+            QuizArena Live Session
+          </div>
+        </div>
+      );
+    }
+
     return (
       <Top5Leaderboard
         rankings={rankings}

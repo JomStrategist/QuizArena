@@ -250,6 +250,7 @@ export interface ILiveGameSettings {
   showCorrectAnswer?: boolean;
   showScore?: boolean;
   showLeaderboard?: boolean;
+  scoreboardVisibility?: 'EVERYONE' | 'TRAINER_ONLY';
   finalPodium?: boolean;
 }
 
@@ -268,6 +269,7 @@ export interface ILiveSession {
   showCorrectAnswer?: boolean;
   showScore?: boolean;
   showLeaderboard?: boolean;
+  scoreboardVisibility?: 'EVERYONE' | 'TRAINER_ONLY';
   finalPodium?: boolean;
   pointsMode: string;
   stage: LiveSessionStage;

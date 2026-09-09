@@ -39,6 +39,7 @@ interface LiveGameSetupModalProps {
       speedScoring: boolean;
       showCorrectAnswer: boolean;
       showLeaderboard: boolean;
+      scoreboardVisibility?: 'EVERYONE' | 'TRAINER_ONLY';
       finalPodium: boolean;
     }
   ) => void;
@@ -66,6 +67,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
   const [speedScoring, setSpeedScoring] = useState<boolean>(true);
   const [showCorrectAnswer, setShowCorrectAnswer] = useState<boolean>(true);
   const [showLeaderboard, setShowLeaderboard] = useState<boolean>(true);
+  const [scoreboardVisibility, setScoreboardVisibility] = useState<'EVERYONE' | 'TRAINER_ONLY'>('EVERYONE');
   const [finalPodium, setFinalPodium] = useState<boolean>(true);
 
   const { showToast } = useToast();
@@ -178,6 +180,7 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
       speedScoring,
       showCorrectAnswer,
       showLeaderboard,
+      scoreboardVisibility,
       finalPodium,
     });
     onClose();
@@ -600,6 +603,45 @@ export const LiveGameSetupModal: React.FC<LiveGameSetupModalProps> = ({
                     <div className={`w-11 h-6 rounded-full p-1 transition-colors ${finalPodium ? 'bg-blue-600' : 'bg-slate-300'}`}>
                       <div className={`w-4 h-4 bg-white rounded-full transition-transform ${finalPodium ? 'translate-x-5' : 'translate-x-0'}`} />
                     </div>
+                  </div>
+                </div>
+
+                {/* Scoreboard Visibility Setting (Option A: Everyone vs Option B: Trainer Only) */}
+                <div className="p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <div className="p-1.5 bg-purple-100 text-purple-700 rounded-lg">
+                      <Eye className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-slate-900">Scoreboard Visibility</p>
+                      <p className="text-[10px] text-slate-500 font-medium">Choose who can see the live scoreboard after questions</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setScoreboardVisibility('EVERYONE')}
+                      className={`p-2.5 rounded-xl border text-xs font-black transition flex items-center justify-center space-x-2 ${
+                        scoreboardVisibility === 'EVERYONE'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>👥 Show to Everyone</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setScoreboardVisibility('TRAINER_ONLY')}
+                      className={`p-2.5 rounded-xl border text-xs font-black transition flex items-center justify-center space-x-2 ${
+                        scoreboardVisibility === 'TRAINER_ONLY'
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-100'
+                      }`}
+                    >
+                      <span>🔒 Trainer Screen Only</span>
+                    </button>
                   </div>
                 </div>
               </div>
