@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
         }
       } else if (session.stage === 'LEADERBOARD' && session.stageStartTimestamp) {
         const elapsedLeaderboard = (now - session.stageStartTimestamp) / 1000;
-        const leaderboardDelay = 5; // 5 seconds leaderboard view
+        const leaderboardDelay = 14; // 14 seconds: 4.9s reveal sequence + 8s countdown + 1.1s buffer
         if (elapsedLeaderboard >= leaderboardDelay) {
           if (session.currentQuestionIndex < totalQuestions - 1) {
             session.currentQuestionIndex = session.currentQuestionIndex + 1;

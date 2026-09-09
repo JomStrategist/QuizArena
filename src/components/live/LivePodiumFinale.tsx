@@ -250,7 +250,7 @@ export const LivePodiumFinale: React.FC<LivePodiumFinaleProps> = ({
             <div className="text-center space-y-1 pt-1">
               {(stage === 'celebrate' || stage === 'showRemaining') && (
                 <div className="inline-flex items-center space-x-1 px-3 py-0.5 bg-gradient-to-r from-amber-400 via-yellow-300 to-amber-400 text-slate-950 rounded-full text-[10px] sm:text-[11px] font-black shadow-lg border border-amber-200 animate-bounce">
-                  <span>👑 CORONATED CHAMPION 👑</span>
+                  <span>👑 CHAMPION 👑</span>
                 </div>
               )}
               <p className="text-base sm:text-lg font-black text-amber-300 truncate max-w-[150px] drop-shadow-md">

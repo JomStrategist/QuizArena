@@ -194,7 +194,7 @@ export const Top5Leaderboard: React.FC<Top5LeaderboardProps> = ({
 }) => {
   const [animPhase, setAnimPhase] = useState<LeaderboardAnimPhase>('PREVIOUS_SCOREBOARD');
   const [nextQCountdown, setNextQCountdown] = useState<number>(
-    LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 5
+    timerDurationSec || LEADERBOARD_ANIMATION_CONFIG.intermediate.postAnimationCountdownSec || 8
   );
 
   const hasTriggeredNextRef = useRef<boolean>(false);
