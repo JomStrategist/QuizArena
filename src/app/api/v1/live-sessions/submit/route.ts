@@ -126,12 +126,16 @@ export async function POST(req: NextRequest) {
 
     if (!isTimeout) {
       if (qType === 'MCQ' || qType === 'TRUE_FALSE') {
-        isCorrect = selectedOptionIndex >= 0 && selectedOptionIndex === question.correctOptionIndex;
+        isCorrect =
+          selectedOptionIndex !== undefined &&
+          selectedOptionIndex !== null &&
+          Number(selectedOptionIndex) >= 0 &&
+          Number(selectedOptionIndex) === Number(question.correctOptionIndex);
       } else if (qType === 'MULTIPLE_SELECT') {
-        const selected: number[] = Array.isArray(selectedOptionIndices) ? selectedOptionIndices : [];
+        const selected: number[] = Array.isArray(selectedOptionIndices) ? selectedOptionIndices.map(Number) : [];
         const correct: number[] = Array.isArray(question.correctOptionIndices) && question.correctOptionIndices.length > 0
-          ? question.correctOptionIndices
-          : (question.correctOptionIndex !== undefined ? [question.correctOptionIndex] : []);
+          ? question.correctOptionIndices.map(Number)
+          : (question.correctOptionIndex !== undefined ? [Number(question.correctOptionIndex)] : []);
         
         if (correct.length > 0) {
           const correctSelectedCount = selected.filter((idx: number) => correct.includes(idx)).length;
@@ -153,7 +157,7 @@ export async function POST(req: NextRequest) {
       } else if (qType === 'CORRECT_SEQUENCE') {
         let correctOrder: number[] = [];
         if (Array.isArray(question.correctOrder) && question.correctOrder.length > 0) {
-          correctOrder = question.correctOrder;
+          correctOrder = question.correctOrder.map(Number);
         } else if (question.sequenceData?.items && question.sequenceData.items.length > 0) {
           const sortedItems = [...question.sequenceData.items].sort((a: any, b: any) => (a.correctPosition || 0) - (b.correctPosition || 0));
           const opts = question.options || [];
@@ -167,7 +171,7 @@ export async function POST(req: NextRequest) {
 
         if (Array.isArray(selectedSequence) && correctOrder.length > 0) {
           const totalSteps = correctOrder.length;
-          const correctCount = selectedSequence.filter((val: number, idx: number) => val === correctOrder[idx]).length;
+          const correctCount = selectedSequence.filter((val: number, idx: number) => Number(val) === correctOrder[idx]).length;
           const isAllCorrect = correctCount === totalSteps && selectedSequence.length === totalSteps;
 
           const fullScore = session.speedScoring !== false
@@ -223,21 +227,22 @@ export async function POST(req: NextRequest) {
               const selectedIdx = typeof sqAns === 'object' && sqAns !== null && sqAns.selectedOptionIndex !== undefined
                 ? sqAns.selectedOptionIndex
                 : sqAns;
-              sqCorrect = selectedIdx !== undefined && Number(selectedIdx) === sq.correctOptionIndex;
+              sqCorrect = selectedIdx !== undefined && Number(selectedIdx) === Number(sq.correctOptionIndex);
             } else if (sqType === 'MULTIPLE_SELECT') {
               const selectedIndices = typeof sqAns === 'object' && sqAns !== null && Array.isArray(sqAns.selectedOptionIndices)
-                ? sqAns.selectedOptionIndices
-                : (Array.isArray(sqAns) ? sqAns : []);
-              sqCorrect = Array.isArray(selectedIndices) && Array.isArray(sq.correctOptionIndices) &&
-                selectedIndices.length === sq.correctOptionIndices.length &&
-                selectedIndices.every((val: number) => sq.correctOptionIndices.includes(val));
+                ? sqAns.selectedOptionIndices.map(Number)
+                : (Array.isArray(sqAns) ? sqAns.map(Number) : []);
+              const targetIndices = Array.isArray(sq.correctOptionIndices) ? sq.correctOptionIndices.map(Number) : [];
+              sqCorrect = Array.isArray(selectedIndices) && targetIndices.length > 0 &&
+                selectedIndices.length === targetIndices.length &&
+                selectedIndices.every((val: number) => targetIndices.includes(val));
             } else if (sqType === 'CORRECT_SEQUENCE') {
               const seq = typeof sqAns === 'object' && sqAns !== null && Array.isArray(sqAns.selectedSequence)
-                ? sqAns.selectedSequence
-                : (Array.isArray(sqAns) ? sqAns : []);
+                ? sqAns.selectedSequence.map(Number)
+                : (Array.isArray(sqAns) ? sqAns.map(Number) : []);
               let targetCorrect: number[] = [];
               if (Array.isArray(sq.correctOrder) && sq.correctOrder.length > 0) {
-                targetCorrect = sq.correctOrder;
+                targetCorrect = sq.correctOrder.map(Number);
               } else if (Array.isArray(sq.options)) {
                 targetCorrect = sq.options.map((_: any, i: number) => i);
               }
@@ -250,7 +255,7 @@ export async function POST(req: NextRequest) {
               const selectedIdx = typeof sqAns === 'object' && sqAns !== null && sqAns.selectedOptionIndex !== undefined
                 ? sqAns.selectedOptionIndex
                 : sqAns;
-              sqCorrect = selectedIdx !== undefined && Number(selectedIdx) === sq.correctOptionIndex;
+              sqCorrect = selectedIdx !== undefined && Number(selectedIdx) === Number(sq.correctOptionIndex);
             }
 
             if (sqCorrect) {
@@ -262,13 +267,13 @@ export async function POST(req: NextRequest) {
           isCorrect = correctCount === subQuestions.length;
           scenarioEarnedPoints = earnedPtsSum;
         } else if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
-          isCorrect = selectedOptionIndex === question.correctOptionIndex;
+          isCorrect = Number(selectedOptionIndex) === Number(question.correctOptionIndex);
         } else {
           isCorrect = false;
         }
       } else if (qType === 'SOLUTION_CHALLENGE') {
         if (selectedOptionIndex !== undefined && question.correctOptionIndex !== undefined) {
-          isCorrect = selectedOptionIndex === question.correctOptionIndex;
+          isCorrect = Number(selectedOptionIndex) === Number(question.correctOptionIndex);
         } else {
           isCorrect = false;
         }
@@ -307,40 +312,27 @@ export async function POST(req: NextRequest) {
       timestamp: serverNow,
     };
 
-    answers[qIdx][pKey] = responseRecord;
-    session.answers = answers;
-    session.markModified('answers');
+    const statField = isCorrect ? 'correctAnswers' : isTimeout ? 'unansweredCount' : 'wrongAnswers';
 
-    // Update participant aggregate stats
-    targetParticipant.score = (targetParticipant.score || 0) + pointsEarned;
-    if (isCorrect) {
-      targetParticipant.correctAnswers = (targetParticipant.correctAnswers || 0) + 1;
-    } else if (isTimeout) {
-      targetParticipant.unansweredCount = (targetParticipant.unansweredCount || 0) + 1;
-    } else {
-      targetParticipant.wrongAnswers = (targetParticipant.wrongAnswers || 0) + 1;
-    }
-    targetParticipant.lastPointsEarned = pointsEarned;
-    targetParticipant.lastIsCorrect = isCorrect;
-    targetParticipant.lastResponseTimeMs = actualResponseTimeMs;
-    participants[pKey] = targetParticipant;
-
-    // Recalculate participant ranks and compute rank delta
-    const sortedList = Object.values(participants).sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
-    sortedList.forEach((item: any, rankIdx: number) => {
-      const k = item.participantId || item.displayName;
-      if (participants[k]) {
-        const oldRank = participants[k].rank || (rankIdx + 1);
-        const newRank = rankIdx + 1;
-        participants[k].previousRank = oldRank;
-        participants[k].rank = newRank;
-        participants[k].lastRankDelta = oldRank - newRank;
+    // Perform atomic dot-notation MongoDB update to avoid full-document lock contention and overwrites
+    await LiveSessionModel.updateOne(
+      {
+        _id: session._id,
+        [`answers.${qIdx}.${pKey}`]: { $exists: false },
+      },
+      {
+        $set: {
+          [`answers.${qIdx}.${pKey}`]: responseRecord,
+          [`participants.${pKey}.lastPointsEarned`]: pointsEarned,
+          [`participants.${pKey}.lastIsCorrect`]: isCorrect,
+          [`participants.${pKey}.lastResponseTimeMs`]: actualResponseTimeMs,
+        },
+        $inc: {
+          [`participants.${pKey}.score`]: pointsEarned,
+          [`participants.${pKey}.${statField}`]: 1,
+        },
       }
-    });
-
-    session.participants = participants;
-    session.markModified('participants');
-    await session.save();
+    );
 
     // Broadcast ANSWER_SUBMITTED event
     emitSessionEvent(session.quizCode, 'ANSWER_SUBMITTED', {

@@ -195,7 +195,7 @@ export const ConductQuizStudent: React.FC<ConductQuizStudentProps> = ({
   useEffect(() => {
     if (isJoined) {
       syncState();
-      const interval = setInterval(syncState, 500);
+      const interval = setInterval(syncState, 3000);
 
       let eventSource: EventSource | null = null;
       try {

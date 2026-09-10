@@ -157,7 +157,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
 
   useEffect(() => {
     syncState();
-    const interval = setInterval(syncState, 500);
+    const interval = setInterval(syncState, 3000);
 
     // SSE Real-Time Event Stream Connection
     let eventSource: EventSource | null = null;

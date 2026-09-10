@@ -74,5 +74,8 @@ const LiveSessionSchema = new Schema<ILiveSessionDocument>(
   { timestamps: true }
 );
 
+LiveSessionSchema.index({ quizCode: 1, stage: 1 });
+LiveSessionSchema.index({ trainerId: 1, createdAt: -1 });
+
 export const LiveSessionModel: Model<ILiveSessionDocument> =
   mongoose.models.LiveSession || mongoose.model<ILiveSessionDocument>('LiveSession', LiveSessionSchema);
