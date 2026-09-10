@@ -13,6 +13,9 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 async function ensureSeededQuizzes() {
+  // Delete legacy duplicate title if present in database
+  await QuizModel.deleteMany({ title: 'Activity 1: AI or Not?' });
+
   // Update legacy title if present in database
   await QuizModel.updateMany(
     { title: 'AI Concepts & Prompting Quiz' },

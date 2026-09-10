@@ -10,9 +10,11 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
   // Clear previous seeded materials to ensure exact fresh synchronization
   const seededTitles = [
     'Activity 1: AI or Not? Challenge',
+    'Activity 1: AI or Not?',
     'Activity 2: AI Technology Detective',
     'Activity 3: AI Solution & Workflow Challenge',
     'Activity 4: Prompt Engineering Challenge',
+    'Activity 5: AI Concepts & Prompting Quiz',
     'AI Concepts & Prompting Quiz',
   ];
 
