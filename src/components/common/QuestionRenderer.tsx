@@ -313,39 +313,49 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const subIdx = (question as any).subQuestionIndex ?? (question as any).subIdx ?? (question as any).subQuestionIdx;
     const totalSub = (question as any).totalSubQuestions ?? (question as any).totalSub ?? (question as any).totalSubQuestionsCount;
 
+    const isDarkBgMode = mode === 'projector' || mode === 'trainer';
+
     return (
       <div className={`p-5 sm:p-7 rounded-3xl border space-y-3 mb-4 transition-all shadow-sm ${
-        mode === 'projector'
+        isDarkBgMode
           ? 'bg-purple-950/90 border-purple-500/40 text-purple-100'
           : 'bg-purple-50/90 border-purple-200 text-purple-950'
       }`}>
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider text-purple-900">
+        <div className={`flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider ${
+          isDarkBgMode ? 'text-purple-300' : 'text-purple-900'
+        }`}>
           <div className="flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-purple-800 shrink-0" />
+            <BookOpen className={`w-4 h-4 ${isDarkBgMode ? 'text-purple-300' : 'text-purple-800'} shrink-0`} />
             <span>
               SCENARIO CASE STUDY
               {subIdx !== undefined && totalSub !== undefined ? ` • SUB-QUESTION ${Number(subIdx) + 1} OF ${totalSub}` : ''}
             </span>
           </div>
           {scenarioTitle && (
-            <span className="bg-purple-200 text-purple-950 px-3 py-1 rounded-xl text-xs font-black">
+            <span className={`px-3 py-1 rounded-xl text-xs font-black ${
+              isDarkBgMode ? 'bg-purple-900/80 text-purple-200 border border-purple-500/40' : 'bg-purple-200 text-purple-950'
+            }`}>
               {scenarioTitle}
             </span>
           )}
         </div>
         {scenarioText && (
-          <p className={`text-xl md:text-2xl lg:text-3xl font-black leading-tight tracking-tight whitespace-pre-wrap py-2 ${mode === 'projector' ? 'text-slate-100' : 'text-purple-950'}`}>
+          <p className={`text-xl md:text-2xl lg:text-3xl font-black leading-tight tracking-tight whitespace-pre-wrap py-2 ${
+            isDarkBgMode ? 'text-slate-100' : 'text-purple-950'
+          }`}>
             {scenarioText}
           </p>
         )}
         {instructions && (
-          <p className="text-xs font-bold text-amber-950 bg-amber-100 px-3.5 py-1.5 rounded-xl border border-amber-200 mt-1 inline-block">
+          <p className={`text-xs font-bold px-3.5 py-1.5 rounded-xl border mt-1 inline-block ${
+            isDarkBgMode ? 'bg-amber-500/20 text-amber-300 border-amber-500/40' : 'bg-amber-100 text-amber-950 border-amber-200'
+          }`}>
             💡 {instructions}
           </p>
         )}
         {backgroundContext && (
-          <p className="text-xs md:text-sm font-semibold text-slate-800 pt-1">
-            <strong className="font-extrabold text-slate-950">Key Context:</strong> {backgroundContext}
+          <p className={`text-xs md:text-sm font-semibold pt-1 ${isDarkBgMode ? 'text-slate-300' : 'text-slate-800'}`}>
+            <strong className={`font-extrabold ${isDarkBgMode ? 'text-white' : 'text-slate-950'}`}>Key Context:</strong> {backgroundContext}
           </p>
         )}
       </div>

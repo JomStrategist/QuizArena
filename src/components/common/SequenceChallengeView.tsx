@@ -227,15 +227,23 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   return (
     <div className="w-full space-y-6 animate-in fade-in duration-300">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
+        isTrainerOrProjector ? 'border-slate-800' : 'border-slate-200'
+      }`}>
         <div>
-          <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-purple-900">
-            <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-950 border border-purple-300 font-black">
+          <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-widest">
+            <span className={`px-2.5 py-0.5 rounded-full border font-black ${
+              isTrainerOrProjector
+                ? 'bg-purple-900/60 text-purple-200 border-purple-500/40'
+                : 'bg-purple-100 text-purple-950 border-purple-300'
+            }`}>
               Activity 4 • Exercise {questionIndex + 1} of {totalQuestions}
             </span>
-            <span className="text-purple-950 font-black">Sequence Ordering</span>
+            <span className={isTrainerOrProjector ? 'text-purple-300 font-extrabold' : 'text-purple-950 font-black'}>
+              Sequence Ordering
+            </span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black mt-1 text-slate-950">
+          <h2 className={`text-xl sm:text-2xl font-black mt-1 ${isTrainerOrProjector ? 'text-white' : 'text-slate-950'}`}>
             {exerciseTitle}
           </h2>
         </div>
@@ -251,17 +259,27 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
 
       {/* Scenario Instruction Box */}
       <div className="space-y-4">
-        <div className="p-4 rounded-2xl border space-y-1.5 text-xs sm:text-sm bg-purple-50/90 border-purple-200 text-slate-900">
-          <span className="text-[10px] uppercase font-black tracking-wider text-purple-900 block">Scenario & Instruction</span>
-          <p className="font-bold text-slate-800">{exerciseText}</p>
-          <p className="font-extrabold text-purple-950 pt-1">{instruction}</p>
+        <div className={`p-4 rounded-2xl border space-y-1.5 text-xs sm:text-sm ${
+          isTrainerOrProjector
+            ? 'bg-slate-900/90 border-slate-700/80 text-slate-100'
+            : 'bg-purple-50/90 border-purple-200 text-slate-900'
+        }`}>
+          <span className={`text-[10px] uppercase font-black tracking-wider block ${
+            isTrainerOrProjector ? 'text-purple-300' : 'text-purple-900'
+          }`}>
+            Scenario & Instruction
+          </span>
+          <p className={`font-bold ${isTrainerOrProjector ? 'text-slate-200' : 'text-slate-800'}`}>{exerciseText}</p>
+          <p className={`font-extrabold pt-1 ${isTrainerOrProjector ? 'text-purple-200' : 'text-purple-950'}`}>{instruction}</p>
         </div>
 
         {/* SEQUENCE BUILDER PANEL */}
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider flex items-center space-x-2 text-slate-950">
-              <ListOrdered className="w-4 h-4 text-purple-700" />
+            <h3 className={`text-sm font-black uppercase tracking-wider flex items-center space-x-2 ${
+              isTrainerOrProjector ? 'text-slate-100' : 'text-slate-950'
+            }`}>
+              <ListOrdered className={`w-4 h-4 ${isTrainerOrProjector ? 'text-purple-400' : 'text-purple-700'}`} />
               <span>{showCorrectAnswer ? 'Correct Sequence Order' : 'Sequence Ordering Steps'} ({itemsSequence.length} Steps)</span>
             </h3>
             {!isTrainerOrProjector && !disabled && !isAnswerSubmitted && (
