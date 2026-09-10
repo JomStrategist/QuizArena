@@ -212,10 +212,17 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const handleOptionSelect = async (index: number, isTimeout: boolean = false) => {
     if (submitting || studentAnswer) return;
 
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
     setSelectedOption(index);
     setSubmitting(true);
 
-    const responseTimeMs = Date.now() - startTimeMs;
+    // Optimistic UI update (< 16ms)
+    setStudentAnswer({
+      selectedOptionIndex: index,
+      responseTimeMs,
+      isTimeout,
+      isOptimistic: true,
+    });
 
     try {
       const res = await fetch('/api/v1/live-sessions/submit', {
@@ -246,9 +253,16 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const handleMultiSelectSubmit = async (indices: number[]) => {
     if (submitting || studentAnswer) return;
 
+    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
     setSelectedOptionIndicesState(indices);
     setSubmitting(true);
-    const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+
+    // Optimistic UI update (< 16ms)
+    setStudentAnswer({
+      selectedOptionIndices: indices,
+      responseTimeMs,
+      isOptimistic: true,
+    });
 
     try {
       const res = await fetch('/api/v1/live-sessions/submit', {
@@ -279,8 +293,15 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const handleCategoryAssignmentsSelect = async (assignments: Record<string, string>) => {
     if (submitting || studentAnswer) return;
 
-    setSubmitting(true);
     const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+    setSubmitting(true);
+
+    // Optimistic UI update (< 16ms)
+    setStudentAnswer({
+      selectedCategoryAssignments: assignments,
+      responseTimeMs,
+      isOptimistic: true,
+    });
 
     try {
       const res = await fetch('/api/v1/live-sessions/submit', {
@@ -311,8 +332,15 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const handleSequenceSelect = async (sequence: number[]) => {
     if (submitting || studentAnswer) return;
 
-    setSubmitting(true);
     const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+    setSubmitting(true);
+
+    // Optimistic UI update (< 16ms)
+    setStudentAnswer({
+      selectedSequence: sequence,
+      responseTimeMs,
+      isOptimistic: true,
+    });
 
     try {
       const res = await fetch('/api/v1/live-sessions/submit', {
@@ -343,8 +371,15 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
   const handleSubAnswersComplete = async (subAnswers: Record<number, any>) => {
     if (submitting || studentAnswer) return;
 
-    setSubmitting(true);
     const responseTimeMs = Math.max(100, Date.now() - startTimeMs);
+    setSubmitting(true);
+
+    // Optimistic UI update (< 16ms)
+    setStudentAnswer({
+      selectedSubAnswers: subAnswers,
+      responseTimeMs,
+      isOptimistic: true,
+    });
 
     try {
       const res = await fetch('/api/v1/live-sessions/submit', {

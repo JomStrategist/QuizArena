@@ -13,6 +13,7 @@ import {
   Check,
   BookOpen,
   Clock,
+  Loader2,
 } from 'lucide-react';
 import { IQuestion } from '@/types';
 import { Activity3ChallengeView } from './Activity3ChallengeView';
@@ -102,6 +103,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
   // State for Multiple Select Questions
   const [localMultiSelected, setLocalMultiSelected] = useState<number[]>(selectedOptionIndices || []);
+  const [isSubmittingMulti, setIsSubmittingMulti] = useState(false);
 
   const questionId = question?._id ? String(question._id) : (question as any)?.id ? String((question as any).id) : question?.questionText || '';
 
@@ -123,6 +125,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     setSelectedPromptPieces([]);
     setScenarioSubAnswers({});
     setActiveSubQIdx(0);
+    setIsSubmittingMulti(false);
     
     // Pre-shuffle subSeqMap for CORRECT_SEQUENCE sub-questions
     const initialSubSeq: Record<number, number[]> = {};
@@ -1676,16 +1679,31 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           <div className="pt-2">
             <button
               type="button"
-              onClick={() => onSelectMultipleOptions && onSelectMultipleOptions(localMultiSelected)}
-              disabled={localMultiSelected.length === 0}
+              onClick={() => {
+                if (disabled || isSubmittingMulti || localMultiSelected.length === 0) return;
+                setIsSubmittingMulti(true);
+                if (onSelectMultipleOptions) {
+                  onSelectMultipleOptions(localMultiSelected);
+                }
+              }}
+              disabled={disabled || isSubmittingMulti || localMultiSelected.length === 0}
               className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center space-x-2 shadow-lg ${
-                localMultiSelected.length > 0
+                localMultiSelected.length > 0 && !disabled && !isSubmittingMulti
                   ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white shadow-amber-500/25 active:scale-[0.98] cursor-pointer'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  : 'bg-slate-200 text-slate-400 cursor-not-allowed opacity-75'
               }`}
             >
-              <CheckCircle2 className="w-5 h-5 text-amber-200" />
-              <span>Submit Multiple Answers ({localMultiSelected.length} Selected) ✓</span>
+              {isSubmittingMulti ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin text-white" />
+                  <span>Submitting...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-5 h-5 text-amber-200" />
+                  <span>Submit Multiple Answers ({localMultiSelected.length} Selected) ✓</span>
+                </>
+              )}
             </button>
           </div>
         )}
