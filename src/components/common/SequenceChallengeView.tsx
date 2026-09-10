@@ -247,20 +247,20 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
         </div>
 
         {/* Exercise Progress Tracker Dots */}
-        <div className="flex items-center space-x-2 pt-1">
-          <span className={`text-[10px] font-black uppercase tracking-wider mr-2 ${mode === 'trainer' ? 'text-slate-500' : 'text-slate-400'}`}>Progress:</span>
+        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 pt-1 max-w-full overflow-x-auto no-scrollbar pb-1">
+          <span className={`text-[10px] font-black uppercase tracking-wider mr-1 sm:mr-2 ${mode === 'trainer' ? 'text-slate-500' : 'text-slate-400'}`}>Progress:</span>
           {Array.from({ length: totalQuestions }).map((_, idx) => {
             const isCurrent = questionIndex === idx;
             const isPassed = idx < questionIndex;
             return (
               <React.Fragment key={idx}>
                 {idx > 0 && (
-                  <div className={`h-0.5 w-4 ${isPassed ? 'bg-purple-500' : mode === 'trainer' ? 'bg-slate-200' : 'bg-slate-800'}`} />
+                  <div className={`h-0.5 w-2 sm:w-4 ${isPassed ? 'bg-purple-500' : mode === 'trainer' ? 'bg-slate-200' : 'bg-slate-800'}`} />
                 )}
                 <button
                   type="button"
                   onClick={() => onNavigateQuestion?.(idx)}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-black transition ${
+                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] font-black transition ${
                     isCurrent
                       ? 'bg-purple-600 text-white ring-2 ring-purple-400 shadow-md'
                       : isPassed
@@ -311,7 +311,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                   onDragOver={(e) => handleDragOver(e, idx)}
                   onDrop={(e) => handleDrop(e, idx)}
                   onDragEnd={handleDragEnd}
-                  className={`p-4 rounded-2xl border transition-all flex items-center justify-between text-xs md:text-sm font-bold shadow-md ${
+                  className={`p-3 sm:p-4 rounded-2xl border transition-all flex items-center justify-between text-xs md:text-sm font-bold shadow-md max-w-full overflow-hidden ${
                     isTrainerOrProjector
                       ? 'bg-slate-50 border-slate-200 text-slate-900 shadow-none'
                       : isEvaluated
@@ -325,10 +325,10 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                       : 'bg-slate-800/90 border-slate-700/80 hover:bg-slate-800 text-slate-100'
                   }`}
                 >
-                  <div className="flex items-center space-x-3.5 pr-2">
+                  <div className="flex items-center space-x-2.5 sm:space-x-3.5 pr-1.5 sm:pr-2 min-w-0 flex-1">
                     {/* Position Badge Number */}
                     <span
-                      className={`w-7 h-7 rounded-xl font-black flex items-center justify-center text-xs shrink-0 transition ${
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl font-black flex items-center justify-center text-xs shrink-0 transition ${
                         isEvaluated
                           ? posEval?.isCorrectPosition
                             ? 'bg-emerald-500 text-white'
@@ -347,7 +347,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                     )}
 
                     {/* Item Text & Description */}
-                    <div className="leading-snug">
+                    <div className="leading-snug min-w-0 flex-1 break-words">
                       <span className={`font-extrabold ${mode === 'trainer' ? 'text-slate-900' : 'text-white'}`}>{item.text}</span>
                       {item.description && (
                         <p className={`text-[11px] font-normal mt-0.5 ${mode === 'trainer' ? 'text-slate-500' : 'text-slate-400'}`}>{item.description}</p>
@@ -362,7 +362,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                   </div>
 
                   {/* Right Side: Reordering Controls (Player) or Status (Trainer) */}
-                  <div className="flex items-center space-x-2 shrink-0">
+                  <div className="flex items-center space-x-1 sm:space-x-2 shrink-0 ml-1">
                     {isTrainerOrProjector ? (
                       showCorrectAnswer ? (
                         <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-black">
@@ -387,10 +387,10 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                       )
                     ) : (
                       !disabled && (
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-1 sm:space-x-2">
                           {/* Position Picker Dropdown for Mobile 1-Tap Reordering */}
-                          <div className="flex items-center space-x-1">
-                            <span className="text-[10px] font-black uppercase text-slate-400">Pos:</span>
+                          <div className="flex items-center space-x-0.5 sm:space-x-1">
+                            <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400">Pos:</span>
                             <select
                               disabled={disabled}
                               value={idx + 1}
@@ -402,7 +402,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                                 updated.splice(targetPos, 0, moved);
                                 setItemsSequence(updated);
                               }}
-                              className="p-1.5 rounded-xl border bg-slate-900 border-slate-700 text-purple-300 font-bold text-xs outline-none cursor-pointer hover:border-purple-500"
+                              className="p-1 sm:p-1.5 rounded-xl border bg-slate-900 border-slate-700 text-purple-300 font-bold text-xs outline-none cursor-pointer hover:border-purple-500 max-w-[54px] sm:max-w-none"
                             >
                               {itemsSequence.map((_, pIdx) => (
                                 <option key={pIdx} value={pIdx + 1}>
@@ -413,24 +413,24 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                           </div>
 
                           {/* Touch-Friendly Move Up / Down Buttons */}
-                          <div className="flex items-center space-x-1">
+                          <div className="flex items-center space-x-0.5 sm:space-x-1">
                             <button
                               type="button"
                               onClick={() => moveItem(idx, -1)}
                               disabled={idx === 0}
-                              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl bg-slate-700 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-30 text-white font-bold transition shadow-xs"
+                              className="p-1.5 sm:p-2 min-w-[30px] sm:min-w-[36px] min-h-[30px] sm:min-h-[36px] flex items-center justify-center rounded-xl bg-slate-700 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-30 text-white font-bold transition shadow-xs"
                               title="Move Up"
                             >
-                              <ArrowUp className="w-4 h-4" />
+                              <ArrowUp className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                             <button
                               type="button"
                               onClick={() => moveItem(idx, 1)}
                               disabled={idx === itemsSequence.length - 1}
-                              className="p-2 min-w-[36px] min-h-[36px] flex items-center justify-center rounded-xl bg-slate-700 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-30 text-white font-bold transition shadow-xs"
+                              className="p-1.5 sm:p-2 min-w-[30px] sm:min-w-[36px] min-h-[30px] sm:min-h-[36px] flex items-center justify-center rounded-xl bg-slate-700 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-30 text-white font-bold transition shadow-xs"
                               title="Move Down"
                             >
-                              <ArrowDown className="w-4 h-4" />
+                              <ArrowDown className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                             </button>
                           </div>
                         </div>

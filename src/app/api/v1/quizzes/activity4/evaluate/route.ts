@@ -22,7 +22,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const questionObj = await QuestionModel.findById(questionId).lean();
+    let questionObj: any = null;
+
+    if (typeof questionId === 'string' && questionId.includes('_sub_')) {
+      const parts = questionId.split('_sub_');
+      const realParentId = parts[0];
+      const subIdx = parseInt(parts[1], 10);
+
+      const parentDoc = await QuestionModel.findById(realParentId).lean();
+      if (parentDoc) {
+        const subQuestions = parentDoc.scenarioQuestionsData?.subQuestions || (parentDoc as any).subQuestions || [];
+        const sq = subQuestions[subIdx];
+        if (sq) {
+          questionObj = {
+            _id: questionId,
+            questionType: sq.questionType || 'CORRECT_SEQUENCE',
+            questionText: sq.questionText,
+            options: sq.options || [],
+            correctOrder: sq.correctOrder,
+            points: sq.points !== undefined ? sq.points : (parentDoc.points || 1000),
+            sequenceData: sq.sequenceData || null,
+            explanation: sq.explanation || parentDoc.explanation,
+          };
+        }
+      }
+    } else {
+      questionObj = await QuestionModel.findById(questionId).lean();
+    }
+
     if (!questionObj || questionObj.questionType !== 'CORRECT_SEQUENCE') {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: 'Sequence question not found.' } },
@@ -38,17 +65,23 @@ export async function POST(req: NextRequest) {
     if (!items || items.length === 0) {
       const opts: string[] = questionObj.options || [];
       items = opts.map((optText: string, idx: number) => ({
-        id: `seq_${questionObj._id}_${idx + 1}`,
+        id: `seq_${questionId}_${idx + 1}`,
         text: optText,
-        correctPosition: idx + 1,
+        correctPosition: Array.isArray(questionObj.correctOrder) && questionObj.correctOrder.indexOf(idx) !== -1
+          ? questionObj.correctOrder.indexOf(idx) + 1
+          : idx + 1,
       }));
     }
 
     // Determine expected correct order of IDs
     let expectedSequenceIds: string[] = seqData.correctSequenceIds;
     if (!expectedSequenceIds || expectedSequenceIds.length === 0) {
-      const sortedByPos = [...items].sort((a, b) => a.correctPosition - b.correctPosition);
-      expectedSequenceIds = sortedByPos.map((it) => it.id);
+      if (Array.isArray(questionObj.correctOrder) && questionObj.correctOrder.length > 0) {
+        expectedSequenceIds = questionObj.correctOrder.map((optIdx: number) => `seq_${questionId}_${optIdx + 1}`);
+      } else {
+        const sortedByPos = [...items].sort((a, b) => a.correctPosition - b.correctPosition);
+        expectedSequenceIds = sortedByPos.map((it) => it.id);
+      }
     }
 
     const totalPositions = expectedSequenceIds.length;

@@ -94,18 +94,18 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
     },
     {
       type: 'DRAG_DROP',
-      title: 'Practice 4: Drag & Drop Categorization',
-      badge: 'Category Matching',
-      description: 'Click or drag each scenario card into its correct AI Category.',
+      title: 'Practice 4: Select the Right Category',
+      badge: 'Select Category',
+      description: 'Click or select each item card to place it under its correct Category.',
       cards: [
-        { id: 'c1', text: 'Translating English documentation to Spanish' },
-        { id: 'c2', text: 'Detecting physical defects in factory line items' },
+        { id: 'c1', text: 'Apple' },
+        { id: 'c2', text: 'Carrot' },
       ],
       categories: [
-        { id: 'nlp', name: 'Natural Language Processing (NLP)' },
-        { id: 'cv', name: 'Computer Vision (CV)' },
+        { id: 'fruits', name: 'Fruits' },
+        { id: 'vegetables', name: 'Vegetables' },
       ],
-      correctAssignments: { c1: 'nlp', c2: 'cv' },
+      correctAssignments: { c1: 'fruits', c2: 'vegetables' },
     },
     {
       type: 'SEQUENCE',
@@ -411,13 +411,19 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
               </div>
             )}
 
-            {/* 4. DRAG & DROP STEP */}
+            {/* 4. SELECT THE RIGHT CATEGORY STEP */}
             {currentQ.type === 'DRAG_DROP' && (
               <div className="space-y-4 pt-2">
+                <p className="text-xs font-bold text-amber-300 bg-amber-500/10 p-3 rounded-xl border border-amber-500/20">
+                  👇 Tap an item inside a Category column to assign it to that category:
+                </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {currentQ.categories?.map((cat) => (
-                    <div key={cat.id} className="p-4 bg-white/5 border border-white/15 rounded-2xl space-y-2">
-                      <h4 className="text-xs font-black uppercase text-amber-300 tracking-wide">{cat.name}</h4>
+                    <div key={cat.id} className="p-4 bg-white/5 border border-white/15 rounded-2xl space-y-3">
+                      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                        <h4 className="text-xs font-black uppercase text-amber-300 tracking-wide">{cat.name}</h4>
+                        <span className="text-[10px] text-white/50 font-bold">Category</span>
+                      </div>
                       <div className="space-y-2 min-h-[60px]">
                         {currentQ.cards?.map((card) => {
                           const assignedCat = dragAssignments[card.id];
@@ -425,14 +431,18 @@ export const PracticeTrialView: React.FC<PracticeTrialViewProps> = ({ onClose })
                           return (
                             <button
                               key={card.id}
+                              type="button"
                               onClick={() => setDragAssignments({ ...dragAssignments, [card.id]: cat.id })}
-                              className={`w-full p-2.5 rounded-xl text-left text-xs font-bold border transition ${
+                              className={`w-full p-3 rounded-xl text-left text-xs sm:text-sm font-bold border transition flex items-center justify-between ${
                                 isAssignedToThis
-                                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold'
+                                  ? 'bg-amber-400 text-slate-950 border-amber-300 font-extrabold shadow-md'
                                   : 'bg-white/10 hover:bg-white/20 text-white border-white/10'
                               }`}
                             >
-                              {card.text} {isAssignedToThis ? '✓' : ''}
+                              <span>{card.text}</span>
+                              <span className="text-xs font-black">
+                                {isAssignedToThis ? '✓ Selected' : '+ Select'}
+                              </span>
                             </button>
                           );
                         })}

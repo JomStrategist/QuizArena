@@ -26,7 +26,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const questionObj = await QuestionModel.findById(challengeId).lean();
+    let questionObj: any = null;
+
+    if (typeof challengeId === 'string' && challengeId.includes('_sub_')) {
+      const parts = challengeId.split('_sub_');
+      const realParentId = parts[0];
+      const subIdx = parseInt(parts[1], 10);
+
+      const parentDoc = await QuestionModel.findById(realParentId).lean();
+      if (parentDoc) {
+        const subQuestions = parentDoc.scenarioQuestionsData?.subQuestions || (parentDoc as any).subQuestions || [];
+        const sq = subQuestions[subIdx];
+        if (sq) {
+          questionObj = {
+            ...sq,
+            _id: challengeId,
+          };
+        }
+      }
+    } else {
+      questionObj = await QuestionModel.findById(challengeId).lean();
+    }
+
     if (!questionObj || questionObj.questionType !== 'SOLUTION_CHALLENGE') {
       return NextResponse.json(
         { success: false, error: { code: 'NOT_FOUND', message: 'Challenge not found.' } },
