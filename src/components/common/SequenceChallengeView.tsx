@@ -211,23 +211,23 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   return (
     <div className="w-full space-y-6 animate-in fade-in duration-300">
       {/* Header Info */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-700/60 pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-4">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-purple-800 dark:text-purple-300">
-            <span className="px-2.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/20 text-purple-900 dark:text-purple-300 border border-purple-300 dark:border-purple-500/30">
+          <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-purple-900">
+            <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-950 border border-purple-300 font-black">
               Activity 4 • Exercise {questionIndex + 1} of {totalQuestions}
             </span>
-            <span className="text-purple-900 dark:text-purple-300 font-extrabold">Sequence Ordering</span>
+            <span className="text-purple-950 font-black">Sequence Ordering</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black mt-1 text-slate-900 dark:text-white">
+          <h2 className="text-xl sm:text-2xl font-black mt-1 text-slate-950">
             {exerciseTitle}
           </h2>
         </div>
 
         {/* Timer Badge */}
         {!isTrainerOrProjector && (
-          <div className="flex items-center space-x-2 px-3.5 py-1.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-300 dark:border-amber-500/30 rounded-xl text-amber-950 dark:text-amber-300 font-mono text-xs font-bold shrink-0 self-start sm:self-auto">
-            <Clock className="w-4 h-4 text-amber-700 dark:text-amber-400" />
+          <div className="flex items-center space-x-2 px-3.5 py-1.5 bg-amber-100 border border-amber-300 rounded-xl text-amber-950 font-mono text-xs font-bold shrink-0 self-start sm:self-auto">
+            <Clock className="w-4 h-4 text-amber-800" />
             <span>Time Spent: {formatTimer(secondsSpent)}</span>
           </div>
         )}
@@ -244,12 +244,12 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
         {/* SEQUENCE BUILDER PANEL */}
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-black uppercase tracking-wider flex items-center space-x-2 text-slate-900 dark:text-slate-100">
-              <ListOrdered className="w-4 h-4 text-purple-600" />
+            <h3 className="text-sm font-black uppercase tracking-wider flex items-center space-x-2 text-slate-950">
+              <ListOrdered className="w-4 h-4 text-purple-700" />
               <span>{showCorrectAnswer ? 'Correct Sequence Order' : 'Sequence Ordering Steps'} ({itemsSequence.length} Steps)</span>
             </h3>
             {!isTrainerOrProjector && !disabled && !isAnswerSubmitted && (
-              <span className="text-xs text-slate-600 dark:text-slate-400 font-semibold hidden sm:inline">
+              <span className="text-xs text-slate-700 font-semibold hidden sm:inline">
                 Use Pos dropdown or ▲ ▼ buttons to reorder steps
               </span>
             )}

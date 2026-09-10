@@ -294,16 +294,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           ? 'bg-purple-950/90 border-purple-500/40 text-purple-100'
           : 'bg-purple-50/90 border-purple-200 text-purple-950'
       }`}>
-        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider text-purple-700 dark:text-purple-400">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-black uppercase tracking-wider text-purple-900">
           <div className="flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-purple-700 shrink-0" />
+            <BookOpen className="w-4 h-4 text-purple-800 shrink-0" />
             <span>
               SCENARIO CASE STUDY
               {subIdx !== undefined && totalSub !== undefined ? ` • SUB-QUESTION ${Number(subIdx) + 1} OF ${totalSub}` : ''}
             </span>
           </div>
           {scenarioTitle && (
-            <span className="bg-purple-200/90 text-purple-950 px-3 py-1 rounded-xl text-xs font-black">
+            <span className="bg-purple-200 text-purple-950 px-3 py-1 rounded-xl text-xs font-black">
               {scenarioTitle}
             </span>
           )}
@@ -314,13 +314,13 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           </p>
         )}
         {instructions && (
-          <p className="text-xs font-bold text-amber-950 bg-amber-100/90 px-3.5 py-1.5 rounded-xl border border-amber-200/90 mt-1 inline-block">
+          <p className="text-xs font-bold text-amber-950 bg-amber-100 px-3.5 py-1.5 rounded-xl border border-amber-200 mt-1 inline-block">
             💡 {instructions}
           </p>
         )}
         {backgroundContext && (
-          <p className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300 pt-1">
-            <strong className="font-extrabold text-slate-900 dark:text-white">Key Context:</strong> {backgroundContext}
+          <p className="text-xs md:text-sm font-semibold text-slate-800 pt-1">
+            <strong className="font-extrabold text-slate-950">Key Context:</strong> {backgroundContext}
           </p>
         )}
       </div>
@@ -415,16 +415,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
         {/* ------------------------------------------------------------- */}
         {isShowingAnswerGrouped ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b pb-3 border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b pb-3 border-slate-200">
               <div>
-                <h3 className="text-sm font-black uppercase text-purple-600 dark:text-purple-400 tracking-wider">
+                <h3 className="text-sm font-black uppercase text-purple-700 tracking-wider">
                   Correct Answer Key — By Category
                 </h3>
-                <p className="text-xs text-slate-500 font-medium mt-0.5">
+                <p className="text-xs text-slate-600 font-medium mt-0.5">
                   All {items.length} solution items classified under their correct target categories.
                 </p>
               </div>
-              <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300 rounded-xl text-xs font-black">
+              <span className="px-3 py-1 bg-purple-100 text-purple-900 rounded-xl text-xs font-black">
                 {categories.length} Categories
               </span>
             </div>
@@ -446,16 +446,16 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     }`}
                   >
                     {/* Category Header */}
-                    <div className="flex items-center justify-between border-b pb-2 border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center justify-between border-b pb-2 border-slate-100">
                       <div>
-                        <h4 className="text-xs font-black uppercase text-purple-600 dark:text-purple-400">
+                        <h4 className="text-xs font-black uppercase text-purple-700">
                           {cat.title}
                         </h4>
                         {cat.description && (
                           <p className="text-[10px] text-slate-500 font-medium mt-0.5">{cat.description}</p>
                         )}
                       </div>
-                      <span className="px-2.5 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-800 dark:text-purple-300 rounded-lg text-[10px] font-black">
+                      <span className="px-2.5 py-0.5 bg-purple-100 text-purple-900 rounded-lg text-[10px] font-black">
                         {correctItems.length} {correctItems.length === 1 ? 'item' : 'items'}
                       </span>
                     </div>
@@ -771,7 +771,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     const correctPiecesInOrder = pieces.filter((p) => p.isCorrect);
 
     return (
-      <div className="space-y-6 w-full font-sans text-slate-900 dark:text-slate-100">
+      <div className="space-y-6 w-full font-sans text-slate-900">
         {renderScenarioDetailsBanner()}
         {/* Header Section */}
         <div className={`p-6 rounded-3xl border shadow-sm ${mode === 'projector' ? 'bg-slate-900 border-white/20 text-white' : 'bg-slate-900 border-slate-800 text-white'}`}>
