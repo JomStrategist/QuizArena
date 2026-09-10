@@ -198,6 +198,7 @@ export async function GET(req: NextRequest) {
           sessionType: session.sessionType,
           questionTime, // Question-specific time limit
           maxParticipants: session.maxParticipants || 200,
+          participantsCount: participantList.length,
           speedScoring: session.speedScoring !== false,
           showCorrectAnswer: session.showCorrectAnswer !== false,
           showLeaderboard: session.showLeaderboard !== false,

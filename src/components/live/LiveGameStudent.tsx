@@ -169,7 +169,8 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           if (
             data.type === 'STAGE_CHANGED' ||
             data.type === 'GAME_STARTED' ||
-            data.type === 'GAME_CLOSED'
+            data.type === 'GAME_CLOSED' ||
+            data.type === 'PARTICIPANT_JOINED'
           ) {
             syncState();
             if (data.type === 'GAME_STARTED') {
@@ -477,7 +478,7 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           <div className="flex items-center justify-center gap-3 pt-1">
             <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-blue-100">
               <Users className="w-4 h-4 text-blue-400" />
-              <span>{session?.participantsCount || 0} Participants</span>
+              <span>{session?.participantsCount ?? liveStats?.totalParticipants ?? (rankings?.length || 0)} Participants</span>
             </div>
 
             <div className="bg-white/10 backdrop-blur-md border border-white/15 px-4 py-2 rounded-2xl flex items-center space-x-2 text-xs font-extrabold text-amber-200">
