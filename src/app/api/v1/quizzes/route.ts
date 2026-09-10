@@ -13,18 +13,16 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 async function ensureSeededQuizzes() {
-  const alreadySeeded = await SystemConfigModel.findOne({ key: 'html_quizzes_seeded' });
-  if (alreadySeeded) return;
+  const existingQuiz5 = await QuizModel.findOne({ title: 'AI Concepts & Prompting Quiz' });
+  if (existingQuiz5) return;
 
-  const count = await QuizModel.countDocuments();
-  if (count > 0) {
-    await SystemConfigModel.create({ key: 'html_quizzes_seeded', value: true });
-    return;
-  }
-
-  console.log('Performing initial auto-seed of 4 HTML Quiz Materials...');
+  console.log('Seeding pre-loaded HTML Quiz materials including AI Concepts & Prompting Quiz...');
   await seedQuizMaterials('650000000000000000000001');
-  await SystemConfigModel.create({ key: 'html_quizzes_seeded', value: true });
+  await SystemConfigModel.updateOne(
+    { key: 'html_quizzes_seeded' },
+    { value: true },
+    { upsert: true }
+  );
 }
 
 export async function GET(req: NextRequest) {
