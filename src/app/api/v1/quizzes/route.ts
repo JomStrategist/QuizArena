@@ -13,13 +13,14 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 async function ensureSeededQuizzes() {
+  // Update legacy title if present in database
+  await QuizModel.updateMany(
+    { title: 'AI Concepts & Prompting Quiz' },
+    { $set: { title: 'Activity 5: AI Concepts & Prompting Quiz' } }
+  );
+
   const activity1 = await QuizModel.findOne({ title: 'Activity 1: AI or Not? Challenge' });
-  const activity5 = await QuizModel.findOne({
-    $or: [
-      { title: 'Activity 5: AI Concepts & Prompting Quiz' },
-      { title: 'AI Concepts & Prompting Quiz' },
-    ],
-  });
+  const activity5 = await QuizModel.findOne({ title: 'Activity 5: AI Concepts & Prompting Quiz' });
 
   if (!activity1 || !activity5) {
     console.log('Seeding / restoring all 5 pre-loaded HTML Activity Quizzes...');

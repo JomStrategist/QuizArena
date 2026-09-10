@@ -79,7 +79,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  const itemsPerPage = 10;
 
   // Search, Filter & Pagination for Quizzes Tab
   const [quizzesTabSearch, setQuizzesTabSearch] = useState('');
@@ -88,7 +88,7 @@ export const TrainerDashboard: React.FC<TrainerDashboardProps> = ({
   const [quizzesTabSortBy, setQuizzesTabSortBy] = useState<'LAST_MODIFIED' | 'TITLE' | 'QUESTIONS'>('LAST_MODIFIED');
   const [quizzesTabViewMode, setQuizzesTabViewMode] = useState<'GRID' | 'LIST'>('LIST');
   const [quizzesTabPage, setQuizzesTabPage] = useState(1);
-  const quizzesTabItemsPerPage = 4;
+  const quizzesTabItemsPerPage = 10;
 
   // Modals
   const [isImportOpen, setIsImportOpen] = useState(false);
