@@ -355,43 +355,43 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
     <div className="min-h-screen bg-slate-950 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-indigo-950 to-slate-950 text-white flex flex-col justify-start p-3 sm:p-6 space-y-5 w-full font-sans">
       
       {/* Top Controls & Game Code Bar (Clean Header without extra logo) */}
-      <div className="bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl border border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-slate-900/80 backdrop-blur-xl p-3 sm:p-4 rounded-3xl border border-slate-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-3 sm:gap-4 max-w-full overflow-hidden">
         
         {/* Left: LIVE Badge & Activity Title */}
-        <div className="flex items-center space-x-3">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-full text-xs font-extrabold shadow-sm">
+        <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0">
+          <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2.5 py-1 bg-rose-500/20 border border-rose-500/40 text-rose-400 rounded-full text-xs font-extrabold shadow-sm shrink-0">
             <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping shrink-0" />
             <Radio className="w-3.5 h-3.5" />
             <span>LIVE</span>
           </div>
 
-          <h1 className="text-base sm:text-lg font-black text-white leading-tight truncate max-w-xs sm:max-w-md">
+          <h1 className="text-sm sm:text-base lg:text-lg font-black text-white leading-tight truncate max-w-xs sm:max-w-sm lg:max-w-md">
             {quizTitle}
           </h1>
         </div>
 
-        {/* Center: Glowing Game Code Box (Prominent & Extra Large) */}
-        <div className="flex items-center space-x-4 bg-gradient-to-r from-blue-950/80 via-indigo-950/80 to-blue-950/80 border-2 border-cyan-400/60 px-8 py-3 rounded-2xl shadow-xl shadow-cyan-500/20">
-          <span className="text-xs sm:text-sm font-black uppercase tracking-[0.2em] text-cyan-400 shrink-0">
+        {/* Center: Glowing Game Code Box (Clean, Proportional & Contained) */}
+        <div className="flex items-center space-x-2 sm:space-x-3 bg-gradient-to-r from-blue-950/80 via-indigo-950/80 to-blue-950/80 border-2 border-cyan-400/60 px-4 sm:px-6 py-2 rounded-2xl shadow-xl shadow-cyan-500/20 shrink-0">
+          <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] text-cyan-400 shrink-0">
             GAME CODE
           </span>
-          <span className="text-5xl sm:text-6xl md:text-7xl font-black font-mono tracking-[0.25em] text-cyan-300 drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]">
+          <span className="text-2xl sm:text-3xl lg:text-4xl font-black font-mono tracking-[0.15em] text-cyan-300 drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]">
             {quizCode}
           </span>
           <button
             onClick={handleCopyCode}
-            className="p-2 text-cyan-400 hover:text-cyan-200 hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
+            className="p-1.5 sm:p-2 text-cyan-400 hover:text-cyan-200 hover:bg-white/10 rounded-xl transition cursor-pointer shrink-0"
             title="Copy URL"
           >
-            {copied ? <Check className="w-6 h-6 text-emerald-400" /> : <Copy className="w-6 h-6" />}
+            {copied ? <Check className="w-5 h-5 text-emerald-400" /> : <Copy className="w-5 h-5" />}
           </button>
         </div>
 
         {/* Right Controls: Next Question, Pause, End Game */}
-        <div className="flex items-center space-x-2 shrink-0">
+        <div className="flex items-center flex-wrap sm:flex-nowrap gap-2 shrink-0">
           <button
             onClick={handleNextQuestion}
-            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-black transition flex items-center space-x-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
           >
             <span>Next Question</span>
             <ArrowRight className="w-4 h-4" />
@@ -400,7 +400,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
           <button
             onClick={handlePauseResumeToggle}
             disabled={actionLoading}
-            className={`px-4 py-2.5 rounded-xl font-black text-xs transition flex items-center space-x-1.5 shadow-sm cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-black text-xs transition flex items-center space-x-1.5 shadow-sm cursor-pointer ${
               stage === 'PAUSED'
                 ? 'bg-emerald-500 hover:bg-emerald-600 text-white'
                 : 'bg-blue-600/80 hover:bg-blue-600 border border-blue-400/30 text-white'
@@ -421,7 +421,7 @@ export const LiveGameTrainerControl: React.FC<LiveGameTrainerControlProps> = ({
 
           <button
             onClick={handleCloseClick}
-            className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition shadow-md shadow-rose-600/20 flex items-center space-x-1.5 cursor-pointer"
+            className="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition shadow-md shadow-rose-600/20 flex items-center space-x-1.5 cursor-pointer"
           >
             <StopCircle className="w-4 h-4" />
             <span>End Game</span>

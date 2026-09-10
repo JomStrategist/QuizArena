@@ -578,8 +578,12 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
 
   if (isAnswered && stage !== 'SHOWING_RESULT') {
     const chosenIndex = studentAnswer?.selectedOptionIndex ?? selectedOption ?? 0;
-    const rawChosen = currentQuestion?.options?.[chosenIndex] || 'Submitted Response';
-    const chosenText = rawChosen.split('||')[0];
+    const rawChosen = studentAnswer?.selectedSequence?.length
+      ? `Sequence Order (${studentAnswer.selectedSequence.length} Steps)`
+      : studentAnswer?.selectedCategoryAssignments
+      ? `Category Assignments (${Object.keys(studentAnswer.selectedCategoryAssignments).length} Items)`
+      : (currentQuestion?.options?.[chosenIndex] || 'Submitted Response');
+    const chosenText = typeof rawChosen === 'string' ? rawChosen.split('||')[0] : 'Submitted Response';
     const respTimeSec = ((studentAnswer?.responseTimeMs || Date.now() - startTimeMs) / 1000).toFixed(1);
 
     return (

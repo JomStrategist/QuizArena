@@ -27,7 +27,9 @@ interface SequenceChallengeViewProps {
   totalQuestions?: number;
   onNavigateQuestion?: (idx: number) => void;
   onCompleteChallenge?: (result: any) => void;
+  onSelectSequence?: (sequence: number[]) => void;
   disabled?: boolean;
+  isAnswerSubmitted?: boolean;
   showCorrectAnswer?: boolean;
 }
 
@@ -48,7 +50,9 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   totalQuestions = 5,
   onNavigateQuestion,
   onCompleteChallenge,
+  onSelectSequence,
   disabled = false,
+  isAnswerSubmitted = false,
   showCorrectAnswer = false,
 }) => {
   const isTrainerOrProjector = mode === 'trainer' || mode === 'projector';
@@ -95,12 +99,12 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
 
   // Timer interval
   useEffect(() => {
-    if (!timerRunning || evaluationResult || isTrainerOrProjector) return;
+    if (!timerRunning || evaluationResult || isTrainerOrProjector || isAnswerSubmitted) return;
     const interval = setInterval(() => {
       setSecondsSpent((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(interval);
-  }, [timerRunning, evaluationResult, isTrainerOrProjector]);
+  }, [timerRunning, evaluationResult, isTrainerOrProjector, isAnswerSubmitted]);
 
   const formatTimer = (totalSecs: number) => {
     const mins = Math.floor(totalSecs / 60);
@@ -109,9 +113,9 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   };
 
   // Reordering handlers (Move Up / Move Down)
-  const moveItem = (fromIdx: number, delta: number) => {
-    if (disabled || evaluationResult || isTrainerOrProjector) return;
-    const toIdx = fromIdx + delta;
+  const moveItem = (fromIdx: number, direction: number) => {
+    if (disabled || isAnswerSubmitted || isTrainerOrProjector) return;
+    const toIdx = fromIdx + direction;
     if (toIdx < 0 || toIdx >= itemsSequence.length) return;
     const updated = [...itemsSequence];
     const [moved] = updated.splice(fromIdx, 1);
@@ -121,20 +125,21 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
 
   // Drag & Drop handlers
   const handleDragStart = (e: React.DragEvent, idx: number) => {
-    if (disabled || evaluationResult || isTrainerOrProjector) return;
+    if (disabled || isAnswerSubmitted || isTrainerOrProjector) return;
     setDraggedIdx(idx);
     e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragOver = (e: React.DragEvent, idx: number) => {
     e.preventDefault();
-    if (draggedIdx === null || draggedIdx === idx || isTrainerOrProjector) return;
+    if (draggedIdx === null || draggedIdx === idx) return;
     setDragOverIdx(idx);
   };
 
   const handleDrop = (e: React.DragEvent, dropIdx: number) => {
     e.preventDefault();
-    if (draggedIdx === null || draggedIdx === dropIdx || isTrainerOrProjector) return;
+    if (draggedIdx === null || draggedIdx === dropIdx || disabled || isAnswerSubmitted || isTrainerOrProjector) return;
+
     const updated = [...itemsSequence];
     const [draggedItem] = updated.splice(draggedIdx, 1);
     updated.splice(dropIdx, 0, draggedItem);
@@ -148,15 +153,27 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
     setDragOverIdx(null);
   };
 
-  // Submit sequence to backend evaluation
+  // Submit sequence order
   const handleCheckSequence = async () => {
-    if (itemsSequence.length === 0 || isTrainerOrProjector) return;
+    if (itemsSequence.length === 0 || isTrainerOrProjector || disabled || isAnswerSubmitted) return;
+
+    const originalOptions: string[] = question.options || [];
+    const submittedIndices: number[] = itemsSequence.map((item) => {
+      const idx = originalOptions.indexOf(item.text);
+      if (idx !== -1) return idx;
+      const parts = item.id ? item.id.split('_') : [];
+      const lastNum = parseInt(parts[parts.length - 1], 10);
+      return !isNaN(lastNum) ? lastNum - 1 : 0;
+    });
+
+    if (onSelectSequence) {
+      onSelectSequence(submittedIndices);
+      return;
+    }
 
     setIsEvaluating(true);
     setEvaluationError(null);
     setTimerRunning(false);
-
-    const learnerSequenceIds = itemsSequence.map((it) => it.id);
 
     try {
       const res = await fetch('/api/v1/quizzes/activity4/evaluate', {
@@ -164,7 +181,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           questionId,
-          learnerSequenceIds,
+          learnerSequenceIds: itemsSequence.map((it) => it.id),
           timeSpentSeconds: secondsSpent,
         }),
       });
@@ -187,56 +204,40 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
     }
   };
 
-  const handleRestart = () => {
-    setItemsSequence(shuffleArray(initialItems));
-    setEvaluationResult(null);
-    setEvaluationError(null);
-    setSecondsSpent(0);
-    setTimerRunning(true);
-  };
-
-  const exerciseTitle = seqData.scenarioTitle || question.questionText || 'Sequence Challenge';
+  const exerciseTitle = question.questionText || (seqData as any).title || `Exercise ${questionIndex + 1}: Sequence Ordering`;
   const exerciseText = seqData.scenarioText || question.explanation || 'Arrange the items into the correct logical sequence.';
   const instruction = seqData.instruction || 'Arrange the steps in the correct order.';
 
   return (
-    <div className="w-full font-sans text-slate-900 space-y-6">
-      {/* Exercise Card Container */}
-      <div className={`p-6 rounded-3xl border space-y-6 shadow-xl ${
-        mode === 'projector'
-          ? 'bg-slate-900 text-white border-white/20'
-          : mode === 'trainer'
-          ? 'bg-white text-slate-900 border-slate-200 shadow-sm'
-          : 'bg-slate-900 text-white border-slate-800'
-      }`}>
-        {/* Header Bar: Badge, Title, Timer */}
-        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
-          mode === 'trainer' ? 'border-slate-100' : 'border-slate-800'
-        }`}>
-          <div className="space-y-1">
-            <div className="flex items-center space-x-2">
-              <span className="px-3 py-1 bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30 rounded-full text-[11px] font-black uppercase tracking-wider inline-block">
-                Activity 4 • Exercise {questionIndex + 1} of {totalQuestions}
-              </span>
-              <span className={`text-xs font-bold ${mode === 'trainer' ? 'text-slate-500' : 'text-slate-400'}`}>
-                {question.topic || 'Sequence Ordering'}
-              </span>
-            </div>
-            <h2 className={`text-xl md:text-2xl font-black ${mode === 'trainer' ? 'text-slate-900' : 'text-white'}`}>
-              {exerciseTitle}
-            </h2>
+    <div className="w-full space-y-6 animate-in fade-in duration-300">
+      {/* Header Info */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700/60 pb-4">
+        <div>
+          <div className="flex items-center space-x-2 text-xs font-black uppercase tracking-widest text-purple-400">
+            <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 border border-purple-500/30">
+              Activity 4 • Exercise {questionIndex + 1} of {totalQuestions}
+            </span>
+            <span>Sequence Ordering</span>
           </div>
-
-          {!isTrainerOrProjector && (
-            <div className="flex items-center space-x-2 px-3.5 py-1.5 bg-slate-800 border border-slate-700 rounded-full font-mono text-xs font-bold text-amber-400 self-start sm:self-auto">
-              <Clock className="w-4 h-4 text-amber-400" />
-              <span>Time Spent: {formatTimer(secondsSpent)}</span>
-            </div>
-          )}
+          <h2 className={`text-xl sm:text-2xl font-black mt-1 ${
+            mode === 'trainer' ? 'text-slate-900' : 'text-white'
+          }`}>
+            {exerciseTitle}
+          </h2>
         </div>
 
-        {/* Instructions & Scenario Description */}
-        <div className={`p-4 rounded-2xl text-xs md:text-sm leading-relaxed space-y-1 ${
+        {/* Timer Badge */}
+        {!isTrainerOrProjector && (
+          <div className="flex items-center space-x-2 px-3.5 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-300 font-mono text-xs font-bold shrink-0 self-start sm:self-auto">
+            <Clock className="w-4 h-4 text-amber-400" />
+            <span>Time Spent: {formatTimer(secondsSpent)}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Scenario Instruction Box */}
+      <div className="space-y-4">
+        <div className={`p-4 rounded-2xl border space-y-1.5 text-xs sm:text-sm ${
           mode === 'trainer'
             ? 'bg-purple-50 border-l-4 border-purple-600 text-purple-950'
             : 'bg-slate-800/80 border-l-4 border-purple-500 text-slate-300'
@@ -244,37 +245,6 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
           <span className="text-[10px] uppercase font-black tracking-wider text-purple-600 dark:text-purple-400 block">Scenario & Instruction</span>
           <p className={`font-medium ${mode === 'trainer' ? 'text-slate-800' : 'text-slate-200'}`}>{exerciseText}</p>
           <p className="font-bold text-purple-600 dark:text-purple-300 pt-1">{instruction}</p>
-        </div>
-
-        {/* Exercise Progress Tracker Dots */}
-        <div className="flex items-center flex-wrap gap-1.5 sm:gap-2 pt-1 max-w-full overflow-x-auto no-scrollbar pb-1">
-          <span className={`text-[10px] font-black uppercase tracking-wider mr-1 sm:mr-2 ${mode === 'trainer' ? 'text-slate-500' : 'text-slate-400'}`}>Progress:</span>
-          {Array.from({ length: totalQuestions }).map((_, idx) => {
-            const isCurrent = questionIndex === idx;
-            const isPassed = idx < questionIndex;
-            return (
-              <React.Fragment key={idx}>
-                {idx > 0 && (
-                  <div className={`h-0.5 w-2 sm:w-4 ${isPassed ? 'bg-purple-500' : mode === 'trainer' ? 'bg-slate-200' : 'bg-slate-800'}`} />
-                )}
-                <button
-                  type="button"
-                  onClick={() => onNavigateQuestion?.(idx)}
-                  className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] font-black transition ${
-                    isCurrent
-                      ? 'bg-purple-600 text-white ring-2 ring-purple-400 shadow-md'
-                      : isPassed
-                      ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/40'
-                      : mode === 'trainer'
-                      ? 'bg-slate-100 text-slate-500 border border-slate-200'
-                      : 'bg-slate-800 text-slate-500 border border-slate-700'
-                  }`}
-                >
-                  {idx + 1}
-                </button>
-              </React.Fragment>
-            );
-          })}
         </div>
 
         {/* SEQUENCE BUILDER PANEL */}
@@ -286,7 +256,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
               <ListOrdered className="w-4 h-4 text-purple-500" />
               <span>{showCorrectAnswer ? 'Correct Sequence Order' : 'Sequence Ordering Steps'} ({itemsSequence.length} Steps)</span>
             </h3>
-            {!isTrainerOrProjector && (
+            {!isTrainerOrProjector && !disabled && !isAnswerSubmitted && (
               <span className="text-xs text-slate-400 font-medium hidden sm:inline">
                 Use Pos dropdown or ▲ ▼ buttons to reorder steps
               </span>
@@ -299,14 +269,13 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
               const isDragging = draggedIdx === idx;
               const isOver = dragOverIdx === idx;
 
-              // Evaluation result highlight per position
               const posEval = evaluationResult?.positionResults?.[idx];
               const isEvaluated = !!evaluationResult;
 
               return (
                 <div
                   key={item.id || idx}
-                  draggable={!disabled && !isEvaluated && !isTrainerOrProjector}
+                  draggable={!disabled && !isAnswerSubmitted && !isEvaluated && !isTrainerOrProjector}
                   onDragStart={(e) => handleDragStart(e, idx)}
                   onDragOver={(e) => handleDragOver(e, idx)}
                   onDrop={(e) => handleDrop(e, idx)}
@@ -326,7 +295,6 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                   }`}
                 >
                   <div className="flex items-center space-x-2.5 sm:space-x-3.5 pr-1.5 sm:pr-2 min-w-0 flex-1">
-                    {/* Position Badge Number */}
                     <span
                       className={`w-6 h-6 sm:w-7 sm:h-7 rounded-xl font-black flex items-center justify-center text-xs shrink-0 transition ${
                         isEvaluated
@@ -340,7 +308,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                     </span>
 
                     {/* Drag Handle Icon ☰ (Players Only) */}
-                    {!isEvaluated && !disabled && !isTrainerOrProjector && (
+                    {!isEvaluated && !disabled && !isAnswerSubmitted && !isTrainerOrProjector && (
                       <div className="cursor-grab active:cursor-grabbing text-slate-500 hover:text-purple-400 transition shrink-0 hidden sm:block" title="Drag to reorder">
                         <GripVertical className="w-4 h-4" />
                       </div>
@@ -351,12 +319,6 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                       <span className={`font-extrabold ${mode === 'trainer' ? 'text-slate-900' : 'text-white'}`}>{item.text}</span>
                       {item.description && (
                         <p className={`text-[11px] font-normal mt-0.5 ${mode === 'trainer' ? 'text-slate-500' : 'text-slate-400'}`}>{item.description}</p>
-                      )}
-                      {isEvaluated && !posEval?.isCorrectPosition && (
-                        <p className="text-[11px] font-bold text-rose-300 mt-1 flex items-center space-x-1">
-                          <span>Expected position {idx + 1}:</span>
-                          <span className="underline">{posEval?.expectedText}</span>
-                        </p>
                       )}
                     </div>
                   </div>
@@ -373,26 +335,14 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                           Step Item
                         </span>
                       )
-                    ) : isEvaluated ? (
-                      posEval?.isCorrectPosition ? (
-                        <div className="flex items-center space-x-1.5 px-3 py-1 bg-emerald-500/20 border border-emerald-500/40 rounded-full text-emerald-300 text-xs font-black">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>✓ Correct Position</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center space-x-1.5 px-3 py-1 bg-rose-500/20 border border-rose-500/40 rounded-full text-rose-300 text-xs font-black">
-                          <XCircle className="w-3.5 h-3.5 text-rose-400" />
-                          <span>✕ Incorrect Position</span>
-                        </div>
-                      )
                     ) : (
-                      !disabled && (
+                      !disabled && !isAnswerSubmitted && (
                         <div className="flex items-center space-x-1 sm:space-x-2">
-                          {/* Position Picker Dropdown for Mobile 1-Tap Reordering */}
+                          {/* Position Picker Dropdown */}
                           <div className="flex items-center space-x-0.5 sm:space-x-1">
                             <span className="text-[9px] sm:text-[10px] font-black uppercase text-slate-400">Pos:</span>
                             <select
-                              disabled={disabled}
+                              disabled={disabled || isAnswerSubmitted}
                               value={idx + 1}
                               onChange={(e) => {
                                 const targetPos = parseInt(e.target.value, 10) - 1;
@@ -417,7 +367,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                             <button
                               type="button"
                               onClick={() => moveItem(idx, -1)}
-                              disabled={idx === 0}
+                              disabled={idx === 0 || disabled || isAnswerSubmitted}
                               className="p-1.5 sm:p-2 min-w-[30px] sm:min-w-[36px] min-h-[30px] sm:min-h-[36px] flex items-center justify-center rounded-xl bg-slate-700 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-30 text-white font-bold transition shadow-xs"
                               title="Move Up"
                             >
@@ -426,7 +376,7 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
                             <button
                               type="button"
                               onClick={() => moveItem(idx, 1)}
-                              disabled={idx === itemsSequence.length - 1}
+                              disabled={idx === itemsSequence.length - 1 || disabled || isAnswerSubmitted}
                               className="p-1.5 sm:p-2 min-w-[30px] sm:min-w-[36px] min-h-[30px] sm:min-h-[36px] flex items-center justify-center rounded-xl bg-slate-700 hover:bg-purple-600 active:bg-purple-700 disabled:opacity-30 text-white font-bold transition shadow-xs"
                               title="Move Down"
                             >
@@ -448,90 +398,29 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
             </div>
           )}
 
-          {/* CHECK SEQUENCE BUTTON (Pre-evaluation) */}
-          {!evaluationResult && (
+          {/* SUBMIT SEQUENCE ORDER BUTTON */}
+          {!isTrainerOrProjector && (
             <div className="flex justify-end pt-3">
               <button
                 type="button"
-                disabled={isEvaluating || disabled}
+                disabled={isEvaluating || disabled || isAnswerSubmitted}
                 onClick={handleCheckSequence}
                 className="px-6 py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:opacity-40 text-white rounded-2xl font-black text-xs transition shadow-lg flex items-center space-x-2 cursor-pointer"
               >
-                {isEvaluating ? (
-                  <span>Evaluating Sequence...</span>
+                {isAnswerSubmitted ? (
+                  <span>✓ Sequence Answer Submitted</span>
+                ) : isEvaluating ? (
+                  <span>Submitting...</span>
                 ) : (
                   <>
                     <Zap className="w-4 h-4 fill-white" />
-                    <span>✓ Check Sequence Order</span>
+                    <span>✓ Submit Sequence Order</span>
                   </>
                 )}
               </button>
             </div>
           )}
         </div>
-
-        {/* EVALUATION RESULTS CARD */}
-        {evaluationResult && (
-          <div className="p-6 bg-slate-800/90 rounded-2xl border border-slate-700 space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-700 pb-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-purple-400 block">Evaluation Result</span>
-                <h3 className="text-xl font-black text-white">{evaluationResult.feedbackTitle}</h3>
-                <p className="text-xs text-slate-300 mt-0.5">
-                  {evaluationResult.correctCount} of {evaluationResult.totalPositions} steps placed in exact position
-                </p>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <div className="text-right">
-                  <span className="text-3xl font-black text-white">{evaluationResult.totalScore}</span>
-                  <span className="text-sm font-bold text-slate-400"> / {evaluationResult.maxPossibleScore}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Explanation Rationale Box */}
-            <div className="p-4 bg-slate-900 border border-slate-750 rounded-xl text-xs text-slate-300 space-y-1.5 leading-relaxed">
-              <span className="font-black uppercase text-[10px] tracking-wider text-purple-400 block">Logical Sequence Rationale</span>
-              <p>{evaluationResult.explanation}</p>
-            </div>
-
-            {/* Nav & Action Buttons */}
-            <div className="flex flex-wrap justify-between items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleRestart}
-                className="px-5 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl font-extrabold text-xs flex items-center space-x-2 transition"
-              >
-                <RotateCcw className="w-4 h-4" />
-                <span>Re-try Sequence</span>
-              </button>
-
-              <div className="flex items-center space-x-2">
-                {questionIndex > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => onNavigateQuestion?.(questionIndex - 1)}
-                    className="px-4 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl font-bold text-xs flex items-center space-x-1.5"
-                  >
-                    <ArrowLeft className="w-4 h-4" />
-                    <span>Previous</span>
-                  </button>
-                )}
-                {questionIndex < totalQuestions - 1 && (
-                  <button
-                    type="button"
-                    onClick={() => onNavigateQuestion?.(questionIndex + 1)}
-                    className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-black text-xs flex items-center space-x-2 shadow-md transition"
-                  >
-                    <span>Next Exercise</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

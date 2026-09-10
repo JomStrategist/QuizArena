@@ -340,7 +340,9 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           questionIndex={questionIndex}
           totalQuestions={totalQuestions}
           onNavigateQuestion={onNavigateQuestion}
-          disabled={disabled}
+          onSelectSequence={onSelectSequence}
+          disabled={disabled || isAnswerSubmitted}
+          isAnswerSubmitted={isAnswerSubmitted}
         />
       </div>
     );
