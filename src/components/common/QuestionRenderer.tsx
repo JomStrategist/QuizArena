@@ -123,7 +123,29 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
     setSelectedPromptPieces([]);
     setScenarioSubAnswers({});
     setActiveSubQIdx(0);
-    setSubSeqMap({});
+    
+    // Pre-shuffle subSeqMap for CORRECT_SEQUENCE sub-questions
+    const initialSubSeq: Record<number, number[]> = {};
+    const subQs = question?.scenarioQuestionsData?.subQuestions || (question as any)?.subQuestions || [];
+    subQs.forEach((sq: any, sIdx: number) => {
+      if (sq.questionType === 'CORRECT_SEQUENCE' && sq.options && sq.options.length > 1) {
+        const indices = sq.options.map((_: any, i: number) => i);
+        let shuffled = [...indices];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        let isSame = true;
+        for (let k = 0; k < shuffled.length; k++) {
+          if (shuffled[k] !== indices[k]) { isSame = false; break; }
+        }
+        if (isSame && shuffled.length > 1) {
+          [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+        }
+        initialSubSeq[sIdx] = shuffled;
+      }
+    });
+    setSubSeqMap(initialSubSeq);
     setLocalMultiSelected(selectedOptionIndices || []);
   }, [questionId, selectedOptionIndices]);
 
@@ -1166,20 +1188,32 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
           {/* CORRECT_SEQUENCE */}
           {sqType === 'CORRECT_SEQUENCE' && subQ.options && (
             <div className="space-y-2">
-              {selectedSeq.map((optIdx: number, pos: number) => {
+              {(shouldShowAll ? (subQ.correctOrder && subQ.correctOrder.length > 0 ? subQ.correctOrder : subQ.options.map((_: any, i: number) => i)) : selectedSeq).map((optIdx: number, pos: number) => {
                 const stepText = subQ.options[optIdx] || `Step ${optIdx + 1}`;
-                const correctPos = shouldShowAll ? subQ.correctOrder?.indexOf(optIdx) : null;
+                const targetOrder = subQ.correctOrder && subQ.correctOrder.length > 0 ? subQ.correctOrder : subQ.options.map((_: any, i: number) => i);
+                const isCorrectPos = shouldShowAll || (selectedSeq[pos] === targetOrder[pos]);
                 return (
                   <div key={optIdx} className={`p-3.5 rounded-2xl border flex items-center justify-between transition ${
                     shouldShowAll
-                      ? pos === correctPos ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'
+                      ? 'bg-emerald-50 border-emerald-300 text-emerald-950 shadow-xs'
+                      : isSubAnswered
+                      ? isCorrectPos ? 'bg-emerald-50 border-emerald-300 text-emerald-950' : 'bg-rose-50 border-rose-300 text-rose-950'
                       : 'bg-white border-slate-200 text-slate-900 shadow-xs'
                   }`}>
                     <div className="flex items-center space-x-3">
-                      <span className="w-7 h-7 rounded-xl bg-blue-600 text-white font-black flex items-center justify-center text-xs shrink-0">{pos + 1}</span>
+                      <span className={`w-7 h-7 rounded-xl font-black flex items-center justify-center text-xs shrink-0 ${
+                        shouldShowAll ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'
+                      }`}>
+                        {pos + 1}
+                      </span>
                       <span className="text-xs sm:text-sm font-bold text-slate-900">{stepText}</span>
                     </div>
-                    {mode === 'player' && !disabled && !shouldShowAll && (
+
+                    {shouldShowAll ? (
+                      <span className="px-3 py-1 bg-emerald-600 text-white border border-emerald-500 rounded-xl text-xs font-black shrink-0">
+                        Step {pos + 1}
+                      </span>
+                    ) : mode === 'player' && !disabled && !shouldShowAll && (
                       <div className="flex items-center space-x-2">
                         {/* Position Picker Dropdown for Mobile 1-Tap Reordering */}
                         <div className="flex items-center space-x-1">

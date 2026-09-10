@@ -795,8 +795,10 @@ export const LiveGameStudent: React.FC<LiveGameStudentProps> = ({
           </div>
         )}
 
-        {/* Category-Grouped Answer Key for DRAG_AND_DROP Questions */}
-        {currentQuestion?.questionType === 'DRAG_AND_DROP' && (
+        {/* Answer Key Breakdown for DRAG_AND_DROP, CORRECT_SEQUENCE, and SCENARIO_QUESTIONS */}
+        {(currentQuestion?.questionType === 'DRAG_AND_DROP' ||
+          currentQuestion?.questionType === 'CORRECT_SEQUENCE' ||
+          currentQuestion?.questionType === 'SCENARIO_QUESTIONS') && (
           <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
             <QuestionRenderer
               question={currentQuestion}

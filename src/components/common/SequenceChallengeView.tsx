@@ -35,10 +35,23 @@ interface SequenceChallengeViewProps {
 
 // Shuffling helper
 function shuffleArray<T>(array: T[]): T[] {
+  if (array.length <= 1) return [...array];
   const arr = [...array];
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+  let attempts = 0;
+  while (attempts < 10) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    let isDifferent = false;
+    for (let k = 0; k < arr.length; k++) {
+      if (arr[k] !== array[k]) {
+        isDifferent = true;
+        break;
+      }
+    }
+    if (isDifferent) break;
+    attempts++;
   }
   return arr;
 }
@@ -87,7 +100,10 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
   // Initialize & shuffle on question change or answer reveal
   useEffect(() => {
     if (showCorrectAnswer) {
-      setItemsSequence(initialItems);
+      const sortedByCorrect = [...initialItems].sort(
+        (a, b) => (a.correctPosition || 0) - (b.correctPosition || 0)
+      );
+      setItemsSequence(sortedByCorrect);
     } else {
       setItemsSequence(isTrainerOrProjector ? initialItems : shuffleArray(initialItems));
     }
@@ -317,16 +333,14 @@ export const SequenceChallengeView: React.FC<SequenceChallengeViewProps> = ({
 
                   {/* Right Side: Reordering Controls (Player) or Status (Trainer) */}
                   <div className="flex items-center space-x-1 sm:space-x-2 shrink-0 ml-1">
-                    {isTrainerOrProjector ? (
-                      showCorrectAnswer ? (
-                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-lg text-[10px] font-black">
-                          Step {idx + 1}
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold">
-                          Step Item
-                        </span>
-                      )
+                    {showCorrectAnswer ? (
+                      <span className="px-3 py-1 bg-emerald-600 text-white border border-emerald-500 rounded-xl text-xs font-black shadow-xs">
+                        Step {idx + 1}
+                      </span>
+                    ) : isTrainerOrProjector ? (
+                      <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-bold">
+                        Step Item
+                      </span>
                     ) : (
                       !disabled && !isAnswerSubmitted && (
                         <div className="flex items-center space-x-1 sm:space-x-2">

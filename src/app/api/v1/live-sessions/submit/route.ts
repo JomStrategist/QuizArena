@@ -151,14 +151,24 @@ export async function POST(req: NextRequest) {
           isCorrect = correctSelectedCount === correct.length && wrongSelectedCount === 0;
         }
       } else if (qType === 'CORRECT_SEQUENCE') {
-        const correctOrder: number[] = Array.isArray(question.correctOrder) && question.correctOrder.length > 0
-          ? question.correctOrder
-          : (Array.isArray(question.options) ? question.options.map((_: any, idx: number) => idx) : []);
+        let correctOrder: number[] = [];
+        if (Array.isArray(question.correctOrder) && question.correctOrder.length > 0) {
+          correctOrder = question.correctOrder;
+        } else if (question.sequenceData?.items && question.sequenceData.items.length > 0) {
+          const sortedItems = [...question.sequenceData.items].sort((a: any, b: any) => (a.correctPosition || 0) - (b.correctPosition || 0));
+          const opts = question.options || [];
+          correctOrder = sortedItems.map((item: any) => {
+            const idx = opts.indexOf(item.text);
+            return idx !== -1 ? idx : (item.correctPosition - 1);
+          });
+        } else if (Array.isArray(question.options) && question.options.length > 0) {
+          correctOrder = question.options.map((_: any, idx: number) => idx);
+        }
 
         if (Array.isArray(selectedSequence) && correctOrder.length > 0) {
           const totalSteps = correctOrder.length;
           const correctCount = selectedSequence.filter((val: number, idx: number) => val === correctOrder[idx]).length;
-          const scoreRatio = Math.max(0, correctCount / totalSteps);
+          const isAllCorrect = correctCount === totalSteps && selectedSequence.length === totalSteps;
 
           const fullScore = session.speedScoring !== false
             ? calculateQuestionScore({
@@ -169,8 +179,14 @@ export async function POST(req: NextRequest) {
               })
             : maxPts;
 
-          scenarioEarnedPoints = Math.round(fullScore * scoreRatio);
-          isCorrect = correctCount === totalSteps;
+          if (isAllCorrect) {
+            isCorrect = true;
+            scenarioEarnedPoints = fullScore;
+          } else {
+            isCorrect = false;
+            const scoreRatio = Math.max(0, correctCount / totalSteps);
+            scenarioEarnedPoints = Math.round(fullScore * scoreRatio);
+          }
         }
       } else if (qType === 'DRAG_AND_DROP') {
         if (selectedCategoryAssignments && question.categoryAssignments) {
@@ -219,10 +235,16 @@ export async function POST(req: NextRequest) {
               const seq = typeof sqAns === 'object' && sqAns !== null && Array.isArray(sqAns.selectedSequence)
                 ? sqAns.selectedSequence
                 : (Array.isArray(sqAns) ? sqAns : []);
-              if (Array.isArray(seq) && Array.isArray(sq.correctOrder)) {
+              let targetCorrect: number[] = [];
+              if (Array.isArray(sq.correctOrder) && sq.correctOrder.length > 0) {
+                targetCorrect = sq.correctOrder;
+              } else if (Array.isArray(sq.options)) {
+                targetCorrect = sq.options.map((_: any, i: number) => i);
+              }
+              if (Array.isArray(seq) && targetCorrect.length > 0) {
                 sqCorrect =
-                  seq.length === sq.correctOrder.length &&
-                  seq.every((val: number, i: number) => val === sq.correctOrder[i]);
+                  seq.length === targetCorrect.length &&
+                  seq.every((val: number, i: number) => val === targetCorrect[i]);
               }
             } else {
               const selectedIdx = typeof sqAns === 'object' && sqAns !== null && sqAns.selectedOptionIndex !== undefined
