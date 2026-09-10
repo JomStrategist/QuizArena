@@ -1,0 +1,21 @@
+Question,Answer 1,Answer 2,Answer 3,Answer 4,Time limit (sec),Correct answer(s)
+"A company uses five years of sales data to predict next month's demand. Which AI is used?","Natural Language Processing","Generative AI","Machine Learning","Computer Vision",30,3
+"An AI system only detects suspicious credit card transactions. What type of AI is this?","Narrow AI","General AI","Self-Aware AI","Super AI",30,1
+"AI summarizes sales data; the employee reviews it and decides the action. What is this?","Super AI","AI Agent","Agentic AI","AI Copilot",30,4
+"What makes an AI system more agentic than simply asking it to write an email?","It produces a professional-looking email","It performs a sequence of actions toward a goal","It uses a longer prompt","It generates text using an LLM",30,2
+"AI accesses records, investigates issues, updates data and escalates cases. What is it?","A rule-based system","A Reactive Machine","An AI Agent using information and tools","A system that only generates content",30,3
+"During LLM inference, what primarily happens as a response is generated?","The AI develops consciousness","It retrieves a stored human-written answer","It searches the internet for the answer","It calculates probabilities for the next tokens",30,4
+"Which statement best explains the relationship between an LLM and a chatbot?","The chatbot trains the LLM for every prompt","LLM handles language; chatbot provides the interface","ChatGPT is the LLM and GPT is the chatbot","They are exactly the same technology",30,2
+"An AI gives realistic citations, but two papers cannot be found. What should you do?","Verify the citations externally before using them","Assume the papers are private","Trust them because the AI sounds confident","Ask AI to make the citations more professional",30,1
+"Which prompt gives the most useful context for recommending a BI tool?","Recommend a BI tool and be creative","M365 + SQL Server; avoid coding; executives; dashboards","Recommend the most popular BI tool","Recommend a BI tool as quickly as possible",30,2
+"Which combination gives AI the most complete instructions for a business task?","Company name + employee name + software + file name","Question + answer + keyword + token + temperature","Audience + question + tool + web search + response length","Role + context + goal + format + boundaries",30,4
+"Which constraints best suit a short, executive cybersecurity explanation?","Highly technical language and maximum detail","3 examples, <200 words, executive, plain business language","Make it as long as possible","Explain every technical term in full detail",30,2
+"Which questions best identify what is missing from a generic KPI request?","Font, colors and dashboard size","How to make the answer longer","Context, decisions, audience, assumptions, data and needs","Only the preferred dashboard software",30,3
+"An AI Agent must always operate completely autonomously without human approval.","True","False",,,20,2
+"Generative AI is mainly known for creating new content such as text, images, music or code.","True","False",,,20,1
+"Because AI sounds human-like, it necessarily has consciousness, beliefs and genuine emotions.","True","False",,,20,2
+"Providing useful context and clues in a prompt can help AI produce a more relevant response.","True","False",,,20,1
+"A system researches prospects, personalizes outreach and updates the CRM. What concept fits?","Reactive Machine","AI Agent","Generative AI only","AI Copilot only",30,2
+"AI gets examples of KPI definitions and creates new KPIs in the same style. Which technique?","Prompt Debugging","Meta Prompting","Few-Shot Prompting","Self-Critique Loop",30,3
+"A manager asks AI to review a sales summary, find weaknesses and rewrite it. Which technique?","Persona Prompting","Meta Prompting","Few-Shot Prompting","Self-Critique Loop",30,4
+"AI is asked questions to find missing information, then build the best prompt. Which technique?","Meta Prompting","Persona Prompting","Computer Vision","Few-Shot Prompting",30,1

@@ -21,13 +21,13 @@ export function parseExcelQuestionFile(buffer: Buffer, fileName: string): IImpor
     };
 
     const questionText = getVal(['question', 'questiontext', 'question text']);
-    const optionA = getVal(['option a', 'optiona', 'a', 'choice a']);
-    const optionB = getVal(['option b', 'optionb', 'b', 'choice b']);
-    const optionC = getVal(['option c', 'optionc', 'c', 'choice c']);
-    const optionD = getVal(['option d', 'optiond', 'd', 'choice d']);
-    const correctVal = getVal(['correct answer', 'correctanswer', 'correct', 'answer']);
-    const questionTypeVal = getVal(['question type', 'type']) || 'MCQ';
-    const timeLimitVal = parseInt(getVal(['time limit', 'time', 'timer']), 10) || 20;
+    const optionA = getVal(['option a', 'optiona', 'a', 'choice a', 'answer 1', 'answer1', 'option 1', 'choice 1']);
+    const optionB = getVal(['option b', 'optionb', 'b', 'choice b', 'answer 2', 'answer2', 'option 2', 'choice 2']);
+    const optionC = getVal(['option c', 'optionc', 'c', 'choice c', 'answer 3', 'answer3', 'option 3', 'choice 3']);
+    const optionD = getVal(['option d', 'optiond', 'd', 'choice d', 'answer 4', 'answer4', 'option 4', 'choice 4']);
+    const correctVal = getVal(['correct answer', 'correctanswer', 'correct', 'answer', 'correct answer(s)', 'correct answer (s)', 'correctanswer(s)']);
+    const questionTypeVal = getVal(['question type', 'type']);
+    const timeLimitVal = parseInt(getVal(['time limit', 'time', 'timer', 'time limit (sec)', 'time limit(sec)']), 10) || 30;
     const pointsVal = parseInt(getVal(['points', 'score']), 10) || 1000;
     const explanationText = getVal(['explanation', 'notes']);
     const categoryText = getVal(['category', 'subject']) || 'General';
@@ -55,11 +55,18 @@ export function parseExcelQuestionFile(buffer: Buffer, fileName: string): IImpor
         } else {
           errorMessage = `Correct option letter '${normalizedCorrect}' exceeds provided options count (${rawOptions.length}).`;
         }
+      } else if (['1', '2', '3', '4'].includes(normalizedCorrect)) {
+        const numIdx = parseInt(normalizedCorrect, 10) - 1;
+        if (numIdx < rawOptions.length) {
+          correctIndex = numIdx;
+        } else {
+          errorMessage = `Correct option index '${normalizedCorrect}' exceeds provided options count (${rawOptions.length}).`;
+        }
       } else {
         // Try matching text directly
         correctIndex = rawOptions.findIndex(opt => opt.trim().toLowerCase() === correctVal.trim().toLowerCase());
         if (correctIndex === -1) {
-          errorMessage = `Correct answer '${correctVal}' does not match any option (A, B, C, D or exact text).`;
+          errorMessage = `Correct answer '${correctVal}' does not match any option (1, 2, 3, 4, A, B, C, D or exact text).`;
         }
       }
     }
