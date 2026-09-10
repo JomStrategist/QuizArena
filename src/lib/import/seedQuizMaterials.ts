@@ -1133,9 +1133,9 @@ export async function seedQuizMaterials(trainerIdString: string = '6500000000000
 
   const quiz5 = await QuizModel.create({
     trainerId,
-    title: 'AI Concepts & Prompting Quiz',
+    title: 'Activity 5: AI Concepts & Prompting Quiz',
     category: 'AI & Prompting',
-    description: '20 Comprehensive questions covering AI Types, Copilots vs Agents, LLM Inference, and Prompt Engineering Techniques.',
+    description: 'Activity 5 — 20 Questions covering AI Types, Copilots vs Agents, LLM Inference, and Prompt Engineering Techniques.',
     instructions: 'Select the best answer for each question within the time limit.',
     questionIds: q5Docs.map((doc) => doc._id),
     status: 'READY',

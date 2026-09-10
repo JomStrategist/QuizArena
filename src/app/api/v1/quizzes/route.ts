@@ -13,16 +13,23 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 async function ensureSeededQuizzes() {
-  const existingQuiz5 = await QuizModel.findOne({ title: 'AI Concepts & Prompting Quiz' });
-  if (existingQuiz5) return;
+  const activity1 = await QuizModel.findOne({ title: 'Activity 1: AI or Not? Challenge' });
+  const activity5 = await QuizModel.findOne({
+    $or: [
+      { title: 'Activity 5: AI Concepts & Prompting Quiz' },
+      { title: 'AI Concepts & Prompting Quiz' },
+    ],
+  });
 
-  console.log('Seeding pre-loaded HTML Quiz materials including AI Concepts & Prompting Quiz...');
-  await seedQuizMaterials('650000000000000000000001');
-  await SystemConfigModel.updateOne(
-    { key: 'html_quizzes_seeded' },
-    { value: true },
-    { upsert: true }
-  );
+  if (!activity1 || !activity5) {
+    console.log('Seeding / restoring all 5 pre-loaded HTML Activity Quizzes...');
+    await seedQuizMaterials('650000000000000000000001');
+    await SystemConfigModel.updateOne(
+      { key: 'html_quizzes_seeded' },
+      { value: true },
+      { upsert: true }
+    );
+  }
 }
 
 export async function GET(req: NextRequest) {
