@@ -151,10 +151,26 @@ export async function POST(req: NextRequest) {
           isCorrect = correctSelectedCount === correct.length && wrongSelectedCount === 0;
         }
       } else if (qType === 'CORRECT_SEQUENCE') {
-        if (Array.isArray(selectedSequence) && Array.isArray(question.correctOrder)) {
-          isCorrect =
-            selectedSequence.length === question.correctOrder.length &&
-            selectedSequence.every((val: number, idx: number) => val === question.correctOrder[idx]);
+        const correctOrder: number[] = Array.isArray(question.correctOrder) && question.correctOrder.length > 0
+          ? question.correctOrder
+          : (Array.isArray(question.options) ? question.options.map((_: any, idx: number) => idx) : []);
+
+        if (Array.isArray(selectedSequence) && correctOrder.length > 0) {
+          const totalSteps = correctOrder.length;
+          const correctCount = selectedSequence.filter((val: number, idx: number) => val === correctOrder[idx]).length;
+          const scoreRatio = Math.max(0, correctCount / totalSteps);
+
+          const fullScore = session.speedScoring !== false
+            ? calculateQuestionScore({
+                isCorrect: true,
+                maxPoints: maxPts,
+                timeLimitSeconds: timeLimit,
+                responseTimeMs: actualResponseTimeMs,
+              })
+            : maxPts;
+
+          scenarioEarnedPoints = Math.round(fullScore * scoreRatio);
+          isCorrect = correctCount === totalSteps;
         }
       } else if (qType === 'DRAG_AND_DROP') {
         if (selectedCategoryAssignments && question.categoryAssignments) {
@@ -238,7 +254,7 @@ export async function POST(req: NextRequest) {
     }
 
     let pointsEarned = 0;
-    if ((qType === 'SCENARIO_QUESTIONS' && selectedSubAnswers) || qType === 'MULTIPLE_SELECT') {
+    if ((qType === 'SCENARIO_QUESTIONS' && selectedSubAnswers) || qType === 'MULTIPLE_SELECT' || qType === 'CORRECT_SEQUENCE') {
       pointsEarned = scenarioEarnedPoints;
     } else if (isCorrect && !isTimeout) {
       if (session.speedScoring !== false) {
